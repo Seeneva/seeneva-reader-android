@@ -1,5 +1,6 @@
 package com.almadevelop.comixreader
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -27,13 +28,22 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         val inputs = FirebaseModelInputs.Builder()
-            .add(renderScriptTest())
+            .add(ndkTest())
             .build()
 
         interpreter.run(inputs, modelInputOutput)
             .addOnSuccessListener {
                 val output = it.getOutput<Array<Array<FloatArray>>>(0)
-                Log.d("!!!!!", "!!!!!!!! ${it.getOutput<Array<Array<FloatArray>>>(0)[0][0][0]}")
+
+//                //calculate non padded entries
+//                val classesCount = 1
+//                // 1 - no object class. 4 - bounding box
+//                val numberOfOtputs = classesCount + 1 + 4
+//
+//                decodePrediction(output)
+
+                Log.d("!!!!!", "!!!!!!!! ${output[0][0].contentToString()}")
+                parsePrediction(output, CLASSES, BATCH_SIZE, ANCHORS_HEIGHT, ANCHORS_WIDTH, ANCHOR_PER_GRID)
             }.addOnFailureListener {
                 Log.d("!!!!!!!!!", it.message)
             }
@@ -57,6 +67,7 @@ class MainActivity : AppCompatActivity() {
 
     fun renderScriptTest(): Array<Array<Array<FloatArray>>> {
         val inB = BitmapFactory.decodeStream(assets.open("comix.jpg"))
+
         val imgW = inB.width
         val imgH = inB.height
 
@@ -78,6 +89,7 @@ class MainActivity : AppCompatActivity() {
 
         val input = Array(1) { Array(imgH) { Array(imgW) { FloatArray(3) } } }
 
+        //rotate indexes. Because height is first in the model input
         var h = 0
         var w = 0
 
@@ -99,7 +111,60 @@ class MainActivity : AppCompatActivity() {
         return input
     }
 
+    fun decodePrediction(pred: Array<Array<FloatArray>>) {
+        val rs = RenderScript.create(this)
+
+        val inAllocation = ScriptField_ModelPred.create1D(rs, 9750)
+
+        pred[0].forEachIndexed { i, a ->
+            ScriptField_ModelPred.Item().apply {
+                for (arrayIndex in 0 until 5) {
+                    y[arrayIndex] = a[arrayIndex]
+                }
+            }.also {
+                inAllocation.set(it, i, true)
+            }
+        }
+
+        val al = inAllocation.allocation
+
+        val script2 = ScriptC_prediction(rs)
+        //script2.invoke_decodePred(al, CLASSES, BATCH_SIZE, ANCHORS_HEIGHT, ANCHORS_WIDTH, ANCHOR_PER_GRID)
+    }
+
+    fun ndkTest(): Array<Array<Array<FloatArray>>> {
+        val inB = BitmapFactory.decodeStream(assets.open("comix.jpg"))
+        val r = stringFromJNI(inB)
+        inB.recycle()
+        return Array(1) { r }
+    }
+
+    /**
+     * A native method that is implemented by the 'native-lib' native library,
+     * which is packaged with this application.
+     */
+    external fun stringFromJNI(s: Bitmap): Array<Array<FloatArray>>
+
+    external fun parsePrediction(
+        pred: Array<Array<FloatArray>>,
+        cCount: Int,
+        batchSize: Int,
+        aHeigth: Int,
+        aWidth: Int,
+        aPerGrid: Int
+    )
+
     companion object {
         const val MODEL_NAME = "baloons"
+        const val CLASSES = 1
+        const val BATCH_SIZE = 4
+        const val ANCHORS_HEIGHT = 39
+        const val ANCHORS_WIDTH = 25
+        const val ANCHOR_PER_GRID = 10
+
+        // Used to load the 'native-lib' library on application startup.
+        init {
+            System.loadLibrary("native-lib")
+        }
     }
 }
