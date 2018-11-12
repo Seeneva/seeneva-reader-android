@@ -9,6 +9,17 @@ cmake_minimum_required(VERSION 3.4.1)
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
+include(ExternalProject)
+
+set(EIGEN_PREFIX ${CMAKE_BINARY_DIR}/eigen)
+set(INSTALL_PREF ${CMAKE_BINARY_DIR}/CMakeExternals/Install)
+
+ExternalProject_Add(eigen-project
+        PREFIX ${EIGEN_PREFIX}
+        GIT_REPOSITORY https://github.com/eigenteam/eigen-git-mirror.git
+        GIT_TAG 3.3.5
+        CMAKE_ARGS -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_INSTALL_PREFIX=${INSTALL_PREF})
+
 
 add_library( # Sets the name of the library.
         native-lib
@@ -19,7 +30,11 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         src/main/cpp/native-lib.cpp)
 
-include_directories(/home/zellius/Projects/Android/eigen-git-mirror-master/)
+add_dependencies(native-lib eigen-project)
+
+#include_directories(/home/zellius/Projects/Android/eigen-git-mirror-master/)
+
+include_directories(${INSTALL_PREF}/include/eigen3)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

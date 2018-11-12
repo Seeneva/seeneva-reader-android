@@ -1,8 +1,9 @@
 #include <jni.h>
 #include <string>
-#include <android/bitmap.h>
 #include <android/log.h>
 #include <unsupported/Eigen/CXX11/Tensor>
+#include "input.h"
+#include "output.h"
 
 using Eigen::Tensor;
 
@@ -11,65 +12,9 @@ Java_com_almadevelop_comixreader_MainActivity_stringFromJNI(
         JNIEnv *env,
         jobject /* this */,
         jobject bitmap) {
-
-    AndroidBitmapInfo info;
-    int ret;
-
-    if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
-        //LOGE("AndroidBitmap_getInfo() failed ! error=%d", ret);
-        //return NULL;
-    }
-
-    u_char *buffer;
-
-    AndroidBitmap_lockPixels(env, bitmap, (void **) &buffer);
-
-    Tensor<float, 3> imageTensor(info.height, info.width, 3);
-
-    for (int row = 0; row < info.height; row++) {
-        for (int col = 0; col < info.stride; col += 4) {
-            const int startPosition = row * info.stride + col;
-            for (int i = 0; i < 3; i++) {
-                //Eigen::TensorMap<Eigen::Tensor<int,3>> mapped(v.data(), 3, 3, 3 ); !try it!
-                imageTensor(row, col / 4, i) = buffer[startPosition + i];
-            }
-        }
-    }
-
-    AndroidBitmap_unlockPixels(env, bitmap);
-
-    Tensor<float, 0> imgMean = imageTensor.mean();
-
-    Tensor<float, 3> im = imageTensor - imageTensor.constant(imgMean(0));
-
-    Tensor<float, 0> imgSTD = (im.square().sum() / (float) imageTensor.size()).sqrt();
-
-    const Tensor<float, 3> imgNorm = im / im.constant(imgSTD(0));
-
-
-    const jclass floatArrayCls = env->FindClass("[F");
-
-    const jobjectArray hArray = env->NewObjectArray(info.height, env->FindClass("[[F"), NULL);
-
-    for (int h = 0; h < imgNorm.dimension(0); h++) {
-        jobjectArray wArray = env->NewObjectArray(info.width, floatArrayCls, NULL);
-        for (int w = 0; w < imgNorm.dimension(1); w++) {
-            jfloatArray vArray = env->NewFloatArray(3);
-            float a[3];
-
-            for (int v = 0; v < imgNorm.dimension(2); v++) {
-                a[v] = imgNorm(h, w, v);
-            }
-
-            env->SetFloatArrayRegion(vArray, 0, 3, a);
-            env->SetObjectArrayElement(wArray, w, vArray);
-            env->DeleteLocalRef(vArray);
-        }
-        env->SetObjectArrayElement(hArray, h, wArray);
-        env->DeleteLocalRef(wArray);
-    }
-
-    return hArray;
+    const Tensor<float, 3> imageTensor = bitmapToTensor(env, bitmap);
+    const Tensor<float, 3> imgNorm = preprocessImageTensor(imageTensor);
+    return imageTensorToJavaArray(env, imgNorm);
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -79,60 +24,92 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
         jobjectArray pred,
         jint cCount,
         jint batchSize,
+        jint anchors,
         jint aHeigth,
         jint aWidth,
         jint aPerGrid) {
-    //1 - backgound, 4 - bozes
-    const int totalOutputCount = cCount + 1 + 4;
+
+    PredictionInfo predInfo;
+    predInfo.classCount = cCount;
+    predInfo.batchSize = batchSize;
+    predInfo.anchors = anchors;
+    predInfo.aHeigth = aHeigth;
+    predInfo.aWidth = aWidth;
+    predInfo.aPerGrid = aPerGrid;
+
+    const int totalOutputCount = getTotalOutputCount(cCount);
     //number of class probabilities, n classes for each anchor
     const int numClassProbs = aPerGrid * cCount;
 
-    Tensor<float, 3> *tPred = 0;
+    const Tensor<float, 4> tPred = parsePredictions(env, pred, predInfo);
 
-    jsize firstArrayLength = env->GetArrayLength(pred);
+    // slice pred tensor to extract class pred scores and then normalize them
+    Eigen::array<int, 4> tOffsets = {0, 0, 0, 0};
+    Eigen::array<int, 4> tExtents = {tPred.dimension(0), tPred.dimension(1), tPred.dimension(2), numClassProbs};
 
-    for (int i = 0; i < firstArrayLength; i++) {
-        jobjectArray secondArray = static_cast<jobjectArray>(env->GetObjectArrayElement(pred, i));
-        jsize secondArrayLength = env->GetArrayLength(secondArray);
 
-        for (int j = 0; j < secondArrayLength; j++) {
-            jfloatArray jArray = static_cast<jfloatArray>(env->GetObjectArrayElement(secondArray, j));
-            jfloat *ar = env->GetFloatArrayElements(jArray, (jboolean *) JNI_FALSE);
+    Eigen::Tensor<float, 4> e = tPred.slice(tOffsets, tExtents);
+    array<int, 2> networkReshape{{e.size() / predInfo.classCount, predInfo.classCount}};
+    Eigen::Tensor<float, 2> resE = e.reshape(networkReshape);
 
-            if (tPred == 0) {
-                Tensor<float, 3> predTensor(firstArrayLength, secondArrayLength, totalOutputCount);
-                tPred = &predTensor;
-            }
+    const int kBatchDim = 0;
+    const int kClassDim = 1;
 
-            for (int z = 0; z < totalOutputCount; z++) {
-                tPred->operator()(i, j, z) = ar[z];
-            }
+    const int batch_size = (int) resE.dimension(kBatchDim);
+    const int num_classes = (int) resE.dimension(kClassDim);
 
-            env->ReleaseFloatArrayElements(jArray, ar, 0);
+    Eigen::DSizes<int, 1> along_class(1);
+    Eigen::DSizes<int, 2> batch_by_one(batch_size, 1);
+    Eigen::DSizes<int, 2> one_by_class(1, num_classes);
 
-            env->DeleteLocalRef(jArray);
-        }
+    Eigen::Tensor<float, 0> max = resE.maximum();
+    Eigen::Tensor<float, 2> exp = (resE - resE.constant(max(0))).exp();
+    Eigen::DSizes<int, 3> ttt(predInfo.batchSize, predInfo.anchors, predInfo.classCount);
+    Eigen::Tensor<float, 3> predClassProbs = (exp / exp.sum(along_class).eval().reshape(batch_by_one).broadcast(
+            one_by_class)).reshape(ttt);
 
-        env->DeleteLocalRef(secondArray);
-    }
 
-    if (tPred == 0) {
-        jclass errClass = env->FindClass("java/lang/Error");
-        env->ThrowNew(errClass, "Can't get access to tensor data.");
-        env->DeleteLocalRef(errClass);
-    } else {
-        Eigen::array<int, 4> networkReshape{{batchSize,
-                                                    aHeigth,
-                                                    aWidth,
-                                                    (int) tPred->size() / batchSize / aHeigth / aWidth}};
 
-        Tensor<float, 4> t = tPred->reshape(networkReshape);
 
-        // slice pred tensor to extract class pred scores and then normalize them
-        //Eigen::array<int, 4> t1 = {0, 0, 0, 0};
-        //Eigen::array<int, 4> t2 = {0, 0, 0, 0};
-        Tensor<float, 1> e = t.chip(0, 0);
+    // number of confidence scores, one for each anchor + class probs
+    const int num_confidence_scores = predInfo.aPerGrid + numClassProbs;
+    // slice the confidence scores and put them trough a sigmoid for probabilities
+    Eigen::array<int, 4> yOffsets = {0, 0, 0, numClassProbs};
+    Eigen::array<int, 4> yExtents = {tPred.dimension(0), tPred.dimension(1), tPred.dimension(2),
+                                     std::min(num_confidence_scores, (int) tPred.dimension(3)) - yOffsets[3]};
+    Eigen::DSizes<int, 2> yResize1(predInfo.batchSize, predInfo.anchors);
 
-        __android_log_print(ANDROID_LOG_VERBOSE, "APPNAME", "TEST %i", t.dimension(3));
-    }
+    Eigen::Tensor<float, 2> predConf = tPred.slice(yOffsets, yExtents).reshape(yResize1).sigmoid();
+
+
+    Eigen::array<int, 4> zOffsets = {0, 0, 0, num_confidence_scores};
+    Eigen::array<int, 4> zExtents = {tPred.dimension(0), tPred.dimension(1), tPred.dimension(2),
+                                     (int) tPred.dimension(3) - zOffsets[3]};
+
+    Eigen::DSizes<int, 3> zResize1(predInfo.batchSize, predInfo.anchors, 4);
+
+    Eigen::Tensor<float, 3> predBoxDelta = tPred.slice(zOffsets, zExtents).reshape(zResize1);
+
+
+    Eigen::array<int, 3> predBoxDeltaOffsetX = {0, 0, 0};
+    Eigen::array<int, 3> predBoxDeltaOffsetY = {0, 0, 1};
+    Eigen::array<int, 3> predBoxDeltaOffsetW = {0, 0, 2};
+    Eigen::array<int, 3> predBoxDeltaOffsetH = {0, 0, 3};
+
+    Eigen::array<int, 3> predBoxDeltaExtent = {predBoxDelta.dimension(0), predBoxDelta.dimension(1), 1};
+
+    Eigen::Tensor<float, 3> boxDeltaX = predBoxDelta.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
+    Eigen::Tensor<float, 3> boxDeltaY = predBoxDelta.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
+    Eigen::Tensor<float, 3> boxDeltaW = predBoxDelta.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
+    Eigen::Tensor<float, 3> boxDeltaH = predBoxDelta.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
+
+
+    //Eigen::Tensor<float, 2> s(1, );
+//        Eigen::array<int, 4> networkReshape{{batchSize,
+//                                                    aHeigth,
+//                                                    aWidth,
+//                                                    (int) tPred->size() / batchSize / aHeigth / aWidth}};
+    // e.reshape()
+
+    __android_log_print(ANDROID_LOG_VERBOSE, "APPNAME", "TEST %f", boxDeltaY(0, 5, 0));
 }
