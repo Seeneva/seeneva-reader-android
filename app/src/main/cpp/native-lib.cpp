@@ -2,6 +2,7 @@
 #include <string>
 #include <android/log.h>
 #include <unsupported/Eigen/CXX11/Tensor>
+#include <fstream>
 #include "input.h"
 #include "output.h"
 
@@ -12,6 +13,15 @@ Java_com_almadevelop_comixreader_MainActivity_stringFromJNI(
         JNIEnv *env,
         jobject /* this */,
         jobject bitmap) {
+
+    std::ifstream input_stream("testsd.txt");
+
+    std::string line;
+    while (getline(input_stream, line)) {
+        // using printf() in all tests for consistency
+        __android_log_print(ANDROID_LOG_VERBOSE, "APPNAME", "TEST %s", line.c_str());
+    }
+
     const Tensor<float, 3> imageTensor = bitmapToTensor(env, bitmap);
     const Tensor<float, 3> imgNorm = preprocessImageTensor(imageTensor);
     return imageTensorToJavaArray(env, imgNorm);
