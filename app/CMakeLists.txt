@@ -12,13 +12,25 @@ cmake_minimum_required(VERSION 3.4.1)
 include(ExternalProject)
 
 set(EIGEN_PREFIX ${CMAKE_BINARY_DIR}/eigen)
+set(FLATBUFFERS_PREFIX ${CMAKE_BINARY_DIR}/flatbuffers)
+
 set(INSTALL_PREF ${CMAKE_BINARY_DIR}/CMakeExternals/Install)
+set(eigen_INSTALL ${INSTALL_PREF}/eigen)
+set(flatbuffers_INSTALL ${INSTALL_PREF}/flatbuffers)
 
 ExternalProject_Add(eigen-project
         PREFIX ${EIGEN_PREFIX}
         GIT_REPOSITORY https://github.com/eigenteam/eigen-git-mirror.git
         GIT_TAG 3.3.5
-        CMAKE_ARGS -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_INSTALL_PREFIX=${INSTALL_PREF})
+        INSTALL_DIR ${eigen_INSTALL}
+        CMAKE_ARGS -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_INSTALL_PREFIX=${eigen_INSTALL})
+
+ExternalProject_Add(flatbuffers-project
+        PREFIX ${FLATBUFFERS_PREFIX}
+        GIT_REPOSITORY https://github.com/google/flatbuffers
+        GIT_TAG v1.10.0
+        INSTALL_DIR ${flatbuffers_INSTALL}
+        CMAKE_ARGS -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_INSTALL_PREFIX=${flatbuffers_INSTALL})
 
 
 add_library( # Sets the name of the library.
@@ -31,10 +43,10 @@ add_library( # Sets the name of the library.
         src/main/cpp/native-lib.cpp)
 
 add_dependencies(native-lib eigen-project)
+add_dependencies(native-lib flatbuffers-project)
 
-#include_directories(/home/zellius/Projects/Android/eigen-git-mirror-master/)
-
-include_directories(${INSTALL_PREF}/include/eigen3)
+include_directories(${eigen_INSTALL}/include/eigen3)
+include_directories(${flatbuffers_INSTALL}/include)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

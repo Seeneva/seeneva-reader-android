@@ -5,6 +5,7 @@
 #include <fstream>
 #include "input.h"
 #include "output.h"
+#include "config_buf_generated.h"
 
 using Eigen::Tensor;
 
