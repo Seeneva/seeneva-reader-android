@@ -1,5 +1,6 @@
 package com.almadevelop.comixreader
 
+import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -39,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 //                decodePrediction(output)
 
                 Log.d("!!!!!", "!!!!!!!! ${output[0][0].contentToString()}")
-                parsePrediction(output, CLASSES, BATCH_SIZE, ANCHORS, ANCHORS_HEIGHT, ANCHORS_WIDTH, ANCHOR_PER_GRID)
+                parsePrediction(assets, output, BATCH_SIZE)
             }.addOnFailureListener {
                 Log.d("!!!!!!!!!", it.message)
             }
@@ -67,6 +68,7 @@ class MainActivity : AppCompatActivity() {
         val r = stringFromJNI(inB)
         Log.d("!!!!!!!!!", (System.currentTimeMillis() - start).toString())
         inB.recycle()
+        Log.d("!!!!!!!!!!!!!", r.contentDeepToString())
         return Array(1) {
             if (it == 0) {
                 r
@@ -83,23 +85,14 @@ class MainActivity : AppCompatActivity() {
     external fun stringFromJNI(s: Bitmap): Array<Array<FloatArray>>
 
     external fun parsePrediction(
+        assetManager: AssetManager,
         pred: Array<Array<FloatArray>>,
-        cCount: Int,
-        batchSize: Int,
-        anchors: Int,
-        aHeigth: Int,
-        aWidth: Int,
-        aPerGrid: Int
+        batchSize: Int
     )
 
     companion object {
         const val MODEL_NAME = "baloons"
-        const val CLASSES = 1
         const val BATCH_SIZE = 1 //!!!!!!!!!! Need to be 4
-        const val ANCHORS = 9750
-        const val ANCHORS_HEIGHT = 39
-        const val ANCHORS_WIDTH = 25
-        const val ANCHOR_PER_GRID = 10
 
         // Used to load the 'native-lib' library on application startup.
         init {

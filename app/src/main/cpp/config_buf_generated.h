@@ -40,19 +40,24 @@ namespace ComixReader {
 
     struct Config FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
         enum {
-            VT_IMAGESIZE = 4,
-            VT_CLASSCOUNT = 6,
-            VT_ANCHORSSIZE = 8,
-            VT_ANCHORPERGRID = 10,
-            VT_ANCHORBOXES = 12
+            VT_CLASSCOUNT = 4,
+            VT_EXPTHRESH = 6,
+            VT_IMAGESIZE = 8,
+            VT_ANCHORSSIZE = 10,
+            VT_ANCHORPERGRID = 12,
+            VT_ANCHORBOXES = 14
         };
-
-        const Size *imageSize() const {
-            return GetStruct<const Size *>(VT_IMAGESIZE);
-        }
 
         uint32_t classCount() const {
             return GetField<uint32_t>(VT_CLASSCOUNT, 0);
+        }
+
+        float expThresh() const {
+            return GetField<float>(VT_EXPTHRESH, 0.0f);
+        }
+
+        const Size *imageSize() const {
+            return GetStruct<const Size *>(VT_IMAGESIZE);
         }
 
         const Size *anchorsSize() const {
@@ -69,8 +74,9 @@ namespace ComixReader {
 
         bool Verify(flatbuffers::Verifier &verifier) const {
             return VerifyTableStart(verifier) &&
-                   VerifyField<Size>(verifier, VT_IMAGESIZE) &&
                    VerifyField<uint32_t>(verifier, VT_CLASSCOUNT) &&
+                   VerifyField<float>(verifier, VT_EXPTHRESH) &&
+                   VerifyField<Size>(verifier, VT_IMAGESIZE) &&
                    VerifyField<Size>(verifier, VT_ANCHORSSIZE) &&
                    VerifyField<uint32_t>(verifier, VT_ANCHORPERGRID) &&
                    VerifyOffset(verifier, VT_ANCHORBOXES) &&
@@ -83,12 +89,16 @@ namespace ComixReader {
         flatbuffers::FlatBufferBuilder &fbb_;
         flatbuffers::uoffset_t start_;
 
-        void add_imageSize(const Size *imageSize) {
-            fbb_.AddStruct(Config::VT_IMAGESIZE, imageSize);
-        }
-
         void add_classCount(uint32_t classCount) {
             fbb_.AddElement<uint32_t>(Config::VT_CLASSCOUNT, classCount, 0);
+        }
+
+        void add_expThresh(float expThresh) {
+            fbb_.AddElement<float>(Config::VT_EXPTHRESH, expThresh, 0.0f);
+        }
+
+        void add_imageSize(const Size *imageSize) {
+            fbb_.AddStruct(Config::VT_IMAGESIZE, imageSize);
         }
 
         void add_anchorsSize(const Size *anchorsSize) {
@@ -119,8 +129,9 @@ namespace ComixReader {
 
     inline flatbuffers::Offset<Config> CreateConfig(
             flatbuffers::FlatBufferBuilder &_fbb,
-            const Size *imageSize = 0,
             uint32_t classCount = 0,
+            float expThresh = 0.0f,
+            const Size *imageSize = 0,
             const Size *anchorsSize = 0,
             uint32_t anchorPerGrid = 0,
             flatbuffers::Offset<flatbuffers::Vector<float>> anchorBoxes = 0) {
@@ -128,22 +139,25 @@ namespace ComixReader {
         builder_.add_anchorBoxes(anchorBoxes);
         builder_.add_anchorPerGrid(anchorPerGrid);
         builder_.add_anchorsSize(anchorsSize);
-        builder_.add_classCount(classCount);
         builder_.add_imageSize(imageSize);
+        builder_.add_expThresh(expThresh);
+        builder_.add_classCount(classCount);
         return builder_.Finish();
     }
 
     inline flatbuffers::Offset<Config> CreateConfigDirect(
             flatbuffers::FlatBufferBuilder &_fbb,
-            const Size *imageSize = 0,
             uint32_t classCount = 0,
+            float expThresh = 0.0f,
+            const Size *imageSize = 0,
             const Size *anchorsSize = 0,
             uint32_t anchorPerGrid = 0,
             const std::vector<float> *anchorBoxes = nullptr) {
         return ComixReader::CreateConfig(
                 _fbb,
-                imageSize,
                 classCount,
+                expThresh,
+                imageSize,
                 anchorsSize,
                 anchorPerGrid,
                 anchorBoxes ? _fbb.CreateVector<float>(*anchorBoxes) : 0);
