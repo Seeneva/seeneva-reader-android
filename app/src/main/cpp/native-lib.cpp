@@ -10,6 +10,8 @@
 #include "config_buf_generated.h"
 
 using Eigen::Tensor;
+template<int R> using fTensor = Tensor<float, R>;
+using f3Tensor = fTensor<3>;
 
 extern "C" JNIEXPORT jobjectArray JNICALL
 Java_com_almadevelop_comixreader_MainActivity_stringFromJNI(
@@ -31,7 +33,7 @@ Java_com_almadevelop_comixreader_MainActivity_stringFromJNI(
 }
 
 template<int T>
-Eigen::Tensor<float, T> safe_exp_np(const Eigen::Tensor<float, T> &w, float expThresh) {
+Eigen::Tensor<float, T> safeExp(const Eigen::Tensor<float, T> &w, float expThresh) {
     auto thresh = w.constant(expThresh);
     auto slope = thresh.exp();
 
@@ -44,16 +46,121 @@ Eigen::Tensor<float, T> safe_exp_np(const Eigen::Tensor<float, T> &w, float expT
     return out;
 }
 
-template<int R, typename T = Eigen::Tensor<float, R>>
-void bbox_transform(T cx, T cy, T w, T h) {
+template<int R>
+std::tuple<fTensor<R>, fTensor<R>, fTensor<R>, fTensor<R>>
+bboxTransform(const fTensor<R> &cx, const fTensor<R> &cy, const fTensor<R> &w, const fTensor<R> &h) {
+    auto halfW = w / w.constant(2.0);
+    auto halfH = h / h.constant(2.0);
 
+    auto xmin = cx - halfW;
+    auto ymin = cy - halfH;
+    auto xmax = cx + halfW;
+    auto ymax = cy + halfH;
+
+    return std::make_tuple(xmin, ymin, xmax, ymax);
 }
 
-//template<int R>
-//void bbox_transform(Eigen::Tensor<float, R> cx, Eigen::Tensor<float, R> cy, Eigen::Tensor<float, R> w,
-//                    Eigen::Tensor<float, R> h) {
-//
-//}
+/**
+ * convert a bbox of form [xmin, ymin, xmax, ymax] to [cx, cy, w, h]
+ */
+template<int R>
+auto bboxTransformInv(const fTensor<R> &xmin, const fTensor<R> &ymin, const fTensor<R> &xmax, const fTensor<R> &ymax) {
+    auto w = xmax - xmin + xmax.constant(1.0);
+    auto h = ymax - ymin + ymax.constant(1.0);
+
+    auto cx = xmin + w * w.constant(0.5);
+    auto cy = ymin + h * h.constant(0.5);
+
+    return std::array<fTensor<R>, 4>{cx, cy, w, h};
+}
+
+
+template<int R>
+fTensor<R> bboxMinMaxFilter(const fTensor<R> &t, float maxValue) {
+    auto zeroTensor = t.constant(0.0);
+    auto maxTensor = t.constant(maxValue);
+
+    auto isLess = t < zeroTensor;
+    auto isGreater = t > maxTensor;
+
+    auto filtered = isGreater.select(maxTensor, isLess.select(zeroTensor, t));
+
+    return filtered;
+}
+
+template<int R, size_t A>
+fTensor<R + 1> stack(const std::array<fTensor<R>, A> &tArray) {
+    fTensor<R + 1> result;
+
+    for (int i = 0; i < tArray.size(); i++) {
+        auto boxValue = tArray[i];
+
+        Eigen::array<std::pair<ptrdiff_t, ptrdiff_t>, R + 1> paddings;
+
+        Eigen::array<int, R + 1> reshapeParams;
+        reshapeParams[0] = 1;
+
+        for (int d = 0; d < R; d++) {
+            reshapeParams[d + 1] = boxValue.dimension(d);
+
+            if (d == 0) {
+                paddings[0] = std::make_pair(i, R - i);
+            } else {
+                paddings[d] = std::make_pair(0, 0);
+            }
+        }
+
+        if (i == 0) {
+            result = boxValue.reshape(reshapeParams).pad(paddings);
+        } else {
+            result += boxValue.reshape(reshapeParams).pad(paddings);
+        }
+    }
+    return result;
+}
+
+void boxesFromDeltas(const fTensor<3> &predBoxDelta, const fTensor<2> &anchors, const ComixReader::Config *config) {
+    Eigen::array<int, 3> predBoxDeltaOffsetX = {0, 0, 0};
+    Eigen::array<int, 3> predBoxDeltaOffsetY = {0, 0, 1};
+    Eigen::array<int, 3> predBoxDeltaOffsetW = {0, 0, 2};
+    Eigen::array<int, 3> predBoxDeltaOffsetH = {0, 0, 3};
+
+    Eigen::array<int, 3> predBoxDeltaExtent = {predBoxDelta.dimension(0), predBoxDelta.dimension(1), 1};
+
+    auto boxDeltaX = predBoxDelta.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
+    auto boxDeltaY = predBoxDelta.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
+    auto boxDeltaW = predBoxDelta.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
+    auto boxDeltaH = predBoxDelta.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
+
+    auto r = anchors.reshape(
+                    Eigen::array<long, 3>({1, anchors.dimension(0), anchors.dimension(1)}))
+            .broadcast(Eigen::array<int, 3>({1, 1, 1}));
+
+    auto anchorX = r.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
+    auto anchorY = r.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
+    auto anchorW = r.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
+    auto anchorH = r.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
+
+
+    auto boxCenterX = boxDeltaX * anchorW + anchorX;
+    auto boxCenterY = boxDeltaY * anchorH + anchorY;
+    auto boxWidth = anchorW * safeExp<3>(boxDeltaW, config->expThresh());
+    auto boxHeight = anchorH * safeExp<3>(boxDeltaH, config->expThresh());
+
+    auto boxesTuple = bboxTransform<3>(boxCenterX, boxCenterY, boxWidth, boxHeight);
+    auto xmin = bboxMinMaxFilter<3>(std::get<0>(boxesTuple), config->imageSize()->w() - 1.0);
+    auto ymin = bboxMinMaxFilter<3>(std::get<1>(boxesTuple), config->imageSize()->h() - 1.0);
+    auto xmax = bboxMinMaxFilter<3>(std::get<2>(boxesTuple), config->imageSize()->w() - 1.0);
+    auto ymax = bboxMinMaxFilter<3>(std::get<3>(boxesTuple), config->imageSize()->h() - 1.0);
+
+    auto boxesFromDeltas = stack(bboxTransformInv<3>(xmin, ymin, xmax, ymax)).shuffle(
+            (Eigen::array<int, 4>) {1, 2, 0, 3});
+
+    fTensor<4> sadasd = boxesFromDeltas;
+
+    __android_log_print(ANDROID_LOG_VERBOSE, "APPNAME", "TEST %f", sadasd(50, 0, 0, 0));
+}
+
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
@@ -70,8 +177,12 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
 
     //_________________________
 
-    auto anchorsTensorMap = Eigen::TensorMap<Eigen::Tensor<const float, 2>>(&comixConfig->anchorBoxes()->data()[0],
-                                                                            comixConfig->anchorBoxes()->size() / 4, 4);
+    auto anchorBoxesRowMajorMap = Eigen::TensorMap<Eigen::Tensor<const float, 2, Eigen::RowMajor>>(
+            comixConfig->anchorBoxes()->data(), comixConfig->anchorBoxes()->size() / 4, 4);
+
+    Eigen::Tensor<float, 2> anchorsTensorMap = anchorBoxesRowMajorMap.swap_layout().shuffle(
+            (Eigen::array<int, 2>) {1, 0});
+
 
     PredictionInfo predInfo;
     predInfo.classCount = comixConfig->classCount();
@@ -109,8 +220,10 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
     Eigen::Tensor<float, 0> max = resE.maximum();
     Eigen::Tensor<float, 2> exp = (resE - resE.constant(max(0))).exp();
     Eigen::DSizes<int, 3> ttt(predInfo.batchSize, predInfo.anchors, predInfo.classCount);
-    Eigen::Tensor<float, 3> predClassProbs = (exp / exp.sum(along_class).eval().reshape(batch_by_one).broadcast(
-            one_by_class)).reshape(ttt);
+    Eigen::Tensor<float, 3> predClassProbs = (exp / exp.sum(along_class).eval()
+            .reshape(batch_by_one)
+            .broadcast(one_by_class))
+            .reshape(ttt);
 
 
 
@@ -135,65 +248,7 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
     Eigen::Tensor<float, 3> predBoxDelta = tPred.slice(zOffsets, zExtents).reshape(zResize1);
 
 
-    //CONVERTS PREDICTION DELTAS TO BOUNDING BOXES
-
-    Eigen::array<int, 3> predBoxDeltaOffsetX = {0, 0, 0};
-    Eigen::array<int, 3> predBoxDeltaOffsetY = {0, 0, 1};
-    Eigen::array<int, 3> predBoxDeltaOffsetW = {0, 0, 2};
-    Eigen::array<int, 3> predBoxDeltaOffsetH = {0, 0, 3};
-
-    Eigen::array<int, 3> predBoxDeltaExtent = {predBoxDelta.dimension(0), predBoxDelta.dimension(1), 1};
-
-    auto boxDeltaX = predBoxDelta.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
-    auto boxDeltaY = predBoxDelta.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
-    auto boxDeltaW = predBoxDelta.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
-    auto boxDeltaH = predBoxDelta.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
-
-    //get the coordinates and sizes of the anchor boxes from config
-
-//    Eigen::array<int, 2> anchorBoxOffsetX = {0, 0};
-//    Eigen::array<int, 2> anchorBoxOffsetY = {0, 1};
-//    Eigen::array<int, 2> anchorBoxOffsetW = {0, 2};
-//    Eigen::array<int, 2> anchorBoxOffsetH = {0, 3};
-//
-//    Eigen::array<int, 2> anchorBoxExtent = {anchorsTensorMap.dimension(0), 1};
-
-    auto r = anchorsTensorMap.reshape(
-                    Eigen::array<long, 3>({1, anchorsTensorMap.dimension(0), anchorsTensorMap.dimension(1)}))
-            .broadcast(Eigen::array<int, 3>({1, 1, 1}));
-
-    auto anchorX = r.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
-    auto anchorY = r.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
-    auto anchorW = r.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
-    auto anchorH = r.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
-//
-//    Eigen::Tensor<float, 2> sasd(anchorsTensorMap.dimension(0), anchorsTensorMap.dimension(1));
-//    sasd.random();
-//
-    auto boxCenterX = boxDeltaX * anchorW + anchorX;
-    auto boxCenterY = boxDeltaY * anchorH + anchorY;
-    auto boxWidth = anchorW * safe_exp_np<3>(boxDeltaW, comixConfig->expThresh());
-    auto boxHeight = anchorH * safe_exp_np<3>(boxDeltaH, comixConfig->expThresh());
-    typedef Eigen::Tensor<float, 3> sssss;
-    //std::tuple<sssss, sssss, sssss, sssss> asdasd;
-    //asdasd = std::make_tuple<sssss, sssss, sssss, sssss>(boxCenterX.eval(), boxCenterY.eval(), boxWidth.eval(), boxHeight.eval());
-    //bbox_transform<3>(std::make_tuple<sssss, sssss, sssss, sssss>(boxCenterX.eval(), boxCenterY.eval(), boxWidth.eval(), boxHeight.eval()));
-
-    bbox_transform<3, int>(1, 2, 3, 4);
-
-    //CONVERTS PREDICTION DELTAS TO BOUNDING BOXES
-
-    Eigen::Tensor<float, 3> s = boxHeight;
-
-
-    //Eigen::Tensor<float, 2> s(1, );
-//        Eigen::array<int, 4> networkReshape{{batchSize,
-//                                                    aHeigth,
-//                                                    aWidth,
-//                                                    (int) tPred->size() / batchSize / aHeigth / aWidth}};
-    // e.reshape()
-
-    __android_log_print(ANDROID_LOG_VERBOSE, "APPNAME", "TEST %f", s(0, 0, 0));
+    boxesFromDeltas(predBoxDelta, anchorsTensorMap, comixConfig);
 
     AAsset_close(comixFlatbufferAsset);
 }
