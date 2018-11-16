@@ -32,6 +32,19 @@ Java_com_almadevelop_comixreader_MainActivity_stringFromJNI(
     return imageTensorToJavaArray(env, imgNorm);
 }
 
+namespace ComixReader {
+    int getNumClassProbs(const Config *config) {
+        return config->anchorPerGrid() * config->classCount();
+    }
+
+    /**
+     *  number of confidence scores, one for each anchor + class probs
+     */
+    int getNumConfidenceScores(const Config *config) {
+        return config->anchorPerGrid() + getNumClassProbs(config);
+    }
+}
+
 template<int T>
 Eigen::Tensor<float, T> safeExp(const Eigen::Tensor<float, T> &w, float expThresh) {
     auto thresh = w.constant(expThresh);
@@ -44,6 +57,61 @@ Eigen::Tensor<float, T> safeExp(const Eigen::Tensor<float, T> &w, float expThres
     auto exp_out = linBool.select(w.constant(0.0), w);
     auto out = linRegion * linOut + (linRegion.constant(1.0) - linRegion) * exp_out;
     return out;
+}
+
+template<int R>
+fTensor<R + 1> expandDim(const fTensor<R> &in) {
+    Eigen::array<int, R + 1> reshapeParams;
+    reshapeParams[0] = 1;
+
+    for (size_t i = 0; i < in.dimensions().size(); i++) {
+        reshapeParams[i + 1] = in.dimension(i);
+    }
+
+    return in.reshape(reshapeParams);
+}
+
+template<int R, size_t A>
+fTensor<R + 1> stack(const std::array<fTensor<R>, A> &tArray) {
+    fTensor<R + 1> result;
+
+    for (int i = 0; i < tArray.size(); i++) {
+        auto boxValue = tArray[i];
+
+        Eigen::array<std::pair<ptrdiff_t, ptrdiff_t>, R + 1> paddings;
+
+        for (int d = 0; d < R; d++) {
+            if (d == 0) {
+                paddings[0] = std::make_pair(i, R - i);
+            } else {
+                paddings[d] = std::make_pair(0, 0);
+            }
+        }
+
+        if (i == 0) {
+            result = expandDim(boxValue).pad(paddings);
+        } else {
+            result += expandDim(boxValue).pad(paddings);
+        }
+    }
+    return result;
+}
+
+fTensor<2> softMax(const Eigen::TensorRef<fTensor<2>> &in) {
+    const int batch_size = (int) in.dimension(0);
+    const int num_classes = (int) in.dimension(1);
+
+    const Eigen::DSizes<int, 1> along_class(1);
+    const Eigen::DSizes<int, 2> batch_by_one(batch_size, 1);
+    const Eigen::DSizes<int, 2> one_by_class(1, num_classes);
+
+    const fTensor<0> max = in.maximum();
+
+    auto exp = (in - in.constant(max(0))).exp();
+
+    return (exp / exp.sum(along_class).eval()
+            .reshape(batch_by_one)
+            .broadcast(one_by_class));
 }
 
 template<int R>
@@ -88,36 +156,72 @@ fTensor<R> bboxMinMaxFilter(const fTensor<R> &t, float maxValue) {
     return filtered;
 }
 
-template<int R, size_t A>
-fTensor<R + 1> stack(const std::array<fTensor<R>, A> &tArray) {
-    fTensor<R + 1> result;
+fTensor<3>
+extractClassProbs(const fTensor<4> &predictions, const ComixReader::Config *config, int batchSize, int anchorsCount) {
+    // slice pred tensor to extract class pred scores and then normalize them
+    const Eigen::array<int, 4> classProbsOffsets = {0, 0, 0, 0};
+    const Eigen::array<int, 4> classProbsExtents = {predictions.dimension(0),
+                                                    predictions.dimension(1),
+                                                    predictions.dimension(2),
+                                                    ComixReader::getNumClassProbs(config)};
 
-    for (int i = 0; i < tArray.size(); i++) {
-        auto boxValue = tArray[i];
+    auto classProbsAnchors = predictions.slice(classProbsOffsets, classProbsExtents).eval();
+    auto classProbsAnchorsSize = ((Eigen::TensorRef<fTensor<4>>) classProbsAnchors).size();
 
-        Eigen::array<std::pair<ptrdiff_t, ptrdiff_t>, R + 1> paddings;
+    const Eigen::DSizes<int, 2> classProbsAnchorsShape((int) classProbsAnchorsSize / config->classCount(),
+                                                       (int) config->classCount());
 
-        Eigen::array<int, R + 1> reshapeParams;
-        reshapeParams[0] = 1;
+    auto softMaxed = softMax(classProbsAnchors.reshape(classProbsAnchorsShape));
 
-        for (int d = 0; d < R; d++) {
-            reshapeParams[d + 1] = boxValue.dimension(d);
+    const Eigen::array<int, 3> classProbsShape = {batchSize, anchorsCount, (int) config->classCount()};
 
-            if (d == 0) {
-                paddings[0] = std::make_pair(i, R - i);
-            } else {
-                paddings[d] = std::make_pair(0, 0);
-            }
-        }
-
-        if (i == 0) {
-            result = boxValue.reshape(reshapeParams).pad(paddings);
-        } else {
-            result += boxValue.reshape(reshapeParams).pad(paddings);
-        }
-    }
-    return result;
+    return softMaxed.reshape(classProbsShape);
 }
+
+/**
+ * slice the confidence scores and put them trough a sigmoid for probabilities
+ */
+fTensor<2> extractPredictionConfidence(const fTensor<4> &predictions,
+                                       const ComixReader::Config *config,
+                                       int batchSize,
+                                       int anchorsCount) {
+    const Eigen::array<int, 4> predConfOffsets = {0, 0, 0, ComixReader::getNumClassProbs(config)};
+
+    Eigen::array<int, 4> predConfExtents;
+
+    for (size_t i = 0; i < 3; i++) {
+        predConfExtents[i] = (int) predictions.dimension(i);
+    }
+
+    predConfExtents[3] = std::min(ComixReader::getNumConfidenceScores(config),
+                                  (int) predictions.dimension(3)) - predConfOffsets[3];
+
+
+    const Eigen::array<int, 2> predConfShape = {batchSize, anchorsCount};
+
+    return predictions.slice(predConfOffsets, predConfExtents).reshape(predConfShape).sigmoid();
+}
+
+f3Tensor extractBoxDeltas(const fTensor<4> &predictions,
+                          const ComixReader::Config *config,
+                          int batchSize,
+                          int anchorsCount) {
+    const Eigen::array<int, 4> predBoxOffsets = {0, 0, 0, ComixReader::getNumConfidenceScores(config)};
+
+    Eigen::array<int, 4> predBoxExtents;
+
+    for (size_t i = 0; i < 3; i++) {
+        predBoxExtents[i] = (int) predictions.dimension(i);
+    }
+
+    predBoxExtents[3] = (int) predictions.dimension(3) - predBoxOffsets[3];
+
+    //last - cx, cy, w, h
+    const Eigen::DSizes<int, 3> zResize1(batchSize, anchorsCount, 4);
+
+    return predictions.slice(predBoxOffsets, predBoxExtents).reshape(zResize1);
+}
+
 
 void boxesFromDeltas(const fTensor<3> &predBoxDelta, const fTensor<2> &anchors, const ComixReader::Config *config) {
     Eigen::array<int, 3> predBoxDeltaOffsetX = {0, 0, 0};
@@ -132,14 +236,13 @@ void boxesFromDeltas(const fTensor<3> &predBoxDelta, const fTensor<2> &anchors, 
     auto boxDeltaW = predBoxDelta.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
     auto boxDeltaH = predBoxDelta.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
 
-    auto r = anchors.reshape(
-                    Eigen::array<long, 3>({1, anchors.dimension(0), anchors.dimension(1)}))
-            .broadcast(Eigen::array<int, 3>({1, 1, 1}));
+    //increase anchors count to be the same as predBoxDelta
+    auto expandedAnchors = expandDim(anchors);
 
-    auto anchorX = r.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
-    auto anchorY = r.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
-    auto anchorW = r.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
-    auto anchorH = r.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
+    auto anchorX = expandedAnchors.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
+    auto anchorY = expandedAnchors.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
+    auto anchorW = expandedAnchors.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
+    auto anchorH = expandedAnchors.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
 
 
     auto boxCenterX = boxDeltaX * anchorW + anchorX;
@@ -183,6 +286,8 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
     Eigen::Tensor<float, 2> anchorsTensorMap = anchorBoxesRowMajorMap.swap_layout().shuffle(
             (Eigen::array<int, 2>) {1, 0});
 
+    const int anchorsCount = (int) anchorsTensorMap.dimension(0);
+
 
     PredictionInfo predInfo;
     predInfo.classCount = comixConfig->classCount();
@@ -192,61 +297,11 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
     predInfo.aWidth = comixConfig->anchorsSize()->w();
     predInfo.aPerGrid = comixConfig->anchorPerGrid();
 
-    const int totalOutputCount = getTotalOutputCount(predInfo.classCount);
-    //number of class probabilities, n classes for each anchor
-    const int numClassProbs = predInfo.aPerGrid * predInfo.classCount;
-
     const Tensor<float, 4> tPred = parsePredictions(env, pred, predInfo);
 
-    // slice pred tensor to extract class pred scores and then normalize them
-    Eigen::array<int, 4> tOffsets = {0, 0, 0, 0};
-    Eigen::array<int, 4> tExtents = {tPred.dimension(0), tPred.dimension(1), tPred.dimension(2), numClassProbs};
-
-
-    Eigen::Tensor<float, 4> e = tPred.slice(tOffsets, tExtents);
-    array<int, 2> networkReshape{{e.size() / predInfo.classCount, predInfo.classCount}};
-    Eigen::Tensor<float, 2> resE = e.reshape(networkReshape);
-
-    const int kBatchDim = 0;
-    const int kClassDim = 1;
-
-    const int batch_size = (int) resE.dimension(kBatchDim);
-    const int num_classes = (int) resE.dimension(kClassDim);
-
-    Eigen::DSizes<int, 1> along_class(1);
-    Eigen::DSizes<int, 2> batch_by_one(batch_size, 1);
-    Eigen::DSizes<int, 2> one_by_class(1, num_classes);
-
-    Eigen::Tensor<float, 0> max = resE.maximum();
-    Eigen::Tensor<float, 2> exp = (resE - resE.constant(max(0))).exp();
-    Eigen::DSizes<int, 3> ttt(predInfo.batchSize, predInfo.anchors, predInfo.classCount);
-    Eigen::Tensor<float, 3> predClassProbs = (exp / exp.sum(along_class).eval()
-            .reshape(batch_by_one)
-            .broadcast(one_by_class))
-            .reshape(ttt);
-
-
-
-
-    // number of confidence scores, one for each anchor + class probs
-    const int num_confidence_scores = predInfo.aPerGrid + numClassProbs;
-    // slice the confidence scores and put them trough a sigmoid for probabilities
-    Eigen::array<int, 4> yOffsets = {0, 0, 0, numClassProbs};
-    Eigen::array<int, 4> yExtents = {tPred.dimension(0), tPred.dimension(1), tPred.dimension(2),
-                                     std::min(num_confidence_scores, (int) tPred.dimension(3)) - yOffsets[3]};
-    Eigen::DSizes<int, 2> yResize1(predInfo.batchSize, predInfo.anchors);
-
-    Eigen::Tensor<float, 2> predConf = tPred.slice(yOffsets, yExtents).reshape(yResize1).sigmoid();
-
-
-    Eigen::array<int, 4> zOffsets = {0, 0, 0, num_confidence_scores};
-    Eigen::array<int, 4> zExtents = {tPred.dimension(0), tPred.dimension(1), tPred.dimension(2),
-                                     (int) tPred.dimension(3) - zOffsets[3]};
-
-    Eigen::DSizes<int, 3> zResize1(predInfo.batchSize, predInfo.anchors, 4);
-
-    Eigen::Tensor<float, 3> predBoxDelta = tPred.slice(zOffsets, zExtents).reshape(zResize1);
-
+    f3Tensor predClassProbs = extractClassProbs(tPred, comixConfig, batchSize, anchorsCount);
+    fTensor<2> predConf = extractPredictionConfidence(tPred, comixConfig, batchSize, anchorsCount);
+    f3Tensor predBoxDelta = extractBoxDeltas(tPred, comixConfig, batchSize, anchorsCount);
 
     boxesFromDeltas(predBoxDelta, anchorsTensorMap, comixConfig);
 
