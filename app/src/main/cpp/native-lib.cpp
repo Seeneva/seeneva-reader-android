@@ -75,11 +75,13 @@ fTensor<R + 1> expandDim(const fTensor<R> &in) {
  * Return stack of tensor inside array. Final shape will be (R, r0, r1, r2 ... R+1)
  * For example. If input (1, 9750, 1), then resul will be (4, 1, 9750, 1)
  */
-template<int R, size_t A>
-fTensor<R + 1> stack(const std::array<fTensor<R>, A> &tArray) {
+template<int R>
+fTensor<R + 1> stack(const std::vector<fTensor<R>> &tArray) {
     fTensor<R + 1> result;
 
-    for (int i = 0; i < tArray.size(); i++) {
+    const size_t size = tArray.size();
+
+    for (int i = 0; i < size; i++) {
         auto boxValue = tArray[i];
 
         Eigen::array<std::pair<ptrdiff_t, ptrdiff_t>, R + 1> paddings;
@@ -87,7 +89,7 @@ fTensor<R + 1> stack(const std::array<fTensor<R>, A> &tArray) {
         // R r0 r1 r1 ... R
         for (int d = 0; d < R; d++) {
             if (d == 0) {
-                paddings[0] = std::make_pair(i, R - i);
+                paddings[0] = std::make_pair(i, size - 1 - i);
             } else {
                 paddings[d] = std::make_pair(0, 0);
             }
@@ -141,6 +143,86 @@ fTensor<2> softMax(const Eigen::TensorRef<fTensor<2>> &in) {
             .broadcast(one_by_class));
 }
 
+/**
+ * """
+ * Compute the Intersection-Over-Union of a batch of boxes with another box.
+ *
+ * Args: box1: 2D array of[cx, cy, width, height]
+ *
+ * Returns:ious:array ofa float numberin range[0, 1].
+ */
+void batchIou(const Eigen::TensorRef<f3Tensor> &boxes, const Eigen::TensorRef<f3Tensor> &box) {
+    const Eigen::array<int, 3> boxesCxOffset = {0, 0, 0};
+    const Eigen::array<int, 3> boxesCyOffset = {0, 0, 1};
+    const Eigen::array<int, 3> boxesWOffset = {0, 0, 2};
+    const Eigen::array<int, 3> boxesHOffset = {0, 0, 3};
+    const Eigen::array<int, 3> boxesExtent = {boxes.dimension(0), boxes.dimension(1), 1};
+
+    auto boxesCx = boxes.eval().slice(boxesCxOffset, boxesExtent);
+    auto boxesCy = boxes.eval().slice(boxesCyOffset, boxesExtent);
+
+    auto boxesHalfW = boxes.eval().slice(boxesWOffset, boxesExtent) * 0.5f;
+    auto boxesHalfH = boxes.eval().slice(boxesHOffset, boxesExtent) * 0.5f;
+
+    //side of rectangle from cx to half of width
+    auto boxesPlusW = boxesCx + boxesHalfW;
+    //side of rectangle from half of width to cx
+    auto boxesMinusW = boxesCx - boxesHalfW;
+
+    auto boxesPlusH = boxesCy + boxesHalfH;
+    auto boxesMinusH = boxesCy - boxesHalfH;
+
+
+    auto boxCx = box.eval().slice(boxesCxOffset, boxesExtent);
+    auto boxCy = box.eval().slice(boxesCyOffset, boxesExtent);
+
+    auto boxHalfW = box.eval().slice(boxesWOffset, boxesExtent) * 0.5f;
+    auto boxHalfH = box.eval().slice(boxesHOffset, boxesExtent) * 0.5f;
+
+    //side of rectangle from cx to half of width
+    auto boxPlusW = boxCx + boxHalfW;
+    //side of rectangle from half of width to cx
+    auto boxMinusW = boxCx - boxHalfW;
+
+    auto boxPlusH = boxCy + boxHalfH;
+    auto boxMinusH = boxCy - boxHalfH;
+}
+
+/**
+ * boxes: array of [cx, cy, w, h] (center format)
+ * probs: array of probabilities
+ * hreshold: two boxes are considered overlapping if their IOU is largher than this threshold form: 'center' or 'diagonal'
+ *
+ * Returns: keep: array of True or False.
+ */
+void nonMaximumSupression(const Eigen::TensorRef<fTensor<3>> &boxes,
+                          const Eigen::TensorRef<fTensor<1>> &probs,
+                          const float threshold) {
+    auto sortedProbs = argsort(probs);
+    std::vector<size_t> sortedProbsVec(sortedProbs.data(), sortedProbs.data() + sortedProbs.size());
+    std::reverse(sortedProbsVec.begin(), sortedProbsVec.end());
+
+    for (size_t i = 0; i < sortedProbsVec.size() - 1; i++) {
+        const auto boxId = sortedProbs(i);
+        const std::vector<size_t> boxesIds(sortedProbsVec.begin() + i + 1, sortedProbsVec.end());
+
+        const Eigen::array<int, 3> boxesOffset = {(int) i + 1, 0, 0};
+        const Eigen::array<int, 3> boxesExtent = {boxes.dimension(0) - boxesOffset[0], boxes.dimension(1),
+                                                  boxes.dimension(2)};
+
+        const fTensor<3> otherBoxes = boxes.eval().slice(boxesOffset, boxesExtent);
+
+        const Eigen::array<size_t, 3> boxOffset = {i, 0, 0};
+        const Eigen::array<int, 3> boxExtent = {1, boxes.dimension(1), boxes.dimension(2)};
+
+        const fTensor<3> iBox = boxes.eval().slice(boxOffset, boxExtent);
+
+        batchIou(otherBoxes, otherBoxes);
+
+        __android_log_print(ANDROID_LOG_VERBOSE, "APPNAME", "Test");
+    }
+}
+
 template<int R>
 std::tuple<fTensor<R>, fTensor<R>, fTensor<R>, fTensor<R>>
 bboxTransform(const fTensor<R> &cx, const fTensor<R> &cy, const fTensor<R> &w, const fTensor<R> &h) {
@@ -159,7 +241,7 @@ bboxTransform(const fTensor<R> &cx, const fTensor<R> &cy, const fTensor<R> &w, c
  * convert a bbox of form [xmin, ymin, xmax, ymax] to [cx, cy, w, h]
  */
 template<int R>
-std::array<fTensor<R>, 4>
+std::vector<fTensor<R>>
 bboxTransformInv(const fTensor<R> &xmin, const fTensor<R> &ymin, const fTensor<R> &xmax, const fTensor<R> &ymax) {
     auto w = xmax - xmin + xmax.constant(1.0);
     auto h = ymax - ymin + ymax.constant(1.0);
@@ -167,7 +249,7 @@ bboxTransformInv(const fTensor<R> &xmin, const fTensor<R> &ymin, const fTensor<R
     auto cx = xmin + w * w.constant(0.5);
     auto cy = ymin + h * h.constant(0.5);
 
-    return std::array<fTensor<R>, 4>{cx, cy, w, h};
+    return std::vector<fTensor<R>>{cx, cy, w, h};
 }
 
 
@@ -335,11 +417,22 @@ void filterPrediction(const Eigen::TensorRef<f3Tensor> &boxes,
         //prob positions with specific classId
         std::vector<uint32_t> idxPerClass;
 
+        std::vector<fTensor<2>> boxesPerClass;
+        std::vector<float> probsPerClass;
+
         for (uint32_t probId = 0; probId < probsN.size(); probId++) {
             if (clsIdxN[probId] == classId) {
                 idxPerClass.push_back(probId);
+
+                boxesPerClass.push_back(boxesN[probId]);
+                probsPerClass.push_back(probsN[probId]);
             }
         }
+
+        auto probsMap = Eigen::TensorMap<fTensor<1>>(probsPerClass.data(), probsPerClass.size());
+        auto boxesStack = stack<2>(boxesPerClass);
+        nonMaximumSupression(boxesStack, probsMap, config->nmsThresh());
+
     }
 }
 
