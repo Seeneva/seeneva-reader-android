@@ -121,8 +121,6 @@ Eigen::Tensor<size_t, R> argsort(const Eigen::TensorRef<fTensor<R>> &in) {
 
     auto test = Eigen::TensorMap<Eigen::Tensor<size_t, R>>(idx.data(), in.dimensions());
 
-    size_t t = test(1);
-
     return test;
 }
 
@@ -255,12 +253,12 @@ f3Tensor extractBoxDeltas(const fTensor<4> &predictions,
 
 fTensor<4>
 boxesFromDeltas(const fTensor<3> &predBoxDelta, const fTensor<2> &anchors, const ComixReader::Config *config) {
-    Eigen::array<int, 3> predBoxDeltaOffsetX = {0, 0, 0};
-    Eigen::array<int, 3> predBoxDeltaOffsetY = {0, 0, 1};
-    Eigen::array<int, 3> predBoxDeltaOffsetW = {0, 0, 2};
-    Eigen::array<int, 3> predBoxDeltaOffsetH = {0, 0, 3};
+    const Eigen::array<int, 3> predBoxDeltaOffsetX = {0, 0, 0};
+    const Eigen::array<int, 3> predBoxDeltaOffsetY = {0, 0, 1};
+    const Eigen::array<int, 3> predBoxDeltaOffsetW = {0, 0, 2};
+    const Eigen::array<int, 3> predBoxDeltaOffsetH = {0, 0, 3};
 
-    Eigen::array<int, 3> predBoxDeltaExtent = {predBoxDelta.dimension(0), predBoxDelta.dimension(1), 1};
+    const Eigen::array<int, 3> predBoxDeltaExtent = {predBoxDelta.dimension(0), predBoxDelta.dimension(1), 1};
 
     auto boxDeltaX = predBoxDelta.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
     auto boxDeltaY = predBoxDelta.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
@@ -320,16 +318,28 @@ void filterPrediction(const Eigen::TensorRef<f3Tensor> &boxes,
             probsN[i] = probs(id);
             clsIdxN[i] = clsIdx(id);
 
-            const fTensor<2> s = boxes.eval().slice(Eigen::array<int, 3>{(int) id, 0, 0},
-                                                    Eigen::array<int, 3>{1, boxes.dimension(1), boxes.dimension(2)})
+            const Eigen::array<int, 3> boxSliceOffset = {(int) id, 0, 0};
+            const Eigen::array<int, 3> boxSliceExtent = {1, boxes.dimension(1), boxes.dimension(2)};
+
+            boxesN[i] = boxes.eval()
+                    .slice(boxSliceOffset, boxSliceExtent)
                     .reshape(Eigen::array<int, 2>{boxes.dimension(1), boxes.dimension(2)});
 
-            __android_log_print(ANDROID_LOG_VERBOSE, "APP", "test %i", id);
         }
 
-        //__android_log_print(ANDROID_LOG_VERBOSE, "APP", "test %i", s(0));
     } else {
         //TODO
+    }
+
+    for (uint32_t classId = 0; classId < config->classCount(); classId++) {
+        //prob positions with specific classId
+        std::vector<uint32_t> idxPerClass;
+
+        for (uint32_t probId = 0; probId < probsN.size(); probId++) {
+            if (clsIdxN[probId] == classId) {
+                idxPerClass.push_back(probId);
+            }
+        }
     }
 }
 
@@ -391,7 +401,7 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
 
         filterPrediction(boxes.slice(boxBatchSliceOffset, boxBatchSliceExtents).reshape(boxesShape).eval(),
                          detProbs.slice(detBatchSliceOffset, detBatchSliceExtents).reshape(detShape).eval(),
-                         detProbs.slice(detBatchSliceOffset, detBatchSliceExtents).reshape(detShape).eval(),
+                         detClass.slice(detBatchSliceOffset, detBatchSliceExtents).reshape(detShape).eval(),
                          comixConfig);
 
         //__android_log_print(ANDROID_LOG_VERBOSE, "APP", "test %f", t(0));
