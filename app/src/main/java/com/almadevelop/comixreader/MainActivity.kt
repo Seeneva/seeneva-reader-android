@@ -3,7 +3,6 @@ package com.almadevelop.comixreader
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
@@ -53,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
                 val b = BitmapFactory.decodeStream(assets.open("comix.jpg"), null, o).applyCanvas {
                     val p = Paint().apply {
-                        color = Color.RED
+                        color = 0x78ff0000
                         this.style = Paint.Style.FILL
                     }
 
@@ -93,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         val r = stringFromJNI(inB)
         Log.d("!!!!!!!!!", (System.currentTimeMillis() - start).toString())
         inB.recycle()
-        Log.d("!!!!!!!!!!!!!", r.contentDeepToString())
+        Log.d("!!!!!!!!!!!!! IMG", r.contentDeepToString())
         return Array(1) {
             if (it == 0) {
                 r

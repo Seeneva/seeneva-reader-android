@@ -31,10 +31,14 @@ const Tensor<float, 3> bitmapToTensor(JNIEnv *env, const jobject bitmap) {
             const int startPosition = row * info.stride + col;
             for (int i = 0; i < 3; i++) {
                 //Eigen::TensorMap<Eigen::Tensor<int,3>> mapped(v.data(), 3, 3, 3 ); !try it!
-                imageTensor(row, col / 4, i) = buffer[startPosition + i];
+                imageTensor(row, col / 4, i) = buffer[startPosition + 2 - i];
             }
         }
     }
+
+    float s = imageTensor(0, 0, 0);
+    float ss = imageTensor(0, 0, 1);
+    float sss = imageTensor(0, 0, 2);
 
     AndroidBitmap_unlockPixels(env, bitmap);
 
@@ -42,13 +46,13 @@ const Tensor<float, 3> bitmapToTensor(JNIEnv *env, const jobject bitmap) {
 }
 
 const Tensor<float, 3> preprocessImageTensor(Tensor<float, 3> imageTensor) {
-    Tensor<float, 0> imgMean = imageTensor.mean();
+    float imgMean = ((Tensor<float, 0>) imageTensor.mean())(0);
 
-    Tensor<float, 3> im = imageTensor - imageTensor.constant(imgMean(0));
+    Tensor<float, 3> im = imageTensor - imgMean;
 
     Tensor<float, 0> imgSTD = (im.square().sum() / (float) imageTensor.size()).sqrt();
 
-    const Tensor<float, 3> imgNorm = im / im.constant(imgSTD(0));
+    const Tensor<float, 3> imgNorm = im / imgSTD(0);
 
     return imgNorm;
 }

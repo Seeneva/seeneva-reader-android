@@ -10,7 +10,7 @@
 #include "config_buf_generated.h"
 
 using Eigen::Tensor;
-template<int R> using fTensor = Tensor<float, R>;
+template<int R> using fTensor = Tensor<float, R, Eigen::RowMajor>;
 using f3Tensor = fTensor<3>;
 
 extern "C" JNIEXPORT jobjectArray JNICALL
@@ -50,7 +50,7 @@ fTensor<T> safeExp(const fTensor<T> &w, float expThresh) {
     const fTensor<T> thresh = w.constant(expThresh);
     const fTensor<T> slope = thresh.exp();
 
-    const Eigen::Tensor<bool, T> linBool = w > thresh;
+    const Eigen::Tensor<bool, T, Eigen::RowMajor> linBool = w > thresh;
     const fTensor<T> linRegion = linBool.template cast<float>();
     const fTensor<T> linOut = slope * (w - thresh + 1.0f);
     //exp_out = np.exp(np.where(lin_bool, np.zeros_like(w), w))
@@ -109,7 +109,7 @@ fTensor<R + 1> stack(const std::vector<fTensor<R>> &tArray) {
  * Return sorted indexes
  */
 template<int R>
-Eigen::Tensor<size_t, R> argsort(const Eigen::TensorRef<fTensor<R>> &in) {
+std::vector<size_t> argsort(const Eigen::TensorRef<fTensor<R>> &in) {
     // initialize original index locations
     std::vector<size_t> idx(in.size());
 
@@ -119,11 +119,9 @@ Eigen::Tensor<size_t, R> argsort(const Eigen::TensorRef<fTensor<R>> &in) {
     std::sort(idx.begin(), idx.end(),
               [&in](size_t i1, size_t i2) { return in(i1) < in(i2); });
 
-    Eigen::array<int, R> sas;
+    //auto test = Eigen::TensorMap<Eigen::Tensor<size_t, R>>(idx.data(), in.dimensions());
 
-    auto test = Eigen::TensorMap<Eigen::Tensor<size_t, R>>(idx.data(), in.dimensions());
-
-    return test;
+    return idx;
 }
 
 fTensor<2> softMax(const Eigen::TensorRef<fTensor<2>> &in) {
@@ -226,8 +224,7 @@ fTensor<1> batchIou(const Eigen::TensorRef<fTensor<2>> &boxes, const Eigen::Tens
 std::vector<bool> nonMaximumSupression(const fTensor<2> &boxes,
                                        const fTensor<1> &probs,
                                        const float threshold) {
-    auto sortedProbs = argsort<1>(probs);
-    std::vector<size_t> sortedProbsVec(sortedProbs.data(), sortedProbs.data() + sortedProbs.size());
+    auto sortedProbsVec = argsort<1>(probs);
     std::reverse(sortedProbsVec.begin(), sortedProbsVec.end());
 
     std::vector<bool> keep(probs.size(), true);
@@ -467,7 +464,7 @@ FilteredPredictions filterPrediction(const Eigen::TensorRef<fTensor<2>> &boxes,
         const auto size = idx.size();
 
         for (size_t i = 0; i < config->topNDetection(); i++) {
-            const size_t id = idx(size - 1 - i);
+            const size_t id = idx[size - 1 - i];
             probsN[i] = probs(id);
             clsIdxN[i] = clsIdx(id);
 
@@ -477,6 +474,13 @@ FilteredPredictions filterPrediction(const Eigen::TensorRef<fTensor<2>> &boxes,
             boxesN[i] = boxes.eval()
                     .slice(boxSliceOffset, boxSliceExtent)
                     .reshape(Eigen::array<int, 1>{boxes.dimension(1)});
+
+            float x = boxesN[i](0);
+            float y = boxesN[i](1);
+            float w = boxesN[i](2);
+            float h = boxesN[i](3);
+
+            float hd = boxesN[i](3);
         }
 
     } else {
@@ -542,11 +546,12 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
     auto anchorBoxesRowMajorMap = Eigen::TensorMap<Eigen::Tensor<const float, 2, Eigen::RowMajor>>(
             comixConfig->anchorBoxes()->data(), comixConfig->anchorBoxes()->size() / 4, 4);
 
-    Eigen::Tensor<float, 2> anchorsTensorMap = anchorBoxesRowMajorMap.swap_layout().shuffle(
-            (Eigen::array<int, 2>) {1, 0});
+//    Eigen::Tensor<float, 2> anchorsTensorMap = anchorBoxesRowMajorMap.swap_layout().shuffle(
+//            (Eigen::array<int, 2>) {1, 0});
+
+    fTensor<2> anchorsTensorMap = anchorBoxesRowMajorMap;
 
     const int anchorsCount = (int) anchorsTensorMap.dimension(0);
-
 
     PredictionInfo predInfo;
     predInfo.classCount = comixConfig->classCount();
@@ -556,18 +561,22 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
     predInfo.aWidth = comixConfig->anchorsSize()->w();
     predInfo.aPerGrid = comixConfig->anchorPerGrid();
 
-    const Tensor<float, 4> tPred = parsePredictions(env, pred, predInfo);
+    const fTensor<4> tPred = parsePredictions(env, pred, predInfo);
 
+
+    //predClassProbs if 1 class - always contains 1.0
     const f3Tensor predClassProbs = extractClassProbs(tPred, comixConfig, batchSize, anchorsCount);
     const fTensor<2> predConf = extractPredictionConfidence(tPred, comixConfig, batchSize, anchorsCount);
     const f3Tensor predBoxDelta = extractBoxDeltas(tPred, comixConfig, batchSize, anchorsCount);
 
     const f3Tensor boxes = boxesFromDeltas(predBoxDelta, anchorsTensorMap, comixConfig);
 
-    const Eigen::Tensor<float, 3> probs =
+
+    const f3Tensor probs =
             predClassProbs * predConf.reshape(Eigen::array<int, 3>{batchSize, anchorsCount, 1});
-    const Eigen::Tensor<float, 2> detProbs = probs.maximum(Eigen::array<int, 1>({2}));
-    const Eigen::Tensor<float, 2> detClass = probs.argmax(2).cast<float>();
+    const fTensor<2> detProbs = probs.maximum(Eigen::array<int, 1>({2}));
+    const fTensor<2> detClass = probs.argmax(2).cast<float>();
+
 
     //Final shape for detProbs and detClass slice
     const Eigen::array<int, 1> detShape = {anchorsCount};
