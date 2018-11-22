@@ -203,14 +203,6 @@ fTensor<1> batchIou(const Eigen::TensorRef<fTensor<2>> &boxes, const Eigen::Tens
 
     const fTensor<1> uni = boxesW * boxesH + boxW * boxH - inter;
 
-//    for(int i = 0; i < boxes.size(); i++){
-//        __android_log_print(ANDROID_LOG_VERBOSE, "AAA", "AA %f %f %f", inter(i), uni(i), inter(i) / uni(i));
-//    }
-
-//    fTensor<1> sd = inter / uni;
-//
-//    __android_log_print(ANDROID_LOG_VERBOSE, "AAA", "AA %f %f", inter(0), sd(0));
-
     return inter / uni;
 }
 
@@ -474,13 +466,6 @@ FilteredPredictions filterPrediction(const Eigen::TensorRef<fTensor<2>> &boxes,
             boxesN[i] = boxes.eval()
                     .slice(boxSliceOffset, boxSliceExtent)
                     .reshape(Eigen::array<int, 1>{boxes.dimension(1)});
-
-            float x = boxesN[i](0);
-            float y = boxesN[i](1);
-            float w = boxesN[i](2);
-            float h = boxesN[i](3);
-
-            float hd = boxesN[i](3);
         }
 
     } else {

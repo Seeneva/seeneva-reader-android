@@ -36,10 +36,6 @@ const Tensor<float, 3> bitmapToTensor(JNIEnv *env, const jobject bitmap) {
         }
     }
 
-    float s = imageTensor(0, 0, 0);
-    float ss = imageTensor(0, 0, 1);
-    float sss = imageTensor(0, 0, 2);
-
     AndroidBitmap_unlockPixels(env, bitmap);
 
     return imageTensor;
