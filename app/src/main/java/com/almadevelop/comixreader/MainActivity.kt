@@ -3,11 +3,15 @@ package com.almadevelop.comixreader
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.applyCanvas
 import com.google.firebase.ml.custom.*
 import com.google.firebase.ml.custom.model.FirebaseLocalModelSource
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,7 +44,28 @@ class MainActivity : AppCompatActivity() {
 //                decodePrediction(output)
 
                 Log.d("!!!!!", "!!!!!!!! ${output[0][0].contentToString()}")
-                parsePrediction(assets, output, BATCH_SIZE)
+                val r = parsePrediction(assets, output, BATCH_SIZE)
+                Log.d("!!!!!", "!!!!!!!!2 ${r.contentDeepToString()}")
+
+                val o = BitmapFactory.Options().apply {
+                    inMutable = true
+                }
+
+                val b = BitmapFactory.decodeStream(assets.open("comix.jpg"), null, o).applyCanvas {
+                    val p = Paint().apply {
+                        color = Color.RED
+                        this.style = Paint.Style.FILL
+                    }
+
+                    r.forEach {
+                        val (cx, cy, w, h) = it
+                        drawRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, p)
+                    }
+                }
+
+                imageView.setImageBitmap(b)
+
+
             }.addOnFailureListener {
                 Log.d("!!!!!!!!!", it.message)
             }
@@ -88,7 +113,7 @@ class MainActivity : AppCompatActivity() {
         assetManager: AssetManager,
         pred: Array<Array<FloatArray>>,
         batchSize: Int
-    )
+    ): Array<FloatArray>
 
     companion object {
         const val MODEL_NAME = "baloons"

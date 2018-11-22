@@ -46,15 +46,15 @@ namespace ComixReader {
 }
 
 template<int T>
-Eigen::Tensor<float, T> safeExp(const Eigen::Tensor<float, T> &w, float expThresh) {
-    auto thresh = w.constant(expThresh);
-    auto slope = thresh.exp();
+fTensor<T> safeExp(const fTensor<T> &w, float expThresh) {
+    const fTensor<T> thresh = w.constant(expThresh);
+    const fTensor<T> slope = thresh.exp();
 
-    auto linBool = w > thresh;
-    auto linRegion = linBool.template cast<float>();
-    auto linOut = slope * (w - thresh + w.constant(1.0));
+    const Eigen::Tensor<bool, T> linBool = w > thresh;
+    const fTensor<T> linRegion = linBool.template cast<float>();
+    const fTensor<T> linOut = slope * (w - thresh + 1.0f);
     //exp_out = np.exp(np.where(lin_bool, np.zeros_like(w), w))
-    auto exp_out = linBool.select(w.constant(0.0), w);
+    const fTensor<T> exp_out = linBool.select(w.constant(0.0), w).exp();
     auto out = linRegion * linOut + (linRegion.constant(1.0) - linRegion) * exp_out;
     return out;
 }
@@ -143,6 +143,35 @@ fTensor<2> softMax(const Eigen::TensorRef<fTensor<2>> &in) {
             .broadcast(one_by_class));
 }
 
+fTensor<1> iouInterSide(const Eigen::TensorRef<fTensor<1>> &boxesCenters,
+                        const Eigen::TensorRef<fTensor<1>> &boxesLen,
+                        const float boxCenter,
+                        const float boxLen) {
+    auto boxesHalfLen = boxesLen * 0.5f;
+    auto boxHalfLen = boxLen * 0.5f;
+
+    //side of rectangle from cx to half of width
+    auto boxesPlus = boxesCenters + boxesHalfLen;
+    //side of rectangle from half of width to cx
+    auto boxesMinus = boxesCenters - boxesHalfLen;
+
+    //side of rectangle from cx to half of width
+    auto boxPlus = boxesPlus.constant(boxCenter + boxHalfLen);
+    //side of rectangle from half of width to cx
+    auto boxMinus = boxesMinus.constant(boxCenter - boxHalfLen);
+
+    auto plusCompare = boxesPlus < boxPlus;
+    auto minusCompare = boxesMinus < boxMinus;
+
+    auto side = plusCompare.select(boxesPlus, boxPlus) - minusCompare.select(boxMinus, boxesMinus);
+
+    auto sideZero = side.constant(0.0f);
+
+    auto sideCompareZero = side < sideZero;
+
+    return sideCompareZero.select(sideZero, side);
+}
+
 /**
  * """
  * Compute the Intersection-Over-Union of a batch of boxes with another box.
@@ -151,41 +180,40 @@ fTensor<2> softMax(const Eigen::TensorRef<fTensor<2>> &in) {
  *
  * Returns:ious:array ofa float numberin range[0, 1].
  */
-void batchIou(const Eigen::TensorRef<f3Tensor> &boxes, const Eigen::TensorRef<f3Tensor> &box) {
-    const Eigen::array<int, 3> boxesCxOffset = {0, 0, 0};
-    const Eigen::array<int, 3> boxesCyOffset = {0, 0, 1};
-    const Eigen::array<int, 3> boxesWOffset = {0, 0, 2};
-    const Eigen::array<int, 3> boxesHOffset = {0, 0, 3};
-    const Eigen::array<int, 3> boxesExtent = {boxes.dimension(0), boxes.dimension(1), 1};
+fTensor<1> batchIou(const Eigen::TensorRef<fTensor<2>> &boxes, const Eigen::TensorRef<fTensor<2>> &box) {
+    const Eigen::array<int, 2> boxesCxOffset = {0, 0};
+    const Eigen::array<int, 2> boxesCyOffset = {0, 1};
+    const Eigen::array<int, 2> boxesWOffset = {0, 2};
+    const Eigen::array<int, 2> boxesHOffset = {0, 3};
+    const Eigen::array<int, 2> boxesExtent = {boxes.dimension(0), 1};
 
-    auto boxesCx = boxes.eval().slice(boxesCxOffset, boxesExtent);
-    auto boxesCy = boxes.eval().slice(boxesCyOffset, boxesExtent);
+    const Eigen::array<int, 1> boxesShape = {boxes.dimension(0)};
 
-    auto boxesHalfW = boxes.eval().slice(boxesWOffset, boxesExtent) * 0.5f;
-    auto boxesHalfH = boxes.eval().slice(boxesHOffset, boxesExtent) * 0.5f;
+    auto boxesCx = boxes.eval().slice(boxesCxOffset, boxesExtent).reshape(boxesShape);
+    auto boxesCy = boxes.eval().slice(boxesCyOffset, boxesExtent).reshape(boxesShape);
 
-    //side of rectangle from cx to half of width
-    auto boxesPlusW = boxesCx + boxesHalfW;
-    //side of rectangle from half of width to cx
-    auto boxesMinusW = boxesCx - boxesHalfW;
+    const fTensor<1> boxesW = boxes.eval().slice(boxesWOffset, boxesExtent).reshape(boxesShape);
+    const fTensor<1> boxesH = boxes.eval().slice(boxesHOffset, boxesExtent).reshape(boxesShape);
 
-    auto boxesPlusH = boxesCy + boxesHalfH;
-    auto boxesMinusH = boxesCy - boxesHalfH;
+    auto boxCx = box(0, 0);
+    auto boxCy = box(0, 1);
 
+    auto boxW = box(0, 2);
+    auto boxH = box(0, 3);
 
-    auto boxCx = box.eval().slice(boxesCxOffset, boxesExtent);
-    auto boxCy = box.eval().slice(boxesCyOffset, boxesExtent);
+    const fTensor<1> inter = iouInterSide(boxesCx, boxesW, boxCx, boxW) * iouInterSide(boxesCy, boxesH, boxCy, boxH);
 
-    auto boxHalfW = box.eval().slice(boxesWOffset, boxesExtent) * 0.5f;
-    auto boxHalfH = box.eval().slice(boxesHOffset, boxesExtent) * 0.5f;
+    const fTensor<1> uni = boxesW * boxesH + boxW * boxH - inter;
 
-    //side of rectangle from cx to half of width
-    auto boxPlusW = boxCx + boxHalfW;
-    //side of rectangle from half of width to cx
-    auto boxMinusW = boxCx - boxHalfW;
+//    for(int i = 0; i < boxes.size(); i++){
+//        __android_log_print(ANDROID_LOG_VERBOSE, "AAA", "AA %f %f %f", inter(i), uni(i), inter(i) / uni(i));
+//    }
 
-    auto boxPlusH = boxCy + boxHalfH;
-    auto boxMinusH = boxCy - boxHalfH;
+//    fTensor<1> sd = inter / uni;
+//
+//    __android_log_print(ANDROID_LOG_VERBOSE, "AAA", "AA %f %f", inter(0), sd(0));
+
+    return inter / uni;
 }
 
 /**
@@ -195,32 +223,38 @@ void batchIou(const Eigen::TensorRef<f3Tensor> &boxes, const Eigen::TensorRef<f3
  *
  * Returns: keep: array of True or False.
  */
-void nonMaximumSupression(const Eigen::TensorRef<fTensor<3>> &boxes,
-                          const Eigen::TensorRef<fTensor<1>> &probs,
-                          const float threshold) {
-    auto sortedProbs = argsort(probs);
+std::vector<bool> nonMaximumSupression(const fTensor<2> &boxes,
+                                       const fTensor<1> &probs,
+                                       const float threshold) {
+    auto sortedProbs = argsort<1>(probs);
     std::vector<size_t> sortedProbsVec(sortedProbs.data(), sortedProbs.data() + sortedProbs.size());
     std::reverse(sortedProbsVec.begin(), sortedProbsVec.end());
 
+    std::vector<bool> keep(probs.size(), true);
+
     for (size_t i = 0; i < sortedProbsVec.size() - 1; i++) {
-        const auto boxId = sortedProbs(i);
         const std::vector<size_t> boxesIds(sortedProbsVec.begin() + i + 1, sortedProbsVec.end());
 
-        const Eigen::array<int, 3> boxesOffset = {(int) i + 1, 0, 0};
-        const Eigen::array<int, 3> boxesExtent = {boxes.dimension(0) - boxesOffset[0], boxes.dimension(1),
-                                                  boxes.dimension(2)};
+        const Eigen::array<int, 2> boxesOffset = {(int) i + 1, 0};
+        const Eigen::array<int, 2> boxesExtent = {boxes.dimension(0) - boxesOffset[0], boxes.dimension(1)};
 
-        const fTensor<3> otherBoxes = boxes.eval().slice(boxesOffset, boxesExtent);
+        const fTensor<2> otherBoxes = boxes.slice(boxesOffset, boxesExtent);
 
-        const Eigen::array<size_t, 3> boxOffset = {i, 0, 0};
-        const Eigen::array<int, 3> boxExtent = {1, boxes.dimension(1), boxes.dimension(2)};
+        const Eigen::array<size_t, 2> boxOffset = {i, 0};
+        const Eigen::array<int, 2> boxExtent = {1, boxes.dimension(1)};
 
-        const fTensor<3> iBox = boxes.eval().slice(boxOffset, boxExtent);
+        const fTensor<2> iBox = boxes.slice(boxOffset, boxExtent);
 
-        batchIou(otherBoxes, otherBoxes);
+        const fTensor<1> iou = batchIou(otherBoxes, iBox);
 
-        __android_log_print(ANDROID_LOG_VERBOSE, "APPNAME", "Test");
+        for (size_t j = 0; j < iou.size(); j++) {
+            if (iou(j) > threshold) {
+                keep[i + j + 1] = false;
+            }
+        }
     }
+
+    return keep;
 }
 
 template<int R>
@@ -243,11 +277,11 @@ bboxTransform(const fTensor<R> &cx, const fTensor<R> &cy, const fTensor<R> &w, c
 template<int R>
 std::vector<fTensor<R>>
 bboxTransformInv(const fTensor<R> &xmin, const fTensor<R> &ymin, const fTensor<R> &xmax, const fTensor<R> &ymax) {
-    auto w = xmax - xmin + xmax.constant(1.0);
-    auto h = ymax - ymin + ymax.constant(1.0);
+    const fTensor<R> w = xmax - xmin + 1.0f;
+    const fTensor<R> h = ymax - ymin + 1.0f;
 
-    auto cx = xmin + w * w.constant(0.5);
-    auto cy = ymin + h * h.constant(0.5);
+    const fTensor<R> cx = xmin + w * 0.5f;
+    const fTensor<R> cy = ymin + h * 0.5f;
 
     return std::vector<fTensor<R>>{cx, cy, w, h};
 }
@@ -333,8 +367,7 @@ f3Tensor extractBoxDeltas(const fTensor<4> &predictions,
 }
 
 
-fTensor<4>
-boxesFromDeltas(const fTensor<3> &predBoxDelta, const fTensor<2> &anchors, const ComixReader::Config *config) {
+f3Tensor boxesFromDeltas(const fTensor<3> &predBoxDelta, const fTensor<2> &anchors, const ComixReader::Config *config) {
     const Eigen::array<int, 3> predBoxDeltaOffsetX = {0, 0, 0};
     const Eigen::array<int, 3> predBoxDeltaOffsetY = {0, 0, 1};
     const Eigen::array<int, 3> predBoxDeltaOffsetW = {0, 0, 2};
@@ -342,33 +375,70 @@ boxesFromDeltas(const fTensor<3> &predBoxDelta, const fTensor<2> &anchors, const
 
     const Eigen::array<int, 3> predBoxDeltaExtent = {predBoxDelta.dimension(0), predBoxDelta.dimension(1), 1};
 
-    auto boxDeltaX = predBoxDelta.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
-    auto boxDeltaY = predBoxDelta.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
-    auto boxDeltaW = predBoxDelta.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
-    auto boxDeltaH = predBoxDelta.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
-
-    //increase anchors count to be the same as predBoxDelta
-    auto expandedAnchors = expandDim(anchors);
-
-    auto anchorX = expandedAnchors.slice(predBoxDeltaOffsetX, predBoxDeltaExtent);
-    auto anchorY = expandedAnchors.slice(predBoxDeltaOffsetY, predBoxDeltaExtent);
-    auto anchorW = expandedAnchors.slice(predBoxDeltaOffsetW, predBoxDeltaExtent);
-    auto anchorH = expandedAnchors.slice(predBoxDeltaOffsetH, predBoxDeltaExtent);
+    const Eigen::array<int, 2> predBoxDeltaShape = {predBoxDelta.dimension(0), predBoxDelta.dimension(1)};
 
 
-    auto boxCenterX = boxDeltaX * anchorW + anchorX;
-    auto boxCenterY = boxDeltaY * anchorH + anchorY;
-    auto boxWidth = anchorW * safeExp<3>(boxDeltaW, config->expThresh());
-    auto boxHeight = anchorH * safeExp<3>(boxDeltaH, config->expThresh());
+    const fTensor<2> boxDeltaX = predBoxDelta.slice(predBoxDeltaOffsetX, predBoxDeltaExtent).reshape(predBoxDeltaShape);
+    const fTensor<2> boxDeltaY = predBoxDelta.slice(predBoxDeltaOffsetY, predBoxDeltaExtent).reshape(predBoxDeltaShape);
+    const fTensor<2> boxDeltaW = predBoxDelta.slice(predBoxDeltaOffsetW, predBoxDeltaExtent).reshape(predBoxDeltaShape);
+    const fTensor<2> boxDeltaH = predBoxDelta.slice(predBoxDeltaOffsetH, predBoxDeltaExtent).reshape(predBoxDeltaShape);
 
-    auto boxesTuple = bboxTransform<3>(boxCenterX, boxCenterY, boxWidth, boxHeight);
-    auto xmin = bboxMinMaxFilter<3>(std::get<0>(boxesTuple), config->imageSize()->w() - 1.0);
-    auto ymin = bboxMinMaxFilter<3>(std::get<1>(boxesTuple), config->imageSize()->h() - 1.0);
-    auto xmax = bboxMinMaxFilter<3>(std::get<2>(boxesTuple), config->imageSize()->w() - 1.0);
-    auto ymax = bboxMinMaxFilter<3>(std::get<3>(boxesTuple), config->imageSize()->h() - 1.0);
+    const Eigen::array<int, 2> anchorsOffsetX = {0, 0};
+    const Eigen::array<int, 2> anchorsOffsetY = {0, 1};
+    const Eigen::array<int, 2> anchorsOffsetW = {0, 2};
+    const Eigen::array<int, 2> anchorsOffsetH = {0, 3};
 
-    return stack<3>(bboxTransformInv<3>(xmin, ymin, xmax, ymax)).shuffle((Eigen::array<int, 4>) {1, 2, 0, 3});
+    const Eigen::array<int, 2> anchorsExtent = {anchors.dimension(0), 1};
+
+    const Eigen::array<int, 1> anchorsShape = {anchors.dimension(0)};
+
+    const fTensor<1> anchorX = anchors.slice(anchorsOffsetX, anchorsExtent).reshape(anchorsShape);
+    const fTensor<1> anchorY = anchors.slice(anchorsOffsetY, anchorsExtent).reshape(anchorsShape);
+    const fTensor<1> anchorW = anchors.slice(anchorsOffsetW, anchorsExtent).reshape(anchorsShape);
+    const fTensor<1> anchorH = anchors.slice(anchorsOffsetH, anchorsExtent).reshape(anchorsShape);
+
+    const Eigen::array<int, 2> anchorIncreaseDim = {1, anchorW.dimensions()[0]};
+    const Eigen::array<int, 2> anchorBroadcast = {boxDeltaX.dimensions()[0], 1};
+
+    const fTensor<2> reshapedAnchorW = anchorW.reshape(anchorIncreaseDim).broadcast(anchorBroadcast);
+    const fTensor<2> reshapedAnchorH = anchorH.reshape(anchorIncreaseDim).broadcast(anchorBroadcast);
+
+    const fTensor<2> boxCenterX =
+            anchorX.reshape(anchorIncreaseDim).broadcast(anchorBroadcast) + boxDeltaX * reshapedAnchorW;
+    const fTensor<2> boxCenterY =
+            anchorY.reshape(anchorIncreaseDim).broadcast(anchorBroadcast) + boxDeltaY * reshapedAnchorH;
+    const fTensor<2> boxWidth = reshapedAnchorW * safeExp<2>(boxDeltaW, config->expThresh());
+    const fTensor<2> boxHeight = reshapedAnchorH * safeExp<2>(boxDeltaH, config->expThresh());
+
+    auto boxesTuple = bboxTransform<2>(boxCenterX, boxCenterY, boxWidth, boxHeight);
+    auto xmin = bboxMinMaxFilter<2>(std::get<0>(boxesTuple), config->imageSize()->w() - 1.0);
+    auto ymin = bboxMinMaxFilter<2>(std::get<1>(boxesTuple), config->imageSize()->h() - 1.0);
+    auto xmax = bboxMinMaxFilter<2>(std::get<2>(boxesTuple), config->imageSize()->w() - 1.0);
+    auto ymax = bboxMinMaxFilter<2>(std::get<3>(boxesTuple), config->imageSize()->h() - 1.0);
+
+    auto test = bboxTransformInv<2>(xmin, ymin, xmax, ymax);
+
+    for (int i = 0; i < 9000; i++) {
+        float s = xmin(0, i);
+        float s1 = xmax(0, i);
+
+        fTensor<2> t = xmax - xmin + 1.0f;
+        float tw = t(0, i);
+
+        float bh = boxHeight(0, i);
+
+        float s2 = test[0](0, i);
+        float w = test[2](0, i);
+        float h = test[3](0, i);
+        float s4 = test[3](0, i);
+    }
+
+
+    return stack<2>(bboxTransformInv<2>(xmin, ymin, xmax, ymax)).shuffle((Eigen::array<int, 3>) {1, 2, 0});
 }
+
+
+using FilteredPredictions = std::tuple<std::vector<std::vector<float>>, std::vector<float>, std::vector<float>>;
 
 /**
  * Filter bounding box predictions with probability threshold and non-maximum supression.
@@ -381,15 +451,16 @@ boxesFromDeltas(const fTensor<3> &predBoxDelta, const fTensor<2> &anchors, const
  * final_probs: array of filtered probabilities
  * final_cls_idx: array of filtered class indices
  */
-void filterPrediction(const Eigen::TensorRef<f3Tensor> &boxes,
-                      const Eigen::TensorRef<fTensor<1>> &probs,
-                      const Eigen::TensorRef<fTensor<1>> &clsIdx,
-                      const ComixReader::Config *config) {
+FilteredPredictions filterPrediction(const Eigen::TensorRef<fTensor<2>> &boxes,
+                                     const Eigen::TensorRef<fTensor<1>> &probs,
+                                     const Eigen::TensorRef<fTensor<1>> &clsIdx,
+                                     const ComixReader::Config *config) {
     const size_t topDetection = config->topNDetection();
 
     std::vector<float> probsN(topDetection);
-    std::vector<fTensor<2>> boxesN(topDetection);
+    std::vector<fTensor<1>> boxesN(topDetection);
     std::vector<float> clsIdxN(topDetection);
+
 
     if (config->topNDetection() > 0 && config->topNDetection() < probs.size()) {
         const auto idx = argsort(probs);
@@ -400,24 +471,27 @@ void filterPrediction(const Eigen::TensorRef<f3Tensor> &boxes,
             probsN[i] = probs(id);
             clsIdxN[i] = clsIdx(id);
 
-            const Eigen::array<int, 3> boxSliceOffset = {(int) id, 0, 0};
-            const Eigen::array<int, 3> boxSliceExtent = {1, boxes.dimension(1), boxes.dimension(2)};
+            const Eigen::array<int, 2> boxSliceOffset = {(int) id, 0};
+            const Eigen::array<int, 2> boxSliceExtent = {1, boxes.dimension(1)};
 
             boxesN[i] = boxes.eval()
                     .slice(boxSliceOffset, boxSliceExtent)
-                    .reshape(Eigen::array<int, 2>{boxes.dimension(1), boxes.dimension(2)});
-
+                    .reshape(Eigen::array<int, 1>{boxes.dimension(1)});
         }
 
     } else {
         //TODO
     }
 
+    std::vector<std::vector<float>> boxesFinal;
+    std::vector<float> probsFinal;
+    std::vector<float> clsIdxFinal;
+
     for (uint32_t classId = 0; classId < config->classCount(); classId++) {
         //prob positions with specific classId
         std::vector<uint32_t> idxPerClass;
 
-        std::vector<fTensor<2>> boxesPerClass;
+        std::vector<fTensor<1>> boxesPerClass;
         std::vector<float> probsPerClass;
 
         for (uint32_t probId = 0; probId < probsN.size(); probId++) {
@@ -429,15 +503,28 @@ void filterPrediction(const Eigen::TensorRef<f3Tensor> &boxes,
             }
         }
 
-        auto probsMap = Eigen::TensorMap<fTensor<1>>(probsPerClass.data(), probsPerClass.size());
-        auto boxesStack = stack<2>(boxesPerClass);
-        nonMaximumSupression(boxesStack, probsMap, config->nmsThresh());
+        const fTensor<1> probsMap = Eigen::TensorMap<fTensor<1>>(probsPerClass.data(), probsPerClass.size());
+        const fTensor<2> boxesStack = stack<1>(boxesPerClass);
 
+        auto keep = nonMaximumSupression(boxesStack, probsMap, config->nmsThresh());
+
+        for (size_t i = 0; i < keep.size(); i++) {
+            if (keep[i]) {
+                auto id = idxPerClass[i];
+                const float *boxData = boxesN[id].data();
+
+                boxesFinal.push_back(std::vector<float>(boxData, boxData + boxesN[id].size()));
+                probsFinal.push_back(probsN[id]);
+                clsIdxFinal.push_back(clsIdxN[id]);
+            }
+        }
     }
+
+    return std::make_tuple(boxesFinal, probsFinal, clsIdxFinal);
 }
 
 
-extern "C" JNIEXPORT void JNICALL
+extern "C" JNIEXPORT jobjectArray JNICALL
 Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
         JNIEnv *env,
         jobject /* this */,
@@ -471,40 +558,81 @@ Java_com_almadevelop_comixreader_MainActivity_parsePrediction(
 
     const Tensor<float, 4> tPred = parsePredictions(env, pred, predInfo);
 
-    f3Tensor predClassProbs = extractClassProbs(tPred, comixConfig, batchSize, anchorsCount);
-    fTensor<2> predConf = extractPredictionConfidence(tPred, comixConfig, batchSize, anchorsCount);
-    f3Tensor predBoxDelta = extractBoxDeltas(tPred, comixConfig, batchSize, anchorsCount);
+    const f3Tensor predClassProbs = extractClassProbs(tPred, comixConfig, batchSize, anchorsCount);
+    const fTensor<2> predConf = extractPredictionConfidence(tPred, comixConfig, batchSize, anchorsCount);
+    const f3Tensor predBoxDelta = extractBoxDeltas(tPred, comixConfig, batchSize, anchorsCount);
 
-    const auto boxes = boxesFromDeltas(predBoxDelta, anchorsTensorMap, comixConfig);
+    const f3Tensor boxes = boxesFromDeltas(predBoxDelta, anchorsTensorMap, comixConfig);
 
-    Eigen::Tensor<float, 3> probs = predClassProbs * predConf.reshape(Eigen::array<int, 3>{batchSize, anchorsCount, 1});
-    auto detProbs = probs.maximum(Eigen::array<int, 1>({2}));
-    auto detClass = probs.argmax(2).cast<float>();
+    const Eigen::Tensor<float, 3> probs =
+            predClassProbs * predConf.reshape(Eigen::array<int, 3>{batchSize, anchorsCount, 1});
+    const Eigen::Tensor<float, 2> detProbs = probs.maximum(Eigen::array<int, 1>({2}));
+    const Eigen::Tensor<float, 2> detClass = probs.argmax(2).cast<float>();
 
     //Final shape for detProbs and detClass slice
     const Eigen::array<int, 1> detShape = {anchorsCount};
-    const Eigen::array<int, 3> boxesShape = {anchorsCount, 4, boxes.dimension(3)};
+    const Eigen::array<int, 2> boxesShape = {anchorsCount, 4};
+
+    std::vector<std::vector<float>> allBoxes;
+    std::vector<float> allScores;
+    std::vector<float> allClassId;
 
     for (int b = 0; b < batchSize; b++) {
         const Eigen::array<int, 2> detBatchSliceOffset = {b, 0};
         const Eigen::array<int, 2> detBatchSliceExtents = {1, detShape[0]};
 
-        const Eigen::array<int, 4> boxBatchSliceOffset = {b, 0, 0, 0};
-        const Eigen::array<int, 4> boxBatchSliceExtents = {1, boxesShape[0], boxesShape[1], boxesShape[2]};
+        const Eigen::array<int, 3> boxBatchSliceOffset = {b, 0, 0};
+        const Eigen::array<int, 3> boxBatchSliceExtents = {1, boxesShape[0], boxesShape[1]};
 
-        filterPrediction(boxes.slice(boxBatchSliceOffset, boxBatchSliceExtents).reshape(boxesShape).eval(),
-                         detProbs.slice(detBatchSliceOffset, detBatchSliceExtents).reshape(detShape).eval(),
-                         detClass.slice(detBatchSliceOffset, detBatchSliceExtents).reshape(detShape).eval(),
-                         comixConfig);
+        const auto fiteredPredictions = filterPrediction(
+                (fTensor<2>) boxes.slice(boxBatchSliceOffset, boxBatchSliceExtents).reshape(boxesShape),
+                detProbs.slice(detBatchSliceOffset, detBatchSliceExtents).reshape(detShape).eval(),
+                detClass.slice(detBatchSliceOffset, detBatchSliceExtents).reshape(detShape).eval(),
+                comixConfig);
 
-        //__android_log_print(ANDROID_LOG_VERBOSE, "APP", "test %f", t(0));
+        auto filteredBoxes = std::get<0>(fiteredPredictions);
+        auto filteredScores = std::get<1>(fiteredPredictions);
+        auto filteredClassIdx = std::get<2>(fiteredPredictions);
 
-        //fTensor<0> asd = det_class.chip(0, 0);
+        //filter by finalThreshold
+        for (auto it = filteredScores.begin(); it != filteredScores.end();) {
+            const auto score = *it;
+
+            if (score < comixConfig->finalThreshold()) {
+                it = filteredScores.erase(it);
+
+                auto pos = it - filteredScores.begin();
+                filteredBoxes.erase(filteredBoxes.begin() + pos);
+                filteredClassIdx.erase(filteredClassIdx.begin() + pos);
+            } else {
+                ++it;
+            }
+        }
+
+        allBoxes.assign(filteredBoxes.begin(), filteredBoxes.end());
+        allScores.assign(filteredScores.begin(), filteredScores.end());
+        allClassId.assign(filteredClassIdx.begin(), filteredClassIdx.end());
+
+        __android_log_print(ANDROID_LOG_VERBOSE, "A", "B");
     }
 
-    //__android_log_print(ANDROID_LOG_VERBOSE, "APP", "test %f", asd(0, 0));
-
     AAsset_close(comixFlatbufferAsset);
+
+    const jclass floatArrayCls = env->FindClass("[F");
+
+    jobjectArray array = env->NewObjectArray((jsize) allBoxes.size(), floatArrayCls, NULL);
+
+    for (auto it = allBoxes.begin(); it != allBoxes.end(); ++it) {
+        auto pos = it - allBoxes.begin();
+
+        auto boxArray = env->NewFloatArray((jsize) 4);
+        env->SetFloatArrayRegion(boxArray, 0, 4, (*it).data());
+
+        env->SetObjectArrayElement(array, pos, boxArray);
+        env->DeleteLocalRef(boxArray);
+    }
+
+    return array;
 }
 
 

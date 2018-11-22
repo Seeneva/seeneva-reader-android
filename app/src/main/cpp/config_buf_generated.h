@@ -19,7 +19,7 @@ namespace ComixReader {
 
     public:
         Size() {
-          memset(this, 0, sizeof(Size));
+            memset(this, 0, sizeof(Size));
         }
 
         Size(uint32_t _h, uint32_t _w)
@@ -28,11 +28,11 @@ namespace ComixReader {
         }
 
         uint32_t h() const {
-          return flatbuffers::EndianScalar(h_);
+            return flatbuffers::EndianScalar(h_);
         }
 
         uint32_t w() const {
-          return flatbuffers::EndianScalar(w_);
+            return flatbuffers::EndianScalar(w_);
         }
     };
 
@@ -43,63 +43,69 @@ namespace ComixReader {
             VT_CLASSCOUNT = 4,
             VT_TOPNDETECTION = 6,
             VT_EXPTHRESH = 8,
-            VT_PROBTHRESH = 10,
-            VT_NMSTHRESH = 12,
-            VT_IMAGESIZE = 14,
-            VT_ANCHORSSIZE = 16,
-            VT_ANCHORPERGRID = 18,
-            VT_ANCHORBOXES = 20
+            VT_FINALTHRESHOLD = 10,
+            VT_PROBTHRESH = 12,
+            VT_NMSTHRESH = 14,
+            VT_IMAGESIZE = 16,
+            VT_ANCHORSSIZE = 18,
+            VT_ANCHORPERGRID = 20,
+            VT_ANCHORBOXES = 22
         };
 
         uint32_t classCount() const {
-          return GetField<uint32_t>(VT_CLASSCOUNT, 0);
+            return GetField<uint32_t>(VT_CLASSCOUNT, 0);
         }
 
         uint32_t topNDetection() const {
-          return GetField<uint32_t>(VT_TOPNDETECTION, 0);
+            return GetField<uint32_t>(VT_TOPNDETECTION, 0);
         }
 
         float expThresh() const {
-          return GetField<float>(VT_EXPTHRESH, 0.0f);
+            return GetField<float>(VT_EXPTHRESH, 0.0f);
+        }
+
+        float finalThreshold() const {
+            return GetField<float>(VT_FINALTHRESHOLD, 0.0f);
         }
 
         float probThresh() const {
-          return GetField<float>(VT_PROBTHRESH, 0.0f);
+            return GetField<float>(VT_PROBTHRESH, 0.0f);
         }
 
         float nmsThresh() const {
-          return GetField<float>(VT_NMSTHRESH, 0.0f);
+            return GetField<float>(VT_NMSTHRESH, 0.0f);
         }
 
         const Size *imageSize() const {
-          return GetStruct<const Size *>(VT_IMAGESIZE);
+            return GetStruct<const Size *>(VT_IMAGESIZE);
         }
 
         const Size *anchorsSize() const {
-          return GetStruct<const Size *>(VT_ANCHORSSIZE);
+            return GetStruct<const Size *>(VT_ANCHORSSIZE);
         }
 
         uint32_t anchorPerGrid() const {
-          return GetField<uint32_t>(VT_ANCHORPERGRID, 0);
+            return GetField<uint32_t>(VT_ANCHORPERGRID, 0);
         }
 
         const flatbuffers::Vector<float> *anchorBoxes() const {
-          return GetPointer<const flatbuffers::Vector<float> *>(VT_ANCHORBOXES);
+            return GetPointer<const flatbuffers::Vector<float> *>(VT_ANCHORBOXES);
         }
 
         bool Verify(flatbuffers::Verifier &verifier) const {
-          return VerifyTableStart(verifier) &&
-                 VerifyField<uint32_t>(verifier, VT_CLASSCOUNT) &&
-                 VerifyField<uint32_t>(verifier, VT_TOPNDETECTION) &&
-                 VerifyField<float>(verifier, VT_EXPTHRESH) &&
-                 VerifyField<float>(verifier, VT_PROBTHRESH) &&
-                 VerifyField<float>(verifier, VT_NMSTHRESH) &&
-                 VerifyField<Size>(verifier, VT_IMAGESIZE) &&
-                 VerifyField<Size>(verifier, VT_ANCHORSSIZE) &&
-                 VerifyField<uint32_t>(verifier, VT_ANCHORPERGRID) &&
-                 VerifyOffset(verifier, VT_ANCHORBOXES) &&
-                 verifier.VerifyVector(anchorBoxes()) &&
-                 verifier.EndTable();
+            return VerifyTableStart(verifier) &&
+                   VerifyField<uint32_t>(verifier, VT_CLASSCOUNT) &&
+                   VerifyField<uint32_t>(verifier, VT_TOPNDETECTION) &&
+                   VerifyField<float>(verifier, VT_EXPTHRESH) &&
+                   VerifyField<float>(verifier, VT_FINALTHRESHOLD) &&
+                   VerifyField<float>(verifier, VT_PROBTHRESH) &&
+                   VerifyField<float>(verifier, VT_NMSTHRESH) &&
+                   VerifyField<Size>(verifier, VT_IMAGESIZE) &&
+                   VerifyField<Size>(verifier, VT_ANCHORSSIZE) &&
+                   VerifyField<uint32_t>(verifier, VT_ANCHORPERGRID) &&
+                   VerifyOffset(verifier, VT_ANCHORBOXES) &&
+                   verifier.VerifyVector(anchorBoxes()) &&
+                   verifier.EndTable();
         }
     };
 
@@ -108,52 +114,56 @@ namespace ComixReader {
         flatbuffers::uoffset_t start_;
 
         void add_classCount(uint32_t classCount) {
-          fbb_.AddElement<uint32_t>(Config::VT_CLASSCOUNT, classCount, 0);
+            fbb_.AddElement<uint32_t>(Config::VT_CLASSCOUNT, classCount, 0);
         }
 
         void add_topNDetection(uint32_t topNDetection) {
-          fbb_.AddElement<uint32_t>(Config::VT_TOPNDETECTION, topNDetection, 0);
+            fbb_.AddElement<uint32_t>(Config::VT_TOPNDETECTION, topNDetection, 0);
         }
 
         void add_expThresh(float expThresh) {
-          fbb_.AddElement<float>(Config::VT_EXPTHRESH, expThresh, 0.0f);
+            fbb_.AddElement<float>(Config::VT_EXPTHRESH, expThresh, 0.0f);
+        }
+
+        void add_finalThreshold(float finalThreshold) {
+            fbb_.AddElement<float>(Config::VT_FINALTHRESHOLD, finalThreshold, 0.0f);
         }
 
         void add_probThresh(float probThresh) {
-          fbb_.AddElement<float>(Config::VT_PROBTHRESH, probThresh, 0.0f);
+            fbb_.AddElement<float>(Config::VT_PROBTHRESH, probThresh, 0.0f);
         }
 
         void add_nmsThresh(float nmsThresh) {
-          fbb_.AddElement<float>(Config::VT_NMSTHRESH, nmsThresh, 0.0f);
+            fbb_.AddElement<float>(Config::VT_NMSTHRESH, nmsThresh, 0.0f);
         }
 
         void add_imageSize(const Size *imageSize) {
-          fbb_.AddStruct(Config::VT_IMAGESIZE, imageSize);
+            fbb_.AddStruct(Config::VT_IMAGESIZE, imageSize);
         }
 
         void add_anchorsSize(const Size *anchorsSize) {
-          fbb_.AddStruct(Config::VT_ANCHORSSIZE, anchorsSize);
+            fbb_.AddStruct(Config::VT_ANCHORSSIZE, anchorsSize);
         }
 
         void add_anchorPerGrid(uint32_t anchorPerGrid) {
-          fbb_.AddElement<uint32_t>(Config::VT_ANCHORPERGRID, anchorPerGrid, 0);
+            fbb_.AddElement<uint32_t>(Config::VT_ANCHORPERGRID, anchorPerGrid, 0);
         }
 
         void add_anchorBoxes(flatbuffers::Offset<flatbuffers::Vector<float>> anchorBoxes) {
-          fbb_.AddOffset(Config::VT_ANCHORBOXES, anchorBoxes);
+            fbb_.AddOffset(Config::VT_ANCHORBOXES, anchorBoxes);
         }
 
         explicit ConfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
                 : fbb_(_fbb) {
-          start_ = fbb_.StartTable();
+            start_ = fbb_.StartTable();
         }
 
         ConfigBuilder &operator=(const ConfigBuilder &);
 
         flatbuffers::Offset<Config> Finish() {
-          const auto end = fbb_.EndTable(start_);
-          auto o = flatbuffers::Offset<Config>(end);
-          return o;
+            const auto end = fbb_.EndTable(start_);
+            auto o = flatbuffers::Offset<Config>(end);
+            return o;
         }
     };
 
@@ -162,23 +172,25 @@ namespace ComixReader {
             uint32_t classCount = 0,
             uint32_t topNDetection = 0,
             float expThresh = 0.0f,
+            float finalThreshold = 0.0f,
             float probThresh = 0.0f,
             float nmsThresh = 0.0f,
             const Size *imageSize = 0,
             const Size *anchorsSize = 0,
             uint32_t anchorPerGrid = 0,
             flatbuffers::Offset<flatbuffers::Vector<float>> anchorBoxes = 0) {
-      ConfigBuilder builder_(_fbb);
-      builder_.add_anchorBoxes(anchorBoxes);
-      builder_.add_anchorPerGrid(anchorPerGrid);
-      builder_.add_anchorsSize(anchorsSize);
-      builder_.add_imageSize(imageSize);
-      builder_.add_nmsThresh(nmsThresh);
-      builder_.add_probThresh(probThresh);
-      builder_.add_expThresh(expThresh);
-      builder_.add_topNDetection(topNDetection);
-      builder_.add_classCount(classCount);
-      return builder_.Finish();
+        ConfigBuilder builder_(_fbb);
+        builder_.add_anchorBoxes(anchorBoxes);
+        builder_.add_anchorPerGrid(anchorPerGrid);
+        builder_.add_anchorsSize(anchorsSize);
+        builder_.add_imageSize(imageSize);
+        builder_.add_nmsThresh(nmsThresh);
+        builder_.add_probThresh(probThresh);
+        builder_.add_finalThreshold(finalThreshold);
+        builder_.add_expThresh(expThresh);
+        builder_.add_topNDetection(topNDetection);
+        builder_.add_classCount(classCount);
+        return builder_.Finish();
     }
 
     inline flatbuffers::Offset<Config> CreateConfigDirect(
@@ -186,53 +198,55 @@ namespace ComixReader {
             uint32_t classCount = 0,
             uint32_t topNDetection = 0,
             float expThresh = 0.0f,
+            float finalThreshold = 0.0f,
             float probThresh = 0.0f,
             float nmsThresh = 0.0f,
             const Size *imageSize = 0,
             const Size *anchorsSize = 0,
             uint32_t anchorPerGrid = 0,
             const std::vector<float> *anchorBoxes = nullptr) {
-      return ComixReader::CreateConfig(
-              _fbb,
-              classCount,
-              topNDetection,
-              expThresh,
-              probThresh,
-              nmsThresh,
-              imageSize,
-              anchorsSize,
-              anchorPerGrid,
-              anchorBoxes ? _fbb.CreateVector<float>(*anchorBoxes) : 0);
+        return ComixReader::CreateConfig(
+                _fbb,
+                classCount,
+                topNDetection,
+                expThresh,
+                finalThreshold,
+                probThresh,
+                nmsThresh,
+                imageSize,
+                anchorsSize,
+                anchorPerGrid,
+                anchorBoxes ? _fbb.CreateVector<float>(*anchorBoxes) : 0);
     }
 
     inline const ComixReader::Config *GetConfig(const void *buf) {
-      return flatbuffers::GetRoot<ComixReader::Config>(buf);
+        return flatbuffers::GetRoot<ComixReader::Config>(buf);
     }
 
     inline const ComixReader::Config *GetSizePrefixedConfig(const void *buf) {
-      return flatbuffers::GetSizePrefixedRoot<ComixReader::Config>(buf);
+        return flatbuffers::GetSizePrefixedRoot<ComixReader::Config>(buf);
     }
 
     inline bool VerifyConfigBuffer(
             flatbuffers::Verifier &verifier) {
-      return verifier.VerifyBuffer<ComixReader::Config>(nullptr);
+        return verifier.VerifyBuffer<ComixReader::Config>(nullptr);
     }
 
     inline bool VerifySizePrefixedConfigBuffer(
             flatbuffers::Verifier &verifier) {
-      return verifier.VerifySizePrefixedBuffer<ComixReader::Config>(nullptr);
+        return verifier.VerifySizePrefixedBuffer<ComixReader::Config>(nullptr);
     }
 
     inline void FinishConfigBuffer(
             flatbuffers::FlatBufferBuilder &fbb,
             flatbuffers::Offset<ComixReader::Config> root) {
-      fbb.Finish(root);
+        fbb.Finish(root);
     }
 
     inline void FinishSizePrefixedConfigBuffer(
             flatbuffers::FlatBufferBuilder &fbb,
             flatbuffers::Offset<ComixReader::Config> root) {
-      fbb.FinishSizePrefixed(root);
+        fbb.FinishSizePrefixed(root);
     }
 
 }  // namespace ComixReader
