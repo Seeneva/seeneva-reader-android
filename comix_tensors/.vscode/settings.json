@@ -1,0 +1,5 @@
+{
+    "rust.clippy_preference": "on",
+    "rust.goto_def_racer_fallback": true,
+    "rust.target": "i686-linux-android",
+}

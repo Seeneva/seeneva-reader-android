@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ComicInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Series>Star Wars: Age Of The Republic - Darth Maul</Series>
+  <Number>1</Number>
+  <Web>https://www.comixology.com/Star-Wars-Age-Of-The-Republic-Darth-Maul-2018-1/digital-comic/720363</Web>
+  <Volume>2018</Volume>
+  <Summary>RISE OF THE SITH!  A living weapon of rage and bloodthirst, DARTH MAUL has stayed in the shadows of CORUSCANT waiting for his chance to strike against the JEDI ORDER! However, since tasting his first blood, the SITH lord struggles to contain his desire for destruction and questions the wishes of his methodically plotting master. Could Maul have had another path in life, or was he always fated to follow a dark road? Guest-starring DARTH SIDIOUS!</Summary>
+  <Notes>Scraped metadata from Comixology [CMXDB720363], [RELDATE:2018-12-12]</Notes>
+  <Publisher>Marvel</Publisher>
+  <Genre>Science Fiction, Movies &amp; TV</Genre>
+  <PageCount>24</PageCount>
+  <LanguageISO>en</LanguageISO>
+  <ScanInformation>Kileko-Empire</ScanInformation>
+  <Year>2019</Year>
+  <Month>2</Month>
+  <Writer>Jody Houser</Writer>
+  <Penciller>Luke Ross</Penciller>
+  <CoverArtist>Paolo Rivera</CoverArtist>
+  <Pages>
+    <Page Image="0" Type="FrontCover" ImageSize="1531539" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="1" ImageSize="1077833" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="2" ImageSize="2016925" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="3" ImageSize="2349625" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="4" ImageSize="1868045" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="5" ImageSize="1962484" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="6" ImageSize="1871245" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="7" ImageSize="1982877" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="8" ImageSize="2149961" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="9" ImageSize="2096404" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="10" ImageSize="1731072" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="11" ImageSize="1471109" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="12" ImageSize="1582554" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="13" ImageSize="1617718" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="14" ImageSize="1981671" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="15" ImageSize="1956147" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="16" ImageSize="2078129" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="17" ImageSize="2317676" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="18" ImageSize="1471988" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="19" ImageSize="2185665" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="20" ImageSize="1580004" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="21" ImageSize="2257622" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="22" ImageSize="1269435" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="23" ImageSize="1622118" ImageHeight="3056" ImageWidth="1988" />
+  </Pages>
+</ComicInfo>

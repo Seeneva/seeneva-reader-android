@@ -1,0 +1,422 @@
+https://python-unrar.readthedocs.io/en/latest/unrarlib.html
+http://goahomepage.free.fr/article/2000_09_17_unrar_dll/UnRARDLL.html
+
+Exported functions
+
+====================================================================
+HANDLE PASCAL RAROpenArchive(struct RAROpenArchiveData *ArchiveData)
+====================================================================
+
+Description
+~~~~~~~~~~~
+  Open RAR archive and allocate memory structures (about 1 Mb)
+
+Parameters
+~~~~~~~~~~
+ArchiveData       Points to RAROpenArchiveData structure
+
+struct RAROpenArchiveData
+{
+  char *ArcName;
+  UINT OpenMode;
+  UINT OpenResult;
+  char *CmtBuf;
+  UINT CmtBufSize;
+  UINT CmtSize;
+  UINT CmtState;
+};
+
+Structure fields:
+
+ArcName
+  Input parameter which should point to a, zero terminated string
+  containing the archive name.
+
+OpenMode
+  Input parameter.
+
+  Possible values
+
+  RAR_OM_LIST           Open archive for reading file headers only
+  RAR_OM_EXTRACT        Open archive for testing and extracting files
+
+OpenResult
+  Output parameter.
+
+  Possible values
+
+  0                     Success
+  ERAR_NO_MEMORY        Not enough memory to initialize data structures
+  ERAR_BAD_DATA         Archive header broken
+  ERAR_BAD_ARCHIVE      File is not valid RAR archive
+  ERAR_EOPEN            File open error
+
+CmtBuf
+  Input parameter which should point to the buffer for archive
+  comments. Maximum comment size is limited to 64Kb. Comment text is
+  zero terminated. If the comment text is larger than the buffer
+  size, the comment text will be truncated. If CmtBuf is set to
+  NULL, comments will not be read.
+
+CmtBufSize
+  Input parameter which should contain size of buffer for archive
+  comments.
+
+CmtSize
+  Output parameter containing size of comments actually read into the
+  buffer, cannot exceed CmtBufSize.
+
+CmtState
+  Output parameter.
+
+  Possible values
+
+  0                     comments not present
+  1                     Comments read completely
+  ERAR_NO_MEMORY        Not enough memory to extract comments
+  ERAR_BAD_DATA         Broken comment
+  ERAR_UNKNOWN_FORMAT   Unknown comment format
+  ERAR_SMALL_BUF        Buffer too small, comments not completely read
+
+Return values
+~~~~~~~~~~~~~
+  Archive handle or NULL in case of error
+
+
+====================================================================
+int PASCAL RARCloseArchive(HANDLE hArcData)
+====================================================================
+
+Description
+~~~~~~~~~~~
+  Close RAR archive and release allocated memory. It must be called when
+  archive processing is finished, even if the archive processing was stopped
+  due to an error.
+
+Parameters
+~~~~~~~~~~
+hArcData
+  This parameter should contain the archive handle obtained from the
+  RAROpenArchive function call.
+
+Return values
+~~~~~~~~~~~~~
+  0                     Success
+  ERAR_ECLOSE           Archive close error
+
+
+====================================================================
+int PASCAL RARReadHeader(HANDLE hArcData,
+                         struct RARHeaderData *HeaderData)
+====================================================================
+
+Description
+~~~~~~~~~~~
+  Read header of file in archive.
+
+Parameters
+~~~~~~~~~~
+hArcData
+  This parameter should contain the archive handle obtained from the
+  RAROpenArchive function call.
+
+HeaderData
+  It should point to RARHeaderData structure:
+
+struct RARHeaderData
+{
+  char ArcName[260];
+  char FileName[260];
+  UINT Flags;
+  UINT PackSize;
+  UINT UnpSize;
+  UINT HostOS;
+  UINT FileCRC;
+  UINT FileTime;
+  UINT UnpVer;
+  UINT Method;
+  UINT FileAttr;
+  char *CmtBuf;
+  UINT CmtBufSize;
+  UINT CmtSize;
+  UINT CmtState;
+};
+
+Structure fields:
+
+ArcName
+  Output parameter which contains a zero terminated string of the
+  current archive name.  May be used to determine the current volume
+  name.
+
+FileName
+  Output parameter which contains a zero terminated string of the
+  file name.
+
+Flags
+  Output parameter which contains file flags:
+
+  0x01 - file continued from previous volume
+  0x02 - file continued on next volume
+  0x04 - file encrypted with password
+  0x08 - file comment present
+  0x10 - compression of previous files is used (solid flag)
+
+  bits 7 6 5
+
+       0 0 0    - dictionary size   64 Kb
+       0 0 1    - dictionary size  128 Kb
+       0 1 0    - dictionary size  256 Kb
+       0 1 1    - dictionary size  512 Kb
+       1 0 0    - dictionary size 1024 Kb
+       1 0 1    - reserved
+       1 1 0    - reserved
+       1 1 1    - file is directory
+
+  Other bits are reserved.
+
+PackSize
+  Output parameter means packed file size or size of the
+  file part if file was split between volumes.
+
+UnpSize
+  Output parameter - unpacked file size.
+
+HostOS
+  Output parameter - operating system used for archiving:
+
+  0 - MS DOS;
+  1 - OS/2.
+  2 - Win32
+  3 - Unix
+
+FileCRC
+  Output parameter which contains unpacked file CRC. It should not be
+  used for file parts which were split between volumes.
+
+FileTime
+  Output parameter - contains date and time in standard MS DOS format.
+
+UnpVer
+  Output parameter - RAR version needed to extract file.
+  It is encoded as 10 * Major version + minor version.
+
+Method
+  Output parameter - packing method.
+
+FileAttr
+  Output parameter - file attributes.
+
+CmtBuf
+  Input parameter which should point to the buffer for archive
+  comments. Maximum comment size is limited to 64Kb. Comment text is
+  a zero terminated string.  If the comment text is larger than the
+  buffer size, the comment text will be truncated. If CmtBuf is set
+  to NULL, comments will not be read.
+
+CmtBufSize
+  Input parameter which should contain size of buffer for archive
+  comments.
+
+CmtSize
+  Output parameter containing size of comments actually read into the
+  buffer, should not exceed CmtBufSize.
+
+CmtState
+  Output parameter.
+
+  Possible values
+
+  0                     Absent comments
+  1                     Comments read completely
+  ERAR_NO_MEMORY        Not enough memory to extract comments
+  ERAR_BAD_DATA         Broken comment
+  ERAR_UNKNOWN_FORMAT   Unknown comment format
+  ERAR_SMALL_BUF        Buffer too small, comments not completely read
+
+Return values
+~~~~~~~~~~~~~
+
+  0                     Success
+  ERAR_END_ARCHIVE      End of archive
+  ERAR_BAD_DATA         File header broken
+
+
+====================================================================
+int PASCAL RARProcessFile(HANDLE hArcData,
+                          int Operation,
+                          char *DestPath,
+                          char *DestName)
+====================================================================
+
+Description
+~~~~~~~~~~~
+  Performs action and moves the current position in the archive to
+  the next file. Extract or test the current file from the archive
+  opened in RAR_OM_EXTRACT mode. If the mode RAR_OM_LIST is set,
+  then a call to this function will simply skip the archive position
+  to the next file.
+
+Parameters
+~~~~~~~~~~
+hArcData
+  This parameter should contain the archive handle obtained from the
+  RAROpenArchive function call.
+
+Operation
+  File operation.
+
+  Possible values
+
+  RAR_SKIP              Move to the next file in the archive. If the
+                        archive is solid and RAR_OM_EXTRACT mode was set
+                        when the archive was opened, the current file will
+                        be processed - the operation will be performed
+                        slower than a simple seek.
+
+  RAR_TEST              Test the current file and move to the next file in
+                        the archive. If the archive was opened with
+                        RAR_OM_LIST mode, the operation is equal to
+                        RAR_SKIP.
+
+  RAR_EXTRACT           Extract the current file and move to the next file.
+                        If the archive was opened with RAR_OM_LIST mode,
+                        the operation is equal to RAR_SKIP.
+
+
+DestPath
+  This parameter should point to a zero terminated string containing the
+  destination directory to which to extract files to. If DestPath is equal
+  to NULL it means extract to the current directory. This parameter has
+  meaning only if DestName is NULL.
+
+DestName
+  This parameter should point to a string containing the full path and name
+  of the file to be extracted or NULL as default. If DestName is defined
+  (not NULL) it overrides the original file name saved in the archive and
+  DestPath setting.
+
+Return values
+~~~~~~~~~~~~~
+  0                     Success
+  ERAR_BAD_DATA         File CRC error
+  ERAR_BAD_ARCHIVE      Volume is not valid RAR archive
+  ERAR_UNKNOWN_FORMAT   Unknown archive format
+  ERAR_EOPEN            Volume open error
+  ERAR_ECREATE          File create error
+  ERAR_ECLOSE           File close error
+  ERAR_EREAD            Read error
+  ERAR_EWRITE           Write error
+
+
+====================================================================
+void PASCAL RARSetChangeVolProc(HANDLE hArcData,
+            int (*ChangeVolProc)(char *ArcName,int Mode));
+====================================================================
+
+Description
+~~~~~~~~~~~
+  Set a user-defined function to process volume changing.
+
+Parameters
+~~~~~~~~~~
+hArcData
+  This parameter should contain the archive handle obtained from the
+  RAROpenArchive function call.
+
+ChangeVolProc
+  It should point to a user-defined "volume change processing" function.
+
+  The function will be passed two parameters:
+
+  ArcName                Points to the zero terminated name
+                         of the next volume.
+
+  Mode                   The function call mode.
+
+    Possible values
+
+    RAR_VOL_ASK          Required volume is absent. The function should
+                         prompt user and return a non-zero value
+                         to retry or return a zero value to terminate
+                         operation. The function may also specify a new
+                         volume name, placing it to the ArcName parameter.
+
+    RAR_VOL_NOTIFY       Required volume is successfully opened.
+                         This is a notification call and ArcName
+                         modification is not allowed. The function should
+                         return a non-zero value to continue or a zero
+                         value to terminate operation.
+
+  Other functions of UNRAR.DLL should not be called from the
+  ChangeVolProc function.
+
+Return values
+~~~~~~~~~~~~~
+  None
+
+
+====================================================================
+void PASCAL RARSetProcessDataProc(HANDLE hArcData,
+            int (*ProcessDataProc)(unsigned char *Addr,int Size))
+====================================================================
+
+Description
+~~~~~~~~~~~
+  Set a user-defined function to process unpacked data. It may be used
+  to read a file while it is being extracted or tested without actual
+  extracting file to disk.
+
+Parameters
+~~~~~~~~~~
+hArcData
+  This parameter should contain the archive handle obtained from the
+  RAROpenArchive function call.
+
+ProcessDataProc
+  It should point to user-defined "data processing" function.
+
+  The function is called each time when the next data portion is unpacked.
+  It will be passed two parameters.
+
+  Addr                  The address pointing to the unpacked data. The
+                        function may refer to the data but must not change
+                        it.
+
+  Size                  The size of the unpacked data. It is guaranteed only
+                        that the size will not exceed 1 Mb (1048576 bytes).
+                        Any other presumptions may not be correct for
+                        future implementations of UNRAR.DLL.
+
+  The ProcessDataProc function should return a non-zero value to continue
+  process or a zero value to cancel the archive operation.
+
+  Other functions of UNRAR.DLL should not be called from the
+  ProcessDataProc function.
+
+Return values
+~~~~~~~~~~~~~
+  None
+
+
+====================================================================
+void PASCAL RARSetPassword(HANDLE hArcData,
+                           char *Password);
+====================================================================
+
+Description
+~~~~~~~~~~~
+  Set a password to decrypt files.
+
+Parameters
+~~~~~~~~~~
+hArcData
+  This parameter should contain the archive handle obtained from the
+  RAROpenArchive function call.
+
+Password
+  It should point to a string containing a zero terminated password.
+
+Return values
+~~~~~~~~~~~~~
+  None
