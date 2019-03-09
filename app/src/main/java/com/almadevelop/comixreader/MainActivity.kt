@@ -1,126 +1,145 @@
 package com.almadevelop.comixreader
 
-import android.content.res.AssetManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Paint
+import android.app.Activity
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.applyCanvas
-import com.google.firebase.ml.custom.*
-import com.google.firebase.ml.custom.model.FirebaseLocalModelSource
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+    private val model by lazy { Model(applicationContext) }
+
+//    fun o(u: Uri) {
+//        contentResolver.takePersistableUriPermission(
+//            u,
+//            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+//        )
+//
+//        object : AsyncTask<Void, Void, ByteBuffer>() {
+//            override fun doInBackground(vararg params: Void?): ByteBuffer? {
+//                //val i = contentResolver.openInputStream(u).bufferedReader()
+//
+//                val fd = contentResolver.openFileDescriptor(u, "r")
+//
+//                // fd.fileDescriptor.sync()
+//
+////                return openZip(fd.fd, object: Callback{
+////                    override fun onPagesBatchPrepared() {
+////                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+////                    }
+////                })
+//                return null
+//            }
+//
+//            override fun onPostExecute(result: ByteBuffer?) {
+//                super.onPostExecute(result)
+//
+//                getSharedPreferences("test", Context.MODE_PRIVATE).edit { putString("test", u.toString()) }
+//
+//                Glide.with(this@MainActivity).load(ByteBufferUtil.toBytes(result!!)).into(imageView)
+//            }
+//        }.execute()
+////        val b = openZip(contentResolver.openFileDescriptor(u, "r").fd)
+////
+////        Glide.with(this).load(ByteBufferUtil.toBytes(b)).into(imageView)
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        registerModel()
+        model.hashCode()
+    }
 
-        val interpreter = createInterpreter()
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.m, menu)
+        return true
+    }
 
-        val modelInputOutput = FirebaseModelInputOutputOptions.Builder()
-            .setInputFormat(0, FirebaseModelDataType.FLOAT32, intArrayOf(BATCH_SIZE, 611, 398, 3))
-            .setOutputFormat(0, FirebaseModelDataType.FLOAT32, intArrayOf(BATCH_SIZE, 9750, 10))
-            .build()
-
-        val inputs = FirebaseModelInputs.Builder()
-            .add(ndkTest())
-            .build()
-
-        interpreter.run(inputs, modelInputOutput)
-            .addOnSuccessListener {
-                val output = it.getOutput<Array<Array<FloatArray>>>(0)
-
-//                //calculate non padded entries
-//                val classesCount = 1
-//                // 1 - no object class. 4 - bounding box
-//                val numberOfOtputs = classesCount + 1 + 4
-//
-//                decodePrediction(output)
-
-                Log.d("!!!!!", "!!!!!!!! ${output[0][0].contentToString()}")
-                val r = parsePrediction(assets, output, BATCH_SIZE)
-                Log.d("!!!!!", "!!!!!!!!2 ${r.contentDeepToString()}")
-
-                val o = BitmapFactory.Options().apply {
-                    inMutable = true
-                }
-
-                val b = BitmapFactory.decodeStream(assets.open("comix.jpg"), null, o).applyCanvas {
-                    val p = Paint().apply {
-                        color = 0x78ff0000
-                        this.style = Paint.Style.FILL
-                    }
-
-                    r.forEach {
-                        val (cx, cy, w, h) = it
-                        drawRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, p)
-                    }
-                }
-
-                imageView.setImageBitmap(b)
-
-
-            }.addOnFailureListener {
-                Log.d("!!!!!!!!!", it.message)
+    override fun onOptionsItemSelected(item: MenuItem) =
+        when (item.itemId) {
+            R.id.open -> {
+                requestOpenComicsBook()
+                true
             }
-    }
+            else -> super.onOptionsItemSelected(item)
+        }
 
-    fun registerModel() {
-        val modelSource = FirebaseLocalModelSource.Builder(MODEL_NAME)
-            .setAssetFilePath("comix.tflite")
-            .build()
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
 
-        FirebaseModelManager.getInstance().registerLocalModelSource(modelSource)
-    }
+        when (requestCode) {
+            REQUEST_OPEN_COMICS_BOOK -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        data?.data?.also { uri ->
+                            val fileName = contentResolver.query(
+                                uri,
+                                arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME),
+                                null,
+                                null,
+                                null
+                            )?.use {
+                                if (it.moveToFirst()) {
+                                    it.getString(0)
+                                } else {
+                                    null
+                                }
+                            }?.let { fileName ->
+                                contentResolver.openFileDescriptor(uri, "r")
+                                    ?.let {
+                                        //[-1.579151, -1.4305071, -1.1332191, -1.579151, -1.4305071, -1.1332191]
+                                        //openComicBook(it.fd, fileName)
 
-    fun createInterpreter(): FirebaseModelInterpreter {
-        val options = FirebaseModelOptions.Builder()
-            .setLocalModelName(MODEL_NAME)
-            .build()
+                                        model.openComicArchive(it.fd)
 
-        return FirebaseModelInterpreter.getInstance(options)!!
-    }
+                                        //Glide.with(this@MainActivity).load(ByteBufferUtil.toBytes(bs)).into(imageView)
+                                    }
+                            }
 
-    fun ndkTest(): Array<Array<Array<FloatArray>>> {
-        val inB = BitmapFactory.decodeStream(assets.open("comix.jpg"))
-        val start = System.currentTimeMillis()
-        val r = stringFromJNI(inB)
-        Log.d("!!!!!!!!!", (System.currentTimeMillis() - start).toString())
-        inB.recycle()
-        Log.d("!!!!!!!!!!!!! IMG", r.contentDeepToString())
-        return Array(1) {
-            if (it == 0) {
-                r
-            } else {
-                Array(611) { Array(398) { FloatArray(3) } }
+                        }
+                    }
+                }
             }
         }
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    external fun stringFromJNI(s: Bitmap): Array<Array<FloatArray>>
+    private fun requestOpenComicsBook() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            val mimeTypes = arrayOf(
+                //"application/x-7z-compressed"
+                "application/vnd.comicbook-rar"
+            )
 
-    external fun parsePrediction(
-        assetManager: AssetManager,
-        pred: Array<Array<FloatArray>>,
-        batchSize: Int
-    ): Array<FloatArray>
+            Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                )
+                .setType("*/*")
+            //.setType("application/octet-stream")
+        } else {
+            Intent(Intent.ACTION_GET_CONTENT)
+            TODO()
+        }.run { startActivityForResult(this, REQUEST_OPEN_COMICS_BOOK) }
+    }
 
-    companion object {
-        const val MODEL_NAME = "baloons"
-        const val BATCH_SIZE = 1 //!!!!!!!!!! Need to be 4
 
-        // Used to load the 'native-lib' library on application startup.
-        init {
-            System.loadLibrary("native-lib")
-        }
+    //external fun parsePredictions(assetManager: AssetManager, preds: Array<Array<FloatArray>>): Array<Map<Any, Any>>
+
+//    external fun parsePrediction(
+//        assetManager: AssetManager,
+//        pred: Array<Array<FloatArray>>,
+//        batchSize: Int
+//    ): Array<FloatArray>
+
+    private companion object {
+        private const val REQUEST_OPEN_COMICS_BOOK = 101;
     }
 }
