@@ -1,20 +1,24 @@
 pub const COMIC_INFO_TYPE: &str = "com/almadevelop/comixreader/ComicInfo";
 pub const COMIC_INFO_PAGE_TYPE: &str = "com/almadevelop/comixreader/ComicInfo$ComicInfoPage";
 
+pub const COMIC_PAGE_DATA_TYPE: &str = "com/almadevelop/comixreader/ComicPageData";
+
 pub const COMIC_PAGE_OBJECTS_TYPE: &str = "com/almadevelop/comixreader/ComicPageObjects";
 pub const COMIC_PAGE_OBJECTS_BUILDER_TYPE: &str =
     "com/almadevelop/comixreader/ComicPageObjects$Builder";
 
-pub const STATE_SUCCESS_TYPE: &str = "com/almadevelop/comixreader/Success";
-pub const STATE_CANCELLED_TYPE: &str = "com/almadevelop/comixreader/Cancelled";
-pub const STATE_CONTAINER_READ_ERROR_TYPE: &str = "com/almadevelop/comixreader/ContainerReadError";
-pub const STATE_CONTAINER_OPEN_ERROR_TYPE: &str = "com/almadevelop/comixreader/ContainerOpenError";
-pub const STATE_JNI_ERROR_TYPE: &str = "com/almadevelop/comixreader/JNIError";
-pub const STATE_CANCELLATION_ERROR_TYPE: &str = "com/almadevelop/comixreader/CancellationError";
-pub const STATE_PREPROCESSING_ERROR_TYPE: &str = "com/almadevelop/comixreader/PreprocessingError";
+pub mod ComicBookOpeningStates {
+    pub const SUCCESS_TYPE: &str = "com/almadevelop/comixreader/Success";
+    pub const CANCELLED_TYPE: &str = "com/almadevelop/comixreader/Cancelled";
+    pub const CONTAINER_READ_ERROR_TYPE: &str = "com/almadevelop/comixreader/ContainerReadError";
+    pub const CONTAINER_OPEN_ERROR_TYPE: &str = "com/almadevelop/comixreader/ContainerOpenError";
+    pub const JNI_ERROR_TYPE: &str = "com/almadevelop/comixreader/JNIError";
+    pub const CANCELLATION_ERROR_TYPE: &str = "com/almadevelop/comixreader/CancellationError";
+    pub const NO_COMIC_PAGES_ERROR_TYPE: &str = "com/almadevelop/comixreader/NoComicPagesError";
 
-pub const STATE_CONTAINER_OPEN_ERROR_KIND_TYPE: &str =
-    "com/almadevelop/comixreader/ContainerOpenError$Kind";
+    pub const CONTAINER_OPEN_ERROR_KIND_TYPE: &str =
+        "com/almadevelop/comixreader/ContainerOpenError$Kind";
+}
 
 pub const JAVA_STRING_TYPE: &str = "java/lang/String";
 pub const JAVA_INTEGER_TYPE: &str = "java/lang/Integer";

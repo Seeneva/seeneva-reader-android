@@ -2,10 +2,10 @@ mod cache;
 mod constants;
 
 pub use self::cache::*;
-use crate::comics::ComicInfo;
+use crate::comics::{ComicInfo, ComicPageContent};
 
 use jni::errors::Result as JniResult;
-use jni::objects::{GlobalRef, JByteBuffer, JObject, JValue};
+use jni::objects::{GlobalRef, JObject};
 use jni::JNIEnv;
 
 mod InnerTrait {
@@ -17,76 +17,35 @@ mod InnerTrait {
     }
 }
 
+pub type ComicBookData = (Vec<(usize, String)>, Option<ComicInfo>);
+
 ///Extension helper trait to call all callback methods
-pub trait ComicsProcessingCallback: InnerTrait::JobjectExt {
-    ///Send [comic_info] to the Android App via JNI
-    fn call_on_comic_info_parsed(
+pub trait ComicOpenCallback: InnerTrait::JobjectExt {
+    fn call_on_comic_opened(
         &self,
         env: &JNIEnv,
         jni_cache: &JniCache,
-        comic_info: &ComicInfo,
-    ) -> JniResult<()> {
-        jni_cache
-            .comic_info
-            .new_jobject(&env, &comic_info)
-            .and_then(|comic_info| {
-                env.call_method(
-                    self.get_jobject(),
-                    "onComicInfoParsed",
-                    &format!(
-                        "(L{};){}",
-                        constants::COMIC_INFO_TYPE,
-                        constants::JNI_VOID_LITERAL
-                    ),
-                    &[comic_info.into()],
-                )
-            })
-            .map(|_| ())
-    }
+        comic_book_data: &ComicBookData,
+    )-> JniResult<()>  {
+        let (comic_pages, comic_info) = comic_book_data;
 
-    ///Send a batch of prepared to TF interpreter byte buffers. [interpreter_batched_input] is prepared images.
-    /// Output is a byte buffer of floats
-    /// Will panic if output is not a Jobject
-    fn call_on_pages_batch_prepared<'a>(
-        &self,
-        env: &'a JNIEnv,
-        interpreter_batched_input: JByteBuffer,
-    ) -> JniResult<JByteBuffer<'a>> {
+        //convert pages into array
+        let comic_pages = jni_cache.comic_page_data.new_array(env, comic_pages)?;
+        let comic_info = jni_cache.comic_info.new_jobject(env, comic_info)?;
+
         env.call_method(
             self.get_jobject(),
-            "onPagesBatchPrepared",
-            format!(
-                "(L{};)L{};",
-                constants::JAVA_BYTE_BUFFER_TYPE,
-                constants::JAVA_BYTE_BUFFER_TYPE
-            ),
-            &[JValue::Object(interpreter_batched_input.into())],
-        )
-        .map(|value| {
-            value
-                .l()
-                .expect("The response from TF interpreter should be a ByteBuffer of floats")
-        })
-        .map(|object| JByteBuffer::from(object))
-    }
-
-    ///Send to the Android app all detected objects [comic_page_objects] at the comic page
-    fn call_on_comic_page_objects_detected(
-        &self,
-        env: &JNIEnv,
-        comic_page_objects: JObject,
-    ) -> JniResult<()> {
-        env.call_method(
-            self.get_jobject(),
-            "onComicPageObjectsDetected",
-            format!(
-                "(L{};){}",
-                constants::COMIC_PAGE_OBJECTS_TYPE,
+            "onComicBookOpened",
+            &format!(
+                "([L{};L{};){}",
+                constants::COMIC_PAGE_DATA_TYPE,
+                constants::COMIC_INFO_TYPE,
                 constants::JNI_VOID_LITERAL
             ),
-            &[comic_page_objects.into()],
-        )
-        .map(|_| ())
+            &[comic_pages.into(), comic_info.into()],
+        )?;
+
+        Ok(())
     }
 }
 
@@ -102,4 +61,4 @@ impl InnerTrait::JobjectExt for GlobalRef {
     }
 }
 
-impl<T> ComicsProcessingCallback for T where T: InnerTrait::JobjectExt {}
+impl<T> ComicOpenCallback for T where T: InnerTrait::JobjectExt {}

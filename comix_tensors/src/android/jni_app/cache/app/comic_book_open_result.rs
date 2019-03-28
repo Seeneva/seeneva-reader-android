@@ -1,14 +1,14 @@
 use super::{constants::*, jclass_to_cache, jmethod_to_cache, jstatic_field_to_cache};
-use crate::android::tasks::PreprocessComicFilesError;
+use crate::android::tasks::open_comic_book::ComicBookOpenError;
 
 use jni::errors::Result as JniResult;
 use jni::objects::{GlobalRef, JClass, JMethodID, JObject, JStaticFieldID, JValue};
 use jni::signature::JavaType;
 use jni::JNIEnv;
 
-///JNI cache of related to [PreprocessComicFilesError] java classes
+///JNI cache of related to [ComicBookOpenError] java classes
 #[derive(Clone)]
-pub struct ProcessComicFilesResultCache<'a> {
+pub struct ComicBookOpenResultCache<'a> {
     success: Success<'a>,
     cancelled: Cancelled<'a>,
     container_read_error: ContainerReadError<'a>,
@@ -16,12 +16,12 @@ pub struct ProcessComicFilesResultCache<'a> {
     container_open_error_kind: ContainerOpenErrorKind<'a>,
     jni_error: JniError<'a>,
     cancellation_error: CancellationError<'a>,
-    preprocessing_error: PreprocessingError<'a>,
+    empty_error: EmptyError<'a>,
 }
 
-impl ProcessComicFilesResultCache<'_> {
+impl ComicBookOpenResultCache<'_> {
     pub fn new(env: &JNIEnv) -> JniResult<Self> {
-        Ok(ProcessComicFilesResultCache {
+        Ok(ComicBookOpenResultCache {
             success: Success::new(env)?,
             cancelled: Cancelled::new(env)?,
             container_read_error: ContainerReadError::new(env)?,
@@ -29,7 +29,7 @@ impl ProcessComicFilesResultCache<'_> {
             container_open_error_kind: ContainerOpenErrorKind::new(env)?,
             jni_error: JniError::new(env)?,
             cancellation_error: CancellationError::new(env)?,
-            preprocessing_error: PreprocessingError::new(env)?,
+            empty_error: EmptyError::new(env)?,
         })
     }
 
@@ -42,9 +42,9 @@ impl ProcessComicFilesResultCache<'_> {
     pub fn new_error<'a>(
         &self,
         env: &'a JNIEnv,
-        err: &PreprocessComicFilesError,
+        err: &ComicBookOpenError,
     ) -> JniResult<JObject<'a>> {
-        use self::PreprocessComicFilesError::*;
+        use self::ComicBookOpenError::*;
 
         match err {
             Jni(_) => self.jni_error.new_jobject(env, err),
@@ -55,7 +55,7 @@ impl ProcessComicFilesResultCache<'_> {
                 err,
                 inner,
             ),
-            Preprocess(_) => self.preprocessing_error.new_jobject(env, err),
+            Empty(_) => self.empty_error.new_jobject(env, err),
             CancelledError(_) => self.cancellation_error.new_jobject(env, err),
             Cancelled => self.cancelled.new_jobject(env),
         }
@@ -70,7 +70,7 @@ pub struct Success<'a> {
 
 impl Success<'_> {
     fn new(env: &JNIEnv) -> JniResult<Self> {
-        let class = jclass_to_cache(env, STATE_SUCCESS_TYPE)?;
+        let class = jclass_to_cache(env, ComicBookOpeningStates::SUCCESS_TYPE)?;
 
         let constructor = jmethod_to_cache(
             env,
@@ -95,7 +95,7 @@ pub struct Cancelled<'a> {
 
 impl Cancelled<'_> {
     fn new(env: &JNIEnv) -> JniResult<Self> {
-        let class = jclass_to_cache(env, STATE_CANCELLED_TYPE)?;
+        let class = jclass_to_cache(env, ComicBookOpeningStates::CANCELLED_TYPE)?;
 
         let constructor = jmethod_to_cache(
             env,
@@ -120,7 +120,7 @@ pub struct ContainerReadError<'a> {
 
 impl ContainerReadError<'_> {
     fn new(env: &JNIEnv) -> JniResult<Self> {
-        let class = jclass_to_cache(env, STATE_CONTAINER_READ_ERROR_TYPE)?;
+        let class = jclass_to_cache(env, ComicBookOpeningStates::CONTAINER_READ_ERROR_TYPE)?;
 
         let constructor = jmethod_to_cache(
             env,
@@ -132,11 +132,7 @@ impl ContainerReadError<'_> {
         Ok(ContainerReadError { class, constructor })
     }
 
-    fn new_jobject<'a>(
-        &self,
-        env: &'a JNIEnv,
-        err: &PreprocessComicFilesError,
-    ) -> JniResult<JObject<'a>> {
+    fn new_jobject<'a>(&self, env: &'a JNIEnv, err: &ComicBookOpenError) -> JniResult<JObject<'a>> {
         env.new_object_unchecked(
             JClass::from(self.class.as_obj()),
             self.constructor,
@@ -153,7 +149,7 @@ pub struct ContainerOpenError<'a> {
 
 impl ContainerOpenError<'_> {
     fn new(env: &JNIEnv) -> JniResult<Self> {
-        let class = jclass_to_cache(env, STATE_CONTAINER_OPEN_ERROR_TYPE)?;
+        let class = jclass_to_cache(env, ComicBookOpeningStates::CONTAINER_OPEN_ERROR_TYPE)?;
 
         let constructor = jmethod_to_cache(
             env,
@@ -161,7 +157,9 @@ impl ContainerOpenError<'_> {
             JNI_CONSTRUCTOR_NAME,
             &format!(
                 "(L{};L{};){}",
-                STATE_CONTAINER_OPEN_ERROR_KIND_TYPE, JAVA_STRING_TYPE, JNI_VOID_LITERAL
+                ComicBookOpeningStates::CONTAINER_OPEN_ERROR_KIND_TYPE,
+                JAVA_STRING_TYPE,
+                JNI_VOID_LITERAL
             ),
         )?;
 
@@ -172,7 +170,7 @@ impl ContainerOpenError<'_> {
         &self,
         env: &'a JNIEnv,
         kind_cache: &ContainerOpenErrorKind,
-        err: &PreprocessComicFilesError,
+        err: &ComicBookOpenError,
         inner_err: &crate::ComicContainerError,
     ) -> JniResult<JObject<'a>> {
         use crate::ComicContainerError::*;
@@ -208,34 +206,34 @@ pub struct ContainerOpenErrorKind<'a> {
 
 impl ContainerOpenErrorKind<'_> {
     fn new(env: &JNIEnv) -> JniResult<Self> {
-        let class = jclass_to_cache(env, STATE_CONTAINER_OPEN_ERROR_KIND_TYPE)?;
+        let class = jclass_to_cache(env, ComicBookOpeningStates::CONTAINER_OPEN_ERROR_KIND_TYPE)?;
 
         let unsupported_type_field = jstatic_field_to_cache(
             env,
             JClass::from(class.as_obj()),
             "UnsupportedType",
-            STATE_CONTAINER_OPEN_ERROR_KIND_TYPE,
+            ComicBookOpeningStates::CONTAINER_OPEN_ERROR_KIND_TYPE,
         )?;
 
         let magic_io_field = jstatic_field_to_cache(
             env,
             JClass::from(class.as_obj()),
             "MagicIO",
-            STATE_CONTAINER_OPEN_ERROR_KIND_TYPE,
+            ComicBookOpeningStates::CONTAINER_OPEN_ERROR_KIND_TYPE,
         )?;
 
         let not_file_field = jstatic_field_to_cache(
             env,
             JClass::from(class.as_obj()),
             "NotFile",
-            STATE_CONTAINER_OPEN_ERROR_KIND_TYPE,
+            ComicBookOpeningStates::CONTAINER_OPEN_ERROR_KIND_TYPE,
         )?;
 
         let unknown_file_format_field = jstatic_field_to_cache(
             env,
             JClass::from(class.as_obj()),
             "UnknownFileFormat",
-            STATE_CONTAINER_OPEN_ERROR_KIND_TYPE,
+            ComicBookOpeningStates::CONTAINER_OPEN_ERROR_KIND_TYPE,
         )?;
 
         Ok(ContainerOpenErrorKind {
@@ -271,7 +269,7 @@ impl ContainerOpenErrorKind<'_> {
         env.get_static_field_unchecked(
             JClass::from(self.class.as_obj()),
             filed_id,
-            JavaType::Object(STATE_CONTAINER_OPEN_ERROR_KIND_TYPE.into()),
+            JavaType::Object(ComicBookOpeningStates::CONTAINER_OPEN_ERROR_KIND_TYPE.into()),
         )
     }
 }
@@ -284,7 +282,7 @@ pub struct JniError<'a> {
 
 impl JniError<'_> {
     fn new(env: &JNIEnv) -> JniResult<Self> {
-        let class = jclass_to_cache(env, STATE_JNI_ERROR_TYPE)?;
+        let class = jclass_to_cache(env, ComicBookOpeningStates::JNI_ERROR_TYPE)?;
 
         let constructor = jmethod_to_cache(
             env,
@@ -296,11 +294,7 @@ impl JniError<'_> {
         Ok(JniError { class, constructor })
     }
 
-    fn new_jobject<'a>(
-        &self,
-        env: &'a JNIEnv,
-        err: &PreprocessComicFilesError,
-    ) -> JniResult<JObject<'a>> {
+    fn new_jobject<'a>(&self, env: &'a JNIEnv, err: &ComicBookOpenError) -> JniResult<JObject<'a>> {
         env.new_object_unchecked(
             JClass::from(self.class.as_obj()),
             self.constructor,
@@ -317,7 +311,7 @@ pub struct CancellationError<'a> {
 
 impl CancellationError<'_> {
     fn new(env: &JNIEnv) -> JniResult<Self> {
-        let class = jclass_to_cache(env, STATE_CANCELLATION_ERROR_TYPE)?;
+        let class = jclass_to_cache(env, ComicBookOpeningStates::CANCELLATION_ERROR_TYPE)?;
 
         let constructor = jmethod_to_cache(
             env,
@@ -329,11 +323,7 @@ impl CancellationError<'_> {
         Ok(CancellationError { class, constructor })
     }
 
-    fn new_jobject<'a>(
-        &self,
-        env: &'a JNIEnv,
-        err: &PreprocessComicFilesError,
-    ) -> JniResult<JObject<'a>> {
+    fn new_jobject<'a>(&self, env: &'a JNIEnv, err: &ComicBookOpenError) -> JniResult<JObject<'a>> {
         env.new_object_unchecked(
             JClass::from(self.class.as_obj()),
             self.constructor,
@@ -343,14 +333,14 @@ impl CancellationError<'_> {
 }
 
 #[derive(Clone)]
-pub struct PreprocessingError<'a> {
+pub struct EmptyError<'a> {
     class: GlobalRef,
     constructor: JMethodID<'a>,
 }
 
-impl PreprocessingError<'_> {
+impl EmptyError<'_> {
     fn new(env: &JNIEnv) -> JniResult<Self> {
-        let class = jclass_to_cache(env, STATE_PREPROCESSING_ERROR_TYPE)?;
+        let class = jclass_to_cache(env, ComicBookOpeningStates::NO_COMIC_PAGES_ERROR_TYPE)?;
 
         let constructor = jmethod_to_cache(
             env,
@@ -359,14 +349,10 @@ impl PreprocessingError<'_> {
             &format!("(L{};){}", JAVA_STRING_TYPE, JNI_VOID_LITERAL),
         )?;
 
-        Ok(PreprocessingError { class, constructor })
+        Ok(EmptyError { class, constructor })
     }
 
-    fn new_jobject<'a>(
-        &self,
-        env: &'a JNIEnv,
-        err: &PreprocessComicFilesError,
-    ) -> JniResult<JObject<'a>> {
+    fn new_jobject<'a>(&self, env: &'a JNIEnv, err: &ComicBookOpenError) -> JniResult<JObject<'a>> {
         env.new_object_unchecked(
             JClass::from(self.class.as_obj()),
             self.constructor,

@@ -1,12 +1,9 @@
 package com.almadevelop.comixreader
 
-import java.nio.ByteBuffer
-
-
 interface Callback {
     val id: Long
 
-    fun onPagesBatchPrepared(input: ByteBuffer): ByteBuffer?
-    fun onComicInfoParsed(comicInfo: ComicInfo)
-    fun onComicPageObjectsDetected(comicPageObjects: ComicPageObjects)
+    fun onComicBookOpened(pages: Array<ComicPageData>, comicInfo: ComicInfo?)
+//    fun onComicPageDataParsed(pageData: ComicPageData)
+//    fun onComicInfoParsed(comicInfo: ComicInfo)
 }

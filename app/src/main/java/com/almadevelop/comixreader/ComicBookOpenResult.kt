@@ -1,18 +1,18 @@
 package com.almadevelop.comixreader
 
-sealed class ComicResult
+sealed class ComicBookOpenResult
 
 @Suppress("unused")
-object Success : ComicResult()
+object Success : ComicBookOpenResult()
 
 @Suppress("unused")
-object Cancelled : ComicResult()
+object Cancelled : ComicBookOpenResult()
 
 @Suppress("unused")
-data class ContainerReadError(val description: String) : ComicResult()
+data class ContainerReadError(val description: String) : ComicBookOpenResult()
 
 @Suppress("unused")
-data class ContainerOpenError(val kind: Kind, val description: String) : ComicResult() {
+data class ContainerOpenError(val kind: Kind, val description: String) : ComicBookOpenResult() {
     enum class Kind {
         /**
          * Known format, but it can't be used as a comic container
@@ -34,11 +34,11 @@ data class ContainerOpenError(val kind: Kind, val description: String) : ComicRe
 }
 
 @Suppress("unused")
-data class JNIError(val description: String) : ComicResult()
+data class JNIError(val description: String) : ComicBookOpenResult()
 
 @Suppress("unused")
-data class CancellationError(val description: String) : ComicResult()
+data class CancellationError(val description: String) : ComicBookOpenResult()
 
 @Suppress("unused")
-data class PreprocessingError(val description: String) : ComicResult()
+data class NoComicPagesError(val description: String) : ComicBookOpenResult()
 
