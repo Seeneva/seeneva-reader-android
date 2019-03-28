@@ -26,60 +26,57 @@ class ComicsTask : Callback {
 
     }
 
-    override fun onPagesBatchPrepared(input: ByteBuffer): ByteBuffer? {
-        val s = runBlocking {
-            val b = input.order(ByteOrder.nativeOrder())
+//    override fun onPagesBatchPrepared(input: ByteBuffer): ByteBuffer? {
+//        val s = runBlocking {
+//            val b = input.order(ByteOrder.nativeOrder())
+//
+////                Log.d(
+////                    "!!!!!!! ANDROID",
+////                    "!!!!! ${Thread.currentThread().name}___ ${b.getFloat(0)}"
+////                )
+//
+//
+//            val inputs = FirebaseModelInputs.Builder()
+//                .add(b)
+//                .build()
+//
+//
+//            suspendCoroutine<ByteBuffer> { cont ->
+//                interpreter.run(inputs, modelInputOutput).addOnSuccessListener {
+//                    val output =
+//                        it.getOutput<Array<Array<FloatArray>>>(0)
+//
+//                    val buf = ByteBuffer.allocateDirect(FLOAT_BYTES_LEN * BATCH_SIZE * 9750 * 10).order(ByteOrder.nativeOrder())
+//
+//                    output.asSequence()
+//                        .flatMap { it.asSequence() }
+//                        .flatMap { it.asSequence() }
+//                        .forEach {
+//                            buf.putFloat(it)
+//                        }
+//
+//                    cont.resume(buf)
+//
+//                    //interpreter.close()
+//
+//                }.addOnFailureListener {
+//                    Log.d("ERROR", "!!!!!!!!! ${it}")
+//                    cont.resumeWithException(it)
+//                }
+//            }
+//        }
+//
+////            Log.d(
+////                "FINISH",
+////                "!!!!!!!!! ${onPagesBatchPrepared.getFloat(0)}"
+////            )
+//
+//        return s
+//    }
 
-//                Log.d(
-//                    "!!!!!!! ANDROID",
-//                    "!!!!! ${Thread.currentThread().name}___ ${b.getFloat(0)}"
-//                )
-
-
-            val inputs = FirebaseModelInputs.Builder()
-                .add(b)
-                .build()
-
-
-            suspendCoroutine<ByteBuffer> { cont ->
-                interpreter.run(inputs, modelInputOutput).addOnSuccessListener {
-                    val output =
-                        it.getOutput<Array<Array<FloatArray>>>(0)
-
-                    val buf = ByteBuffer.allocateDirect(4 * 4 * 9750 * 10).order(ByteOrder.nativeOrder())
-
-                    output.asSequence()
-                        .flatMap { it.asSequence() }
-                        .flatMap { it.asSequence() }
-                        .forEach {
-                            buf.putFloat(it)
-                        }
-
-                    cont.resume(buf)
-
-                    //interpreter.close()
-
-                }.addOnFailureListener {
-                    Log.d("ERROR", "!!!!!!!!! ${it}")
-                    cont.resumeWithException(it)
-                }
-            }
-        }
-
-//            Log.d(
-//                "FINISH",
-//                "!!!!!!!!! ${onPagesBatchPrepared.getFloat(0)}"
-//            )
-
-        return s
-    }
-
-    override fun onComicInfoParsed(comicInfo: ComicInfo) {
+    override fun onComicBookOpened(pages: Array<ComicPageData>, comicInfo: ComicInfo?) {
+        Log.d("!!!!!!!!!!", "!!!!!!!! ${pages.contentDeepToString()}")
         Log.d("!!!!!!!!!!", "!!!!!!!! $comicInfo")
-    }
-
-    override fun onComicPageObjectsDetected(comicPageObjects: ComicPageObjects) {
-        Log.d("!!!!!!!!!!", "!!!!!!!! $comicPageObjects")
     }
 
     private fun registerModel() {
@@ -100,6 +97,7 @@ class ComicsTask : Callback {
 
     private companion object {
         const val MODEL_NAME = "baloons"
+        const val FLOAT_BYTES_LEN = 4
         const val BATCH_SIZE = 4 //!!!!!!!!!! Need to be 4
     }
 }

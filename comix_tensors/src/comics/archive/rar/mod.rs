@@ -48,7 +48,10 @@ fn into_archive_file(
     pos: usize,
 ) -> ArchiveFile {
     if !header_data.is_dir() && content.is_none() {
-        panic!("Cannot convert RAR header {:?}. Buffer is empty", header_data.file_name());
+        panic!(
+            "Cannot convert RAR header {:?}. Buffer is empty",
+            header_data.file_name()
+        );
     }
 
     ArchiveFile {
@@ -201,7 +204,10 @@ impl Drop for ArchiveHandle {
         }
 
         if !close_result.is_ok() {
-            panic!("Error ocurred while trying to drop RAR handle. Result {:?}", close_result);
+            panic!(
+                "Error ocurred while trying to drop RAR handle. Result {:?}",
+                close_result
+            );
         }
 
         if !rewind_result {

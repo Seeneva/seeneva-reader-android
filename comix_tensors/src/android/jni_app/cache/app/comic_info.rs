@@ -29,10 +29,14 @@ impl<'a> ComicInfoCache<'a> {
     pub fn new_jobject<'b>(
         &self,
         env: &'b JNIEnv,
-        comic_info: &ComicInfoData,
+        comic_info: &Option<ComicInfoData>,
     ) -> JniResult<JObject<'b>> {
-        self.info
-            .init(env, &self.page, &self.number_cache, &comic_info)
+        match comic_info {
+            Some(comic_info) => self
+                .info
+                .init(env, &self.page, &self.number_cache, comic_info),
+            None => Ok(JObject::null()),
+        }
     }
 }
 

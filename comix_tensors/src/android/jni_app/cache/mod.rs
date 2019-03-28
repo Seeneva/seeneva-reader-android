@@ -53,7 +53,8 @@ pub fn try_get_cache() -> Arc<JniCache<'static>> {
 #[derive(Clone)]
 pub struct JniCache<'a> {
     pub comic_info: ComicInfoCache<'a>,
-    pub process_comic_files_result: ProcessComicFilesResultCache<'a>,
+    pub comic_page_data: ComicPageDataCache<'a>,
+    pub comic_book_open_result: ComicBookOpenResultCache<'a>,
     pub comic_page_object_builder: ComicPageObjectsBuilderCache<'a>,
     pub java_numbers_cache: Rc<JavaNumbersCache<'a>>,
 }
@@ -67,7 +68,8 @@ impl JniCache<'static> {
 
         Ok(JniCache {
             comic_info: ComicInfoCache::new(env, Rc::clone(&java_numbers_cache))?,
-            process_comic_files_result: ProcessComicFilesResultCache::new(env)?,
+            comic_page_data: ComicPageDataCache::new(env)?,
+            comic_book_open_result: ComicBookOpenResultCache::new(env)?,
             comic_page_object_builder: ComicPageObjectsBuilderCache::new(env)?,
             java_numbers_cache,
         })

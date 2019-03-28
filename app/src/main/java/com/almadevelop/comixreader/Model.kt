@@ -1,7 +1,6 @@
 package com.almadevelop.comixreader
 
 import android.content.Context
-import android.content.res.AssetManager
 import android.util.Log
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
@@ -25,7 +24,7 @@ class Model(private val context: Context) : CoroutineScope {
     fun openComicArchive(fileDescriptor: Int) {
         val t = ComicsTask()
         launch {
-            val res = openComicContainer(fileDescriptor, t, context.assets, "com.almadevelop.comix.dat")
+            val res = openComicBook(fileDescriptor, t)
             Log.d("!!!!!!!", "!!!!!!! RESULT: $res")
         }
         launch {
@@ -36,12 +35,10 @@ class Model(private val context: Context) : CoroutineScope {
 
     }
 
-    private external fun openComicContainer(
+    private external fun openComicBook(
         fileDescriptor: Int,
-        callback: Callback,
-        assetManager: AssetManager,
-        modelConfigName: String
-    ): ComicResult
+        callback: Callback
+    ): ComicBookOpenResult
 
     private external fun cancelTask(callback: Callback)
 

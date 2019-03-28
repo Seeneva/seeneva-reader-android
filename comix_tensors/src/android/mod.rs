@@ -73,32 +73,25 @@ pub unsafe extern "C" fn Java_com_almadevelop_comixreader_Model_cancelTask(
     }
 }
 
+//TODO REMEMBER!!! output bytebuffer from interpretr FLOAT_BYTES_LEN * BATCH_SIZE * 9750 * 10 (4, 4,9750, 10)
+
 ///Open comic container file by [file_descriptor] and send results via JNI [callback]
 #[no_mangle]
-pub unsafe extern "C" fn Java_com_almadevelop_comixreader_Model_openComicContainer(
+pub unsafe extern "C" fn Java_com_almadevelop_comixreader_Model_openComicBook(
     env: JNIEnv,
     _: JClass,
     file_descriptor: jint,
     callback: JObject,
-    asset_manager: JObject,
-    config_file_name: JString,
 ) -> jobject {
+    use self::tasks::open_comic_book::*;
+
     let jni_cache = jni_app::try_get_cache();
 
-    let jni_config = get_model_config(&env, asset_manager, config_file_name);
-    let jni_config_shared = Arc::new(*jni_config);
-
-    let res = tasks::process_comic_files(
-        &env,
-        Arc::clone(&jni_cache),
-        file_descriptor,
-        callback,
-        jni_config_shared,
-    );
+    let res = open_comic_book(&env, Arc::clone(&jni_cache), file_descriptor, callback);
 
     let res = match res {
-        Ok(_) => jni_cache.process_comic_files_result.new_success(&env),
-        Err(e) => jni_cache.process_comic_files_result.new_error(&env, &e),
+        Ok(_) => jni_cache.comic_book_open_result.new_success(&env),
+        Err(e) => jni_cache.comic_book_open_result.new_error(&env, &e),
     };
 
     match res {
