@@ -1,28 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.almadevelop.comixreader">
+    package="com.almadevelop.comixreader">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-            android:name=".ComixApplication"
-            android:allowBackup="false"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_round"
-            android:supportsRtl="false"
-            android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        android:name=".ComicsApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="false"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".screen.MainActivity"
+            android:windowSoftInputMode="adjustNothing">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <!--<data android:scheme="content" android:host="*" android:mimeType="application/octet-stream" android:pathPattern=".*\\.7z"/>-->
-                <data android:scheme="content" android:host="*" android:mimeType="application/x-7z-compressed"/>
+                <data
+                    android:host="*"
+                    android:mimeType="application/x-7z-compressed"
+                    android:scheme="content" />
 
                 <!--<data android:scheme="file"  android:host="*" android:pathPattern=".*\\.7z" android:mimeType="*/*"  />-->
             </intent-filter>
@@ -30,11 +38,20 @@
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="content" android:host="*" android:mimeType="application/octet-stream" android:pathPattern=".*\\.7z"/>
+                <data
+                    android:host="*"
+                    android:mimeType="application/octet-stream"
+                    android:pathPattern=".*\\.7z"
+                    android:scheme="content" />
 
                 <!--<data android:scheme="file"  android:host="*" android:pathPattern=".*\\.7z" android:mimeType="*/*"  />-->
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.add.AddComicBookService"
+            android:description="@string/open_comic_service_descr"
+            android:exported="false" />
     </application>
 
 </manifest>

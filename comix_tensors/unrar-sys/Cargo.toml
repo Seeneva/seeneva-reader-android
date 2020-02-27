@@ -1,0 +1,18 @@
+[package]
+name = "unrar-sys"
+version = "0.1.0"
+authors = ["Sergey Solodovnikov <elementa.ru@gmail.com>"]
+edition = "2018"
+links = "unrar"
+build = "build.rs"
+
+[lib]
+crate-type = ["lib"]
+
+#[dependencies]
+#libc = "0.2"
+#num-traits = "0.2"
+#num-derive = "0.2"
+
+[build-dependencies]
+cc = "1.0.50"

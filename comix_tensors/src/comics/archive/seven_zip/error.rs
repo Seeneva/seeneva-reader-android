@@ -1,51 +1,64 @@
-use super::SZ;
 use std::error::Error;
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::io::Error as IoError;
 use std::string::FromUtf16Error;
 
-#[derive(Debug, Clone)]
+use super::{ComicContainerError, SZ};
+
+#[derive(Debug)]
 pub enum SevenZipError {
     //Any errors, which LZMA library return
     Native(SZ),
-    //Other errors without specific codes
-    Other(String),
+    IO(IoError),
+    NameError(FromUtf16Error),
 }
 
-impl From<SevenZipError> for Box<dyn Error + Send> {
+impl ComicContainerError for SevenZipError {}
+
+impl From<SevenZipError> for Box<dyn ComicContainerError> {
     fn from(err: SevenZipError) -> Self {
         Box::new(err)
     }
 }
 
-impl From<String> for SevenZipError {
-    fn from(error_txt: String) -> Self {
-        SevenZipError::Other(error_txt)
+impl From<SZ> for SevenZipError {
+    fn from(inner: SZ) -> Self {
+        SevenZipError::Native(inner)
+    }
+}
+
+impl From<IoError> for SevenZipError {
+    fn from(io_err: IoError) -> Self {
+        SevenZipError::IO(io_err)
     }
 }
 
 impl From<FromUtf16Error> for SevenZipError {
-    fn from(_: FromUtf16Error) -> Self {
-        "Can't convert UTF16 string to UTF8".to_string().into()
+    fn from(err: FromUtf16Error) -> Self {
+        SevenZipError::NameError(err)
     }
 }
 
 impl Display for SevenZipError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        use self::SevenZipError::*;
+        let txt = "7z error occurred while processing archive";
 
-        match *self {
-            Native(ref sz) => writeln!(
-                f,
-                "7z error occurred while processing archive. Error: {:?}",
-                sz
-            ),
-            Other(ref txt) => writeln!(
-                f,
-                "Non 'system' 7z error occurred while processing archive. Error: {}",
-                txt
-            ),
+        match self {
+            SevenZipError::Native(sz) => writeln!(f, "{}. Inner error: {:?}", txt, sz),
+            SevenZipError::IO(err) => writeln!(f, "{}. IO error: {}", txt, err),
+            SevenZipError::NameError(err) => {
+                writeln!(f, "{}. Can't get file name error: {}", txt, err)
+            }
         }
     }
 }
 
-impl Error for SevenZipError {}
+impl Error for SevenZipError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            SevenZipError::IO(err) => Some(err),
+            SevenZipError::NameError(err) => Some(err),
+            _ => None,
+        }
+    }
+}

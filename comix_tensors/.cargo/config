@@ -1,26 +1,35 @@
 #https://github.com/rust-lang/rust/blob/master/config.toml.example
 
-[target.i686-linux-android]
-ar = "./ndk/x86/bin/i686-linux-android-ar"
-linker = "./ndk/x86/bin/i686-linux-android-clang"
-runner = ["./android_runner.sh"]
-rustflags = ["-C", "link-arg=-lc++_static", "-C", "link-arg=-lc++abi", "-C", "link-arg=-landroid_support"]
-#android-ndk = "ndk"
-
-[target.x86_64-linux-android]
-ar = "./ndk/x86_64/bin/x86_64-linux-android-ar"
-linker = "./ndk/x86_64/bin/x86_64-linux-android-clang"
-runner = ["./android_runner.sh"]
-rustflags = ["-C", "link-arg=-lc++_static", "-C", "link-arg=-lc++abi", "-C", "link-arg=-landroid_support"]
+[target.'cfg(target_os="android")']
+runner = ["./scripts/android_runner.sh"]
+rustflags = [
+"-C", "link-arg=-Wl,--exclude-libs,libgcc.a",
+"-C", "link-arg=-lc++abi",
+]
 
 [target.armv7-linux-androideabi]
-ar = "./ndk/arm/bin/arm-linux-androideabi-ar"
-linker = "./ndk/arm/bin/arm-linux-androideabi-clang"
-runner = ["./android_runner.sh"]
-rustflags = ["-C", "link-arg=-lc++_static", "-C", "link-arg=-lc++abi", "-C", "link-arg=-landroid_support"]
+rustflags = [
+"-C", "link-arg=-Wl,--exclude-libs,libunwind.a",
+]
 
-[target.aarch64-linux-android]
-ar = "./ndk/arm64/bin/aarch64-linux-android-ar"
-linker = "./ndk/arm64/bin/aarch64-linux-android-clang"
-runner = ["./android_runner.sh"]
-rustflags = ["-C", "link-arg=-lc++_static", "-C", "link-arg=-lc++abi", "-C", "link-arg=-landroid_support"]
+[target.'cfg(all(target_os="android", not(debug_assertions)))']
+rustflags = [
+"-C", "link-arg=-Wl,--gc-sections",
+]
+
+[target.'cfg(all(target_os="android", debug_assertions))']
+rustflags = [
+"-C", "link-arg=-Wl,--build-id=sha1",
+]
+
+#[target.i686-linux-android]
+#runner = ["./scripts/android_runner.sh"]
+#
+#[target.x86_64-linux-android]
+#runner = ["./scripts/android_runner.sh"]
+#
+#[target.armv7-linux-androideabi]
+#runner = ["./scripts/android_runner.sh"]
+#
+#[target.aarch64-linux-android]
+#runner = ["./scripts/android_runner.sh"]

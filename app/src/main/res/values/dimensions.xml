@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="comic_thumb_grid_margin">4dp</dimen>
+    <dimen name="comic_thumb_corner_radius">8dp</dimen>
+
+    <dimen name="bottom_sheet_drag_corner_radius">16dp</dimen>
+    <dimen name="bottom_sheet_drag_line_width">6dp</dimen>
+    <dimen name="bottom_sheet_drag_line_height">32dp</dimen>
+    <dimen name="bottom_sheet_drag_line_y_offset">8dp</dimen>
+</resources>

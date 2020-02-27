@@ -1,5 +1,4 @@
 use cc;
-use std::fs::read_dir;
 use std::env;
 
 fn main() {
@@ -26,5 +25,5 @@ fn main() {
     .into_iter()
     .map(|c_name| lzma_path.join(c_name));
 
-    cc::Build::new().files(files).compile("liblzma.a");
+    cc::Build::new().files(files).compile("lzma");
 }

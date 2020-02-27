@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/info"
+        android:title="@string/comic_list_info"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/mark_read"
+        android:title="@string/comic_list_completed"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/rename"
+        android:title="@string/comic_list_rename"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/remove"
+        android:title="@string/comic_list_remove"
+        app:showAsAction="never" />
+</menu>

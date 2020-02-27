@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="comic_thumb_grid_size">4</integer>
+</resources>

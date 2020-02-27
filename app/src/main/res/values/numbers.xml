@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="comic_title_length">100</integer>
+    <integer name="comic_thumb_grid_size">2</integer>
+
+    <item name="comic_list_thumb_width_percentage" format="float" type="dimen">0.25</item>
+</resources>

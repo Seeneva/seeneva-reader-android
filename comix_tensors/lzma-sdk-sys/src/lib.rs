@@ -1,11 +1,11 @@
 #![allow(non_snake_case, non_camel_case_types)]
 
 use libc;
+use num_derive::{FromPrimitive, ToPrimitive};
+
 use std::error::Error;
-use std::mem;
 use std::ptr;
 use std::slice;
-use std::string::String;
 
 pub type WRes = libc::c_int;
 pub type Sres = libc::c_int;
@@ -25,7 +25,7 @@ pub type c_char = libc::c_char;
 pub type FILE = libc::FILE;
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, FromPrimitive, ToPrimitive)]
 pub enum SZ {
     SZ_OK = 0,
 
@@ -52,10 +52,10 @@ impl SZ {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct ISzAlloc {
-    pub Alloc: unsafe extern "C" fn(ISzAllocPtr, size_t) -> *mut c_void,
-    pub Free: unsafe extern "C" fn(ISzAllocPtr, *mut c_void),
+    Alloc: unsafe extern "C" fn(ISzAllocPtr, size_t) -> *mut c_void,
+    Free: unsafe extern "C" fn(ISzAllocPtr, *mut c_void),
 }
 
 impl ISzAlloc {
@@ -86,7 +86,7 @@ pub enum ESzSeek {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct CSzFile {
     pub file: *mut FILE,
 }
@@ -99,8 +99,18 @@ impl Default for CSzFile {
     }
 }
 
+impl Drop for CSzFile {
+    fn drop(&mut self) {
+        let res = unsafe { File_Close(self) };
+
+        if res != 0 {
+            panic!("Can't close 7z archive file. Error: {}", res);
+        }
+    }
+}
+
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct CFileInStream {
     pub vt: ISeekInStream,
     pub file: CSzFile,
@@ -116,7 +126,7 @@ impl From<*mut FILE> for CFileInStream {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct ISeekInStream {
     pub Read:
         *mut extern "C" fn(p: *const ISeekInStream, buf: *mut c_void, size: *mut size_t) -> Sres,
@@ -133,7 +143,7 @@ impl Default for ISeekInStream {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct CLookToRead2 {
     pub vt: ILookInStream,
     pub realStream: *const ISeekInStream,
@@ -166,7 +176,7 @@ impl CLookToRead2 {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct ILookInStream {
     pub Look: *mut extern "C" fn(
         p: *const ILookInStream,
@@ -196,7 +206,7 @@ impl Default for ILookInStream {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct CSzAr {
     pub NumPackStreams: UInt32,
     pub NumFolders: UInt32,
@@ -231,7 +241,7 @@ impl Default for CSzAr {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct CSzBitUi32s {
     pub Defs: *mut Byte, //MSB 0 bit numbering
     pub Vals: *mut UInt32,
@@ -247,14 +257,14 @@ impl Default for CSzBitUi32s {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct CNtfsFileTime {
     pub Low: UInt32,
     pub High: UInt32,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct CSzBitUi64s {
     pub Defs: *mut Byte, //MSB 0 bit numbering
     pub Vals: *mut CNtfsFileTime,
@@ -270,7 +280,7 @@ impl Default for CSzBitUi64s {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct CSzArEx {
     pub db: CSzAr,
 
@@ -348,6 +358,10 @@ extern "C" {
         alloc_temp: ISzAllocPtr,
     ) -> SZ;
 
+    ///if dest == NULL, the return value specifies the required size of the buffer,
+    ///  in 16-bit characters, including the null-terminating character.
+    ///if dest != NULL, the return value specifies the number of 16-bit characters that
+    ///  are written to the dest, including the null-terminating character.
     pub fn SzArEx_GetFileNameUtf16(
         p: *const CSzArEx,
         file_index: size_t,
@@ -358,17 +372,31 @@ extern "C" {
 
     pub fn SzArEx_Free(p: *mut CSzArEx, alloc: ISzAllocPtr);
 
+    ///  SzArEx_Extract extracts file from archive
+    ///  *outBuffer must be 0 before first call for each new archive.
+    ///  Extracting cache:
+    ///    If you need to decompress more than one file, you can send
+    ///    these values from previous call:
+    ///      *blockIndex,
+    ///      *outBuffer,
+    ///      *outBufferSize
+    ///    You can consider "*outBuffer" as cache of solid block. If your archive is solid,
+    ///    it will increase decompression speed.
+    ///
+    ///    If you use external function, you can declare these 3 cache variables
+    ///    (blockIndex, outBuffer, outBufferSize) as static in that external function.
+    ///
+    ///    Free *outBuffer and set *outBuffer to 0, if you want to flush cache.
     pub fn SzArEx_Extract(
         p: *const CSzArEx,
         in_stream: *mut ILookInStream,
         file_index: UInt32,
-        block_index: *mut UInt32,
-        temp_buf: *mut *mut Byte,
-        out_buffer_size: *mut size_t,
-        offset: *mut size_t,
-        out_size_processed: *mut size_t,
+        block_index: *mut UInt32,        //index of solid block
+        temp_buf: *mut *mut Byte, //pointer to pointer to output buffer (allocated with allocMain)
+        out_buffer_size: *mut size_t, //pointer to pointer to output buffer (allocated with allocMain)
+        offset: *mut size_t,          //offset of stream for required file in *outBuffer
+        out_size_processed: *mut size_t, //size of file in *outBuffer
         alloc_main: ISzAllocPtr,
         alloc_temp: ISzAllocPtr,
     ) -> SZ;
-
 }

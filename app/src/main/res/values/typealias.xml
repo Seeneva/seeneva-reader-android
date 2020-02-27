@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="bcg_comic_filter" type="drawable">@drawable/comic_filter</item>
+</resources>

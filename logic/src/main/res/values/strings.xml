@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sort_comic_list_time_asc">Most recent last</string>
+    <string name="sort_comic_list_time_desc">Most recent first</string>
+    <string name="sort_comic_list_name_asc">Title (A..Z)</string>
+    <string name="sort_comic_list_name_desc">Title (Z..A)</string>
+
+
+    <string name="filter_comic_completed_title">Completion status</string>
+    <string name="filter_comic_completed_any">Any</string>
+    <string name="filter_comic_completed_only">Completed</string>
+    <string name="filter_comic_completed_not">Not completed</string>
+
+    <string name="filter_comic_file_status_title">File status</string>
+    <string name="filter_comic_file_status_any">Any</string>
+    <string name="filter_comic_file_status_corrupted">Corrupted</string>
+
+    <string name="add_mode_import">Import</string>
+    <string name="add_mode_import_descr">A comic book file will be copied into the app\'s inner folder</string>
+    <string name="add_mode_link">Link</string>
+    <string name="add_mode_link_descr">A comic book will be added without copying. But if you delete the application with which it was opened, then the comic book will become inaccessible for reading.</string>
+
+    <string name="comic_tag_completed">Completed</string>
+    <string name="comic_tag_removed">Removed</string>
+    <string name="comic_tag_corrupted">Corrupted</string>
+</resources>

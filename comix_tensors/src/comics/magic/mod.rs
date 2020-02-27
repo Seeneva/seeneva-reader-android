@@ -1,31 +1,29 @@
-mod error;
+use std::io::{Read, Seek, SeekFrom};
+
+use once_cell::sync::Lazy;
 
 pub use self::error::MagicTypeError;
 
-use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
-
-use lazy_static::lazy_static;
-
-use tokio::prelude::*;
+mod error;
 
 pub type Result<T> = ::std::result::Result<T, MagicTypeError>;
 
-lazy_static! {
-    ///Magic numbers for each supported magic types
-    static ref MAGIC_NUMBERS: [(&'static [u8], MagicType); 5] = [
-        (b"Rar!\x1A\x07\x00", MagicType::RAR),
-        (b"Rar!\x1A\x07\x01\x00", MagicType::RAR),
-        (b"PK", MagicType::ZIP),
-        (b"7z\xBC\xAF'", MagicType::SZ),
-        (b"<?xml version=", MagicType::XML),
-    ];
-    static ref MAGIC_MAX_LEN: usize = MAGIC_NUMBERS
+const MAGIC_NUMBERS: [(&[u8], MagicType); 6] = [
+    (b"Rar!\x1A\x07\x00", MagicType::RAR),
+    (b"Rar!\x1A\x07\x01\x00", MagicType::RAR),
+    (b"PK", MagicType::ZIP),
+    (b"7z\xBC\xAF'", MagicType::SZ),
+    (b"%PDF", MagicType::PDF),
+    (b"<?xml version=", MagicType::XML),
+];
+
+static MAGIC_MAX_LEN: Lazy<usize> = Lazy::new(|| {
+    MAGIC_NUMBERS
         .iter()
         .map(|(binary_repr, _)| binary_repr.len())
         .max()
-        .expect("Can't get max length of magic numbers");
-}
+        .expect("Can't get max length of magic numbers")
+});
 
 ///All supported file's magic types
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -33,6 +31,7 @@ pub enum MagicType {
     RAR,
     ZIP,
     SZ,
+    PDF,
     XML,
 }
 
@@ -73,17 +72,14 @@ impl MagicType {
     }
 }
 
-///Get [file] m,afic type
-pub fn resolve_file_magic_type(file: &mut File) -> Result<MagicType> {
-    debug!("Try to resolve file magic type");
+///Get [input] magic type
+pub fn resolve_file_magic_type<T>(input: &mut T) -> Result<MagicType>
+where
+    T: Read + Seek,
+{
+    debug!("Try to resolve magic type");
 
-    let is_file = file.metadata()?.is_file();
-
-    if !is_file {
-        return Err(MagicTypeError::NotFile);
-    }
-
-    MagicType::guess_reader_type(file).map(|magic_type| match magic_type {
+    MagicType::guess_reader_type(input).map(|magic_type| match magic_type {
         Some(magic_type) => Ok(magic_type),
         _ => Err(MagicTypeError::UnknownFormat),
     })?

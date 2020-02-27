@@ -1,75 +1,56 @@
-mod error;
-
-use self::error::ZipError;
-use super::{ArchiveFile, ComicContainer, ComicFilesStream};
-
-use std::fs::File;
-use std::io::{Cursor, Read};
-use std::ops::Deref;
-use std::os::unix::io::{FromRawFd, RawFd};
-use std::sync::Arc;
+use std::io::Read;
 use std::thread::current as current_thread;
 
+use tokio::prelude::*;
 use zip;
 
-use libc;
-use memmap::Mmap;
+use crate::FileRawFd;
 
-use tokio::prelude::*;
+use super::{ArchiveFile, ComicContainer, ComicContainerError, ComicFilesStream, FindFileFuture};
+
+use self::error::ZipError;
+
+mod error;
 
 type ZipResult<T> = ::std::result::Result<T, ZipError>;
-type OpenedZipArchive = zip::ZipArchive<Cursor<ArcMmap>>;
-
-/// Helper to clone mmap
-#[derive(Clone)]
-struct ArcMmap(Arc<Mmap>);
-
-impl AsRef<[u8]> for ArcMmap {
-    fn as_ref(&self) -> &[u8] {
-        self.0.deref().deref()
-    }
-}
-
-impl From<Mmap> for ArcMmap {
-    fn from(mmap: Mmap) -> Self {
-        ArcMmap(Arc::new(mmap))
-    }
-}
+type OpenedZipArchive = zip::ZipArchive<FileRawFd>;
 
 ///Entry point to open and stream zip archives
-#[derive(Debug, Copy, Clone)]
-pub struct ZipArchive(RawFd);
+#[derive(Debug)]
+pub struct ZipArchive {
+    fd: FileRawFd,
+}
 
 impl ZipArchive {
-    ///init new zip archive using file descriptor
-    pub fn new(fd: RawFd) -> Self {
-        ZipArchive(fd)
+    ///init new zip archive
+    pub fn new(fd: FileRawFd) -> Self {
+        ZipArchive { fd }
     }
 
     ///Open zip archive
     fn open(&self) -> impl Future<Item = OpenedZipArchiveWrapper, Error = ZipError> {
-        let fd = self.0;
-
-        future::lazy(move || {
-            let fd = unsafe { libc::dup(fd) };
-
-            debug!("Trying to open zip archive {}", fd);
-
-            let mmap: ArcMmap = unsafe {
-                let archive_file: File = File::from_raw_fd(fd);
-                Mmap::map(&archive_file)
-            }?
-            .into();
-
-            debug!("Zip file opened. Len {}", mmap.0.len());
-
-            Ok(zip::ZipArchive::new(Cursor::new(mmap))?.into())
-        })
+        future::result(self.fd.dup())
+            .map_err(Into::into)
+            .and_then(|fd| zip::ZipArchive::new(fd).map_err(Into::into))
+            .map(Into::into)
     }
 
     ///Stream all files in the archive
     fn stream_files(&self) -> impl Stream<Item = ArchiveFile, Error = ZipError> {
         self.open().map(stream::iter_result).flatten_stream()
+    }
+
+    fn file_by_position(
+        &self,
+        pos: usize,
+    ) -> impl Future<Item = Option<ArchiveFile>, Error = ZipError> {
+        self.open()
+            .map(move |mut archive| archive.find_by_position(pos))
+            .and_then(|result| match result {
+                Some(Ok(file)) => future::ok(Some(file)),
+                Some(Err(e)) => future::err(e),
+                None => future::ok(None),
+            })
     }
 }
 
@@ -77,15 +58,34 @@ impl ComicContainer for ZipArchive {
     fn files(&self) -> ComicFilesStream {
         Box::new(self.stream_files().from_err())
     }
+
+    fn file_by_position(&self, pos: usize) -> FindFileFuture {
+        Box::new(self.file_by_position(pos).from_err())
+    }
 }
 
 ///Wrapper around zip crate
-#[derive(Clone)]
 struct OpenedZipArchiveWrapper(OpenedZipArchive);
 
 impl From<OpenedZipArchive> for OpenedZipArchiveWrapper {
     fn from(archive: OpenedZipArchive) -> Self {
         OpenedZipArchiveWrapper(archive)
+    }
+}
+
+impl OpenedZipArchiveWrapper {
+    fn find_by_position(&mut self, pos: usize) -> Option<ZipResult<ArchiveFile>> {
+        if pos > self.0.len() - 1 {
+            info!(
+                "Requested zip file position {} is greater than archive len {}",
+                pos,
+                self.0.len()
+            );
+
+            return None;
+        }
+
+        Some(file_by_index(&mut self.0, pos))
     }
 }
 
@@ -102,7 +102,6 @@ impl IntoIterator for OpenedZipArchiveWrapper {
 }
 
 ///Iterator over all zip archives files
-#[derive(Clone)]
 struct ZipArchiveIterator {
     archive: OpenedZipArchive,
     current_pos: usize,
@@ -130,11 +129,7 @@ impl Iterator for ZipArchiveIterator {
             current_thread().name()
         );
 
-        let res = self
-            .archive
-            .by_index(current_pos)
-            .map_err(ZipError::from)
-            .and_then(|file| into_archive_file(file, current_pos));
+        let res = file_by_index(&mut self.archive, current_pos);
 
         self.current_pos += 1;
 
@@ -147,6 +142,13 @@ impl Iterator for ZipArchiveIterator {
 }
 
 impl ExactSizeIterator for ZipArchiveIterator {}
+
+fn file_by_index(archive: &mut OpenedZipArchive, pos: usize) -> ZipResult<ArchiveFile> {
+    archive
+        .by_index(pos)
+        .map_err(ZipError::from)
+        .and_then(|file| into_archive_file(file, pos))
+}
 
 ///Check is provided zip file is directory
 fn is_dir(file: &zip::read::ZipFile) -> bool {
@@ -182,56 +184,77 @@ fn into_archive_file(mut file: zip::read::ZipFile, pos: usize) -> ZipResult<Arch
 }
 
 #[cfg(test)]
+#[cfg(target_family = "unix")]
 mod tests {
-    use super::*;
-    use crate::comics::archive::tests::open_archive_fd;
-    use crate::comics::magic::{resolve_file_magic_type, MagicType};
+    //    use crate::comics::archive::tests::open_archive_fd;
+    //    use crate::comics::magic::{resolve_file_magic_type, MagicType};
+    //
+    //    use super::*;
 
-    #[test]
-    #[cfg(target_family = "unix")]
-    fn test_stream_cbz_archive() {
-        let fd = open_zip_fd();
+    //    #[test]
+    //    fn test_stream_cbz_archive() {
+    //        let fd = open_zip_fd();
+    //
+    //        let mut file_count = 0u32;
+    //
+    //        ZipArchive::new(fd).stream_files().wait().for_each(|file| {
+    //            let file = file.unwrap();
+    //
+    //            assert_eq!(
+    //                file.content.is_none(),
+    //                file.is_dir,
+    //                "If it's a file it should contain content. Otherwise it should be empty"
+    //            );
+    //
+    //            assert_eq!(
+    //                file.is_dir,
+    //                file.name == "image_folder/",
+    //                "Wrong dir detection: {}",
+    //                file.name
+    //            );
+    //
+    //            file_count += 1;
+    //        });
+    //
+    //        assert_eq!(
+    //            file_count, 11,
+    //            "Wrong number of ZIP archive files. Count {}",
+    //            file_count
+    //        );
+    //    }
+    //
+    //    #[test]
+    //    fn test_guess_cbz_magic_type() {
+    //        let fd = open_zip_fd();
+    //        let mut file = unsafe { File::from_raw_fd(fd) };
+    //
+    //        let res = resolve_file_magic_type(&mut file).unwrap();
+    //        assert_eq!(res, MagicType::ZIP);
+    //    }
+    //
+    //    #[test]
+    //    fn test_find_file_success() {
+    //        let fd = open_zip_fd();
+    //
+    //        let file = ZipArchive::new(fd)
+    //            .file_by_position(3)
+    //            .wait()
+    //            .unwrap()
+    //            .unwrap();
+    //
+    //        assert_eq!(file.name, "pexels-photo-1058770.jpeg", "Wrong file name");
+    //    }
+    //
+    //    #[test]
+    //    fn test_find_file_empty() {
+    //        let fd = open_zip_fd();
+    //
+    //        let file = ZipArchive::new(fd).file_by_position(100).wait().unwrap();
+    //
+    //        assert!(file.is_none());
+    //    }
 
-        let mut file_count = 0u32;
-
-        ZipArchive::new(fd).stream_files().wait().for_each(|file| {
-            let file = file.unwrap();
-
-            assert_eq!(
-                file.content.is_none(),
-                file.is_dir,
-                "If it's a file it should contain content. Otherwise it should be empty"
-            );
-
-            assert_eq!(
-                file.is_dir,
-                file.name == "image_folder/",
-                "Wrong dir detection: {}",
-                file.name
-            );
-
-            file_count += 1;
-        });
-
-        assert_eq!(
-            file_count, 11,
-            "Wrong number of ZIP archive files. Count {}",
-            file_count
-        );
-    }
-
-    #[test]
-    #[cfg(target_family = "unix")]
-    fn test_guess_cbz_magic_type() {
-        let fd = open_zip_fd();
-        let mut file = unsafe { File::from_raw_fd(fd) };
-
-        let res = resolve_file_magic_type(&mut file).unwrap();
-        assert_eq!(res, MagicType::ZIP);
-    }
-
-    #[cfg(target_family = "unix")]
-    fn open_zip_fd() -> RawFd {
-        open_archive_fd(&["zip", "comics_test.cbz"])
-    }
+    //    fn open_zip_fd() -> RawFd {
+    //        open_archive_fd(&["zip", "comics_test.cbz"])
+    //    }
 }
