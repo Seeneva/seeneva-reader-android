@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="ic_notification" type="drawable">@drawable/ic_whale_simple</item>
+</resources>

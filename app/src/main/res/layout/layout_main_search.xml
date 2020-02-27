@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.SearchView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:imeOptions="flagNoExtractUi"
+    app:queryBackground="@drawable/bcg_search_view"
+    app:queryHint="@string/comic_list_search_hint"
+    app:submitBackground="@null"
+    android:theme="@style/AppTheme"
+    tools:context=".screen.MainActivity" />

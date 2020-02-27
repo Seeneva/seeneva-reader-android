@@ -1,0 +1,86 @@
+{
+    "files": {
+        "success_3": {
+            "pages_count": 3,
+            "name": "Series #1",
+            "comic_rack": "default"
+        },
+        "success_3_wo_comic_rack": {
+            "pages_count": 3,
+            "name": "success_3_wo_comic_rack"
+        },
+        "success_wo_comic_rack": {
+            "pages_count": 3,
+            "name": "success_wo_comic_rack"
+        },
+        "success_comic_rack_failed": {
+            "pages_count": 3,
+            "name": "success_comic_rack_failed",
+            "comic_rack": "some_fields_fail"
+        },
+        "fail_0": {
+            "pages_count": 0
+        }
+    },
+    "comic_rack": {
+        "default": {
+            "title": "Title",
+            "series": "Series",
+            "summary": "Summary",
+            "number": 1,
+            "count": 100,
+            "volume": 1,
+            "page_count": 3,
+            "year": 1999,
+            "month": 4,
+            "day": 26,
+            "publisher": "Publisher",
+            "writer": "Writer",
+            "penciller": "Penciller",
+            "inker": "Inker",
+            "colorist": "Colorist",
+            "letterer": "Letterer",
+            "cover_artist": "CoverArtist",
+            "editor": "Editor",
+            "imprint": "Imprint",
+            "genre": "Genre",
+            "format": "Format",
+            "age_rating": "AgeRating",
+            "teams": "Teams",
+            "locations": "Locations",
+            "story_arc": "StoryArc",
+            "series_group": "SeriesGroup",
+            "black_and_white": "true",
+            "manga": "true",
+            "characters": "Characters",
+            "web": "Web",
+            "notes": "Notes",
+            "language_iso": "LanguageISO",
+            "pages": [
+                {
+                    "position": 0,
+                    "type": "FrontCover",
+                    "image_size": 1531539,
+                    "image_height": 3056,
+                    "image_width": 1988
+                },
+                {
+                    "position": 1,
+                    "image_size": 1077833,
+                    "image_height": 3056,
+                    "image_width": 1988
+                },
+                {
+                    "position": 2,
+                    "image_size": 2016925,
+                    "image_height": 3056,
+                    "image_width": 1988
+                }
+            ]
+        },
+        "some_fields_fail": {
+            "count": 100,
+            "manga": "false"
+        }
+    }
+}

@@ -1,13 +1,13 @@
-use super::ndk;
-use crate::{parse_config, Config};
-
+use jni::objects::{JObject, JString};
+use jni::JNIEnv;
 use std::error::Error;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::ops::Deref;
 use std::slice;
 
-use jni::objects::{JObject, JString};
-use jni::JNIEnv;
+use crate::{parse_config, Config};
+
+use super::ndk;
 
 ///Wrapper around flatbuffer config. Used with JNI
 #[derive(Debug, Clone)]

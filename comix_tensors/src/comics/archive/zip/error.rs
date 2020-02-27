@@ -1,12 +1,17 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Error as IoError;
+
 use zip::result::ZipError as ZipErrorLib;
+
+use super::ComicContainerError;
 
 #[derive(Debug)]
 pub struct ZipError(ZipErrorLib);
 
-impl From<ZipError> for Box<dyn Error + Send> {
+impl ComicContainerError for ZipError {}
+
+impl From<ZipError> for Box<dyn ComicContainerError> {
     fn from(err: ZipError) -> Self {
         Box::new(err)
     }
@@ -30,4 +35,8 @@ impl Display for ZipError {
     }
 }
 
-impl Error for ZipError {}
+impl Error for ZipError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(&self.0)
+    }
+}

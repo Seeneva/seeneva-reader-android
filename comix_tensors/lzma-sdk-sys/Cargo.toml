@@ -8,7 +8,9 @@ edition = "2018"
 crate-type = ["lib"]
 
 [dependencies]
-libc = "0.2"
+libc = "0.2.67"
+num-traits = "0.2.11"
+num-derive = "0.3.0"
 
 [build-dependencies]
-cc = "1.0"
+cc = "1.0.50"

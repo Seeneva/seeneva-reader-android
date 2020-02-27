@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="all_ok">OK</string>
+    <string name="all_cancel">Отмена</string>
+
+    <string name="search">Найти</string>
+
+    <string name="comic_list_as_list">Списком</string>
+    <string name="comic_list_as_grid">Таблицей</string>
+    <string name="comic_list_completed">Прочитано</string>
+    <string name="comic_list_not_completed">Непрочитано</string>
+    <string name="comic_list_add">Добавить</string>
+    <string name="comic_list_sort">Сортировать</string>
+    <string name="comic_list_filter">Фильтровать</string>
+    <string name="comic_list_sync">Синхронизировать</string>
+    <string name="comic_list_rename">Переименовать</string>
+    <string name="comic_list_info">Информация</string>
+    <string name="comic_list_remove">Убрать</string>
+    <string name="comic_list_undo_delete">Отменить</string>
+
+    <string name="comic_list_message_empty">Ваша библиотека комиксов пуста :(</string>
+    <string name="comic_list_message_not_found">Ни один комикс не найден</string>
+
+    <string name="comic_list_error_no_file_manager">Необходим файловый менеджер</string>
+
+    <string name="comic_list_search_hint">Заголовок</string>
+
+    <string name="comic_list_edit_title">Новое название</string>
+
+    <plurals name="comic_list_comic_book_removed">
+        <item quantity="one">%1$d комикс убран</item>
+        <item quantity="few">%1$d комикса убрано</item>
+        <item quantity="many">%1$d комиксов убрано</item>
+        <item quantity="other">%1$d комиксов убрано</item>
+    </plurals>
+
+    <string name="comic_info_title">@string/comic_list_info</string>
+
+    <string name="comic_info_general_information">Общая информация</string>
+    <string name="comic_info_general_info_series">Серия</string>
+    <string name="comic_info_general_info_title">Заголовок</string>
+    <string name="comic_info_general_info_volume">Том</string>
+    <string name="comic_info_general_info_issue">Выпуск</string>
+    <string name="comic_info_general_info_issue_of">%1$d из %2$d</string>
+    <string name="comic_info_general_info_issues_count">Всего выпусков</string>
+    <string name="comic_info_general_info_pages">Страниц</string>
+    <string name="comic_info_general_info_story_arc">Сюжетная арка</string>
+    <string name="comic_info_general_info_genre">Жанр</string>
+    <string name="comic_info_general_info_language">Язык</string>
+    <string name="comic_info_general_info_notes">Заметки</string>
+    <string name="comic_info_general_info_web">Сайт</string>
+    <string name="comic_info_general_info_tags">Теги</string>
+    <string name="comic_info_general_info_source">Источник</string>
+    <string name="comic_info_general_info_hash">Хеш</string>
+    <string name="comic_info_general_info_size">Размер</string>
+    <string name="comic_info_credits">Авторы</string>
+    <string name="comic_info_writets">Писатели</string>
+    <string name="comic_info_editors">Редакторы</string>
+    <string name="comic_info_pencillers">Художники</string>
+    <string name="comic_info_colorists">Колористы</string>
+    <string name="comic_info_inkers">Контуровщики</string>
+    <string name="comic_info_letterers">Xудожник-шрифтовики</string>
+    <string name="comic_info_cover_artists">Художники обложки</string>
+    <string name="comic_info_release">Публикация</string>
+    <string name="comic_info_publisher">Издатель</string>
+    <string name="comic_info_imprint">Импринт</string>
+    <string name="comic_info_date">Дата</string>
+    <string name="comic_info_format">Формат</string>
+    <string name="comic_info_age_rating">Возрастной рейтинг</string>
+    <string name="comic_info_pages_color">Цвет страниц</string>
+    <string name="comic_info_colorful">Цветной</string>
+    <string name="comic_info_black_white">Чёрно-белый</string>
+    <string name="comic_info_plot">Сюжет</string>
+    <string name="comic_info_plot_summary">Описание</string>
+    <string name="comic_info_plot_characters">Персонажи</string>
+    <string name="comic_info_plot_teams">Команды</string>
+    <string name="comic_info_plot_locations">Места</string>
+
+    <string name="comic_info_err_cant_find">Комикс не найден на устройстве :(</string>
+
+    <string name="rename_err_empty_title">Не может быть пустым</string>
+
+    <string name="open_comic_service_descr">Извлекает метаданные из комикса</string>
+
+    <string name="notification_channel_foreground_task">Пользовательские задачи</string>
+
+    <string name="notification_open_metadata_title">Открывается</string>
+    <string name="notification_open_metadata_more">И ещё %1$d</string>
+
+    <plurals name="notification_open_metadata_text">
+        <item quantity="one">%1$d комикс</item>
+        <item quantity="few">%1$d комикса</item>
+        <item quantity="many">%1$d комиксов</item>
+    </plurals>
+
+    <string name="notification_open_metatada_success_title">Добавлен</string>
+    <string name="notification_open_metatada_success">Комикс добавлен в библиотеку</string>
+    <string name="notification_open_metatada_success_short">\'%1$s\': добавлен в библиотеку</string>
+    <string name="notification_open_metatada_already_opened">Комикс уже находится в библиотеке</string>
+    <string name="notification_open_metatada_already_opened_short">\'%1$s\': уже находится в библиотеке</string>
+
+    <string name="notification_open_metatada_error_title">Ошибка открытия</string>
+    <string name="notification_open_metatada_error_read_container">Не удалось прочитать файл комикса</string>
+    <string name="notification_open_metatada_error_read_container_short">\'%1$s\': не удалось прочитать файл</string>
+    <string name="notification_open_metatada_error_open_container_magic">Не удалось распознать расширение файла комикса</string>
+    <string name="notification_open_metatada_error_open_container_magic_short">\'%1$s\': не удалось распознать расширение файла</string>
+    <string name="notification_open_metatada_error_open_container_unsupported">Данный файл комикса ещё не поддерживается</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': ещё не поддерживается</string>
+    <string name="notification_open_metatada_error_open_container_unknown">Данный файл не поддерживается</string>
+    <string name="notification_open_metatada_error_open_container_unknown_short">\'%1$s\': не поддерживается</string>
+    <string name="notification_open_metatada_error_no_pages">Файл комикса не содержит страниц</string>
+    <string name="notification_open_metatada_error_no_pages_short">\'%1$s\': не содержит страниц</string>
+    <string name="notification_open_metatada_error_image">Не удалось прочитать данные из страницы комикса</string>
+    <string name="notification_open_metatada_error_image_short">\'%1$s\': не удалось прочитать данные</string>
+
+</resources>

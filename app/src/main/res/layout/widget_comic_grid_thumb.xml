@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="com.almadevelop.comixreader.widget.ComicThumbView">
+
+    <com.almadevelop.comixreader.widget.ComicThumbCoverView
+        android:id="@+id/cover"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        tools:src="@tools:sample/avatars" />
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/nameRoot"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom">
+
+        <androidx.appcompat.widget.ActionMenuView
+            android:id="@+id/menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.WhiteControl"
+            app:layout_constraintBottom_toBottomOf="@id/name"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/name" />
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginBottom="6dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:includeFontPadding="false"
+            android:lineSpacingExtra="0dp"
+            android:lines="3"
+            android:maxLines="3"
+            android:textAppearance="?textAppearanceSubtitle2"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/menu"
+            tools:text="@tools:sample/lorem/random" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ImageView
+        android:id="@+id/completed_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|right"
+        android:layout_margin="4dp"
+        android:padding="4dp"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_round_completed_18dp"
+        tools:background="@drawable/bcg_completed"
+        tools:visibility="visible" />
+</merge>

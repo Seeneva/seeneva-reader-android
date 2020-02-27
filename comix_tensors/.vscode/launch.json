@@ -2,27 +2,24 @@
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-
-
-//     I have figured out that it is a bug of Android Studio; And I found the solution of use lldb stand-alone.
-
-// My Android Studio version is 2.2.3, the lldb of Android SDK is 2.2. You can find a file named 'lldb-server' in $ANDROID_SDK/lldb/android, then:
-
-// 1. adb push lldb-sever /data/local/tmp/  (chomd 777 if need)
-// 2. adb shell /data/local/tmp/lldb platform --server --listen unix-abstract:///data/local/tmp/debug.sock
-// 3. run lldb in pc, enter the REPL env of lldb.
-// 4. enter `platform select remote-android` in lldb
-// 5. enter `platform connect unix-abstract-connect:///data/local/tmp/debug.sock
-// 6. enter `process attach -p <pid>
-
-
+    //     I have figured out that it is a bug of Android Studio; And I found the solution of use lldb stand-alone.
+    // My Android Studio version is 2.2.3, the lldb of Android SDK is 2.2. You can find a file named 'lldb-server' in $ANDROID_SDK/lldb/android, then:
+    // 1. adb push lldb-sever /data/local/tmp/  (chomd 777 if need)
+    // 2. adb shell /data/local/tmp/lldb platform --server --listen unix-abstract:///data/local/tmp/debug.sock
+    // 3. run lldb in pc, enter the REPL env of lldb.
+    // 4. enter `platform select remote-android` in lldb
+    // 5. enter `platform connect unix-abstract-connect:///data/local/tmp/debug.sock
+    // 6. enter `process attach -p <pid>
     "version": "0.2.0",
     "configurations": [
+        
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Cargo test",
-            "sourceLanguages": ["rust"],
+            "name": "Cargo debug test",
+            "sourceLanguages": [
+                "rust"
+            ],
             "cargo": {
                 "args": [
                     "test",
@@ -33,25 +30,13 @@
             "program": "${cargo:program}",
             "args": []
         },
-        // {
-        //     "type": "lldb",
-        //     "request": "launch",
-        //     "name": "Cargo test",
-        //     "sourceLanguages": ["rust"],
-        //     "cargo": {
-        //         "args": [
-        //             "test",
-        //             "--target=i686-linux-android"
-        //         ]
-        //     },
-        //     "program": "${cargo:program}",
-        //     "args": []
-        // },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Android x86 remote debug",
-            "sourceLanguages": ["rust"],
+            "name": "Cargo Android x86 debug",
+            "sourceLanguages": [
+                "rust"
+            ],
             "cargo": {
                 "args": [
                     "test",
@@ -62,12 +47,16 @@
                 ]
             },
             "program": "${cargo:program}", // Local path.
-            //"preRunCommands": ["export PATH='$PATH:/home/zellius/Projects/Android/android-comix-reader/comix_tensors/ndk/x86/bin'"],
+            "preLaunchTask": "Enable Android LLDB server",
             "initCommands": [
+                "platform shell adb shell ${dbgconfig:lldb_path}/lldb-server p --listen localhost:1235 &",
                 "platform select remote-android",
-                "platform connect connect://localhost:1234",
-                "platform settings -w /data/local/tmp/lldb"
+                "platform connect connect://localhost:1235",
+                "platform settings -w ${dbgconfig:lldb_path}",
             ],
+            // "exitCommands": [
+            //     "platform disconnect"
+            // ]
         }
     ]
 }

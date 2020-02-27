@@ -1,3 +1,114 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
     <string name="app_name">ComixReader</string>
+
+    <string name="all_ok">OK</string>
+    <string name="all_cancel">Cancel</string>
+
+    <string name="search">Search</string>
+
+    <string name="comic_list_as_list">List view</string>
+    <string name="comic_list_as_grid">Grid view</string>
+    <string name="comic_list_completed">Completed</string>
+    <string name="comic_list_not_completed">Not completed</string>
+    <string name="comic_list_add">Add</string>
+    <string name="comic_list_sort">Sort by</string>
+    <string name="comic_list_filter">Filter</string>
+    <string name="comic_list_sync">Sync</string>
+    <string name="comic_list_rename">Rename</string>
+    <string name="comic_list_info">Info</string>
+    <string name="comic_list_remove">Remove</string>
+    <string name="comic_list_undo_delete">Undo</string>
+
+    <string name="comic_list_message_empty">Your library is empty :(</string>
+    <string name="comic_list_message_not_found">No comic books were found</string>
+
+    <string name="comic_list_error_no_file_manager">File manager required</string>
+
+    <string name="comic_list_search_hint">Title</string>
+
+    <string name="comic_list_edit_title">New title</string>
+
+    <plurals name="comic_list_comic_book_removed">
+        <item quantity="one">Comics was removed</item>
+        <item quantity="other">%1$d comics were removed</item>
+    </plurals>
+
+    <string name="comic_info_title">@string/comic_list_info</string>
+
+    <string name="comic_info_general_information">General information</string>
+    <string name="comic_info_general_info_series">Series</string>
+    <string name="comic_info_general_info_title">Title</string>
+    <string name="comic_info_general_info_volume">Volume</string>
+    <string name="comic_info_general_info_issue">Issue</string>
+    <string name="comic_info_general_info_issue_of">%1$d of %2$d</string>
+    <string name="comic_info_general_info_issues_count">Issues count</string>
+    <string name="comic_info_general_info_pages">Pages</string>
+    <string name="comic_info_general_info_story_arc">Story arc</string>
+    <string name="comic_info_general_info_genre">Genre</string>
+    <string name="comic_info_general_info_language">Language</string>
+    <string name="comic_info_general_info_notes">Notes</string>
+    <string name="comic_info_general_info_web">Web</string>
+    <string name="comic_info_general_info_tags">Tags</string>
+    <string name="comic_info_general_info_source">Source</string>
+    <string name="comic_info_general_info_hash">Hash</string>
+    <string name="comic_info_general_info_size">Size</string>
+    <string name="comic_info_credits">Credits</string>
+    <string name="comic_info_writets">Writers</string>
+    <string name="comic_info_editors">Editors</string>
+    <string name="comic_info_pencillers">Pencillers</string>
+    <string name="comic_info_colorists">Colorists</string>
+    <string name="comic_info_inkers">Inkers</string>
+    <string name="comic_info_letterers">Letterers</string>
+    <string name="comic_info_cover_artists">Cover artists</string>
+    <string name="comic_info_release">Release</string>
+    <string name="comic_info_publisher">Publisher</string>
+    <string name="comic_info_imprint">Imprint</string>
+    <string name="comic_info_date">Date</string>
+    <string name="comic_info_format">Format</string>
+    <string name="comic_info_age_rating">Age rating</string>
+    <string name="comic_info_pages_color">Pages color</string>
+    <string name="comic_info_colorful">Colorful</string>
+    <string name="comic_info_black_white">Black and white</string>
+    <string name="comic_info_plot">Plot</string>
+    <string name="comic_info_plot_summary">Summary</string>
+    <string name="comic_info_plot_characters">Characters</string>
+    <string name="comic_info_plot_teams">Teams</string>
+    <string name="comic_info_plot_locations">Locations</string>
+
+    <string name="comic_info_err_cant_find">Can\'t find this comic book on the device :(</string>
+
+    <string name="rename_err_empty_title">Cannot be empty</string>
+
+    <string name="open_comic_service_descr">Extracts comic book metadata</string>
+
+    <string name="notification_channel_foreground_task">User tasks</string>
+
+    <string name="notification_open_metadata_title">Opening</string>
+    <string name="notification_open_metadata_more">And %1$d more</string>
+
+    <plurals name="notification_open_metadata_text">
+        <item quantity="one">One comic book</item>
+        <item quantity="other">%1$d comic books</item>
+    </plurals>
+
+    <string name="notification_open_metatada_success_title">Added</string>
+    <string name="notification_open_metatada_success">The comic book added to your library</string>
+    <string name="notification_open_metatada_success_short">\'%1$s\': added to your library</string>
+    <string name="notification_open_metatada_already_opened">The comic book is already in your library</string>
+    <string name="notification_open_metatada_already_opened_short">\'%1$s\': is already in your library</string>
+
+    <string name="notification_open_metatada_error_title">Opening error</string>
+    <string name="notification_open_metatada_error_read_container">Can\'t read provided comic book file</string>
+    <string name="notification_open_metatada_error_read_container_short">\'%1$s\': can\'t read</string>
+    <string name="notification_open_metatada_error_open_container_magic">Can\'t determine provided comic book file extension</string>
+    <string name="notification_open_metatada_error_open_container_magic_short">\'%1$s\': can\'t determine file extension</string>
+    <string name="notification_open_metatada_error_open_container_unsupported">Provided comic book file is currently unsupported</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': currently unsupported</string>
+    <string name="notification_open_metatada_error_open_container_unknown">Provided file is not supported</string>
+    <string name="notification_open_metatada_error_open_container_unknown_short">\'%1$s\': not supported</string>
+    <string name="notification_open_metatada_error_no_pages">Provided comic book file doesn\'t have any pages</string>
+    <string name="notification_open_metatada_error_no_pages_short">\'%1$s\': doesn\'t have any pages</string>
+    <string name="notification_open_metatada_error_image">Can\'t read comic book page data</string>
+    <string name="notification_open_metatada_error_image_short">\'%1$s\': can\'t read page data</string>
+
 </resources>

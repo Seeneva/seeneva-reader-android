@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="comic_list_thumb_width_percentage" format="float" type="dimen">0.1</item>
+</resources>

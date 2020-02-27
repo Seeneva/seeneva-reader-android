@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.textfield.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/titleInput"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="@string/comic_list_edit_title"
+    android:paddingLeft="20dp"
+    android:paddingTop="8dp"
+    android:paddingRight="20dp"
+    android:paddingBottom="8dp"
+    app:counterEnabled="true"
+    app:counterMaxLength="@integer/comic_title_length"
+    app:hintAnimationEnabled="false">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:imeOptions="actionDone|flagNoExtractUi"
+        android:inputType="text"
+        android:maxLength="@integer/comic_title_length"
+        android:maxLines="1"
+        android:textSize="14sp" />
+
+</com.google.android.material.textfield.TextInputLayout>
