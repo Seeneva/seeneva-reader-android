@@ -99,8 +99,6 @@ internal class AddingUseCaseImpl(
                         ComicAddResult.Type.ContainerUnsupportedError
                     NativeException.CODE_CONTAINER_OPEN_MAGIC_IO ->
                         ComicAddResult.Type.ContainerMagicIOError
-                    NativeException.CODE_CONTAINER_OPEN_UNKNOWN_FORMAT ->
-                        ComicAddResult.Type.ContainerUnknownFileFormatError
                     NativeException.CODE_EMPTY_BOOK ->
                         ComicAddResult.Type.NoComicPagesError
                     NativeException.CODE_IMAGE_OPEN ->
@@ -117,6 +115,8 @@ internal class AddingUseCaseImpl(
 
     /**
      * Simple adding
+     * @throws NativeException
+     * @throws com.almadevelop.comixreader.data.NativeFatalError
      */
     private suspend fun simpleAdding(fileData: SimpleFileData, addMode: AddComicBookMode) {
         default {
@@ -129,15 +129,20 @@ internal class AddingUseCaseImpl(
                 ensureActive()
 
                 comicBookSource.insertOrReplace(comicsMetadata)
-            } catch (_: Throwable) {
+            } catch (t: Throwable) {
                 //use noncancellable context to prevent cancel remove tmp files
                 withContext(NonCancellable) {
                     fileManager.remove(comicBookPath)
                 }
+                //rethrow exception
+                throw t
             }
         }
     }
 
+    /**
+     * Replace previously added comic book
+     */
     private suspend fun replace(
         toReplace: SimpleComicBookWithTags,
         fileData: SimpleFileData,
@@ -154,39 +159,45 @@ internal class AddingUseCaseImpl(
                 ensureActive()
 
                 comicBookSource.insertOrReplace(comicsMetadata)
-            } catch (_: Throwable) {
+            } catch (t: Throwable) {
                 //use noncancellable context to prevent cancel remove tmp files
                 withContext(NonCancellable) {
                     fileManager.remove(comicBookPath)
                 }
+                throw t
             }
         }
     }
 
+    /**
+     * Fix corrupted comic book by updating it path
+     */
     private suspend fun fix(
         fix: SimpleComicBookWithTags,
         fileData: SimpleFileData,
         addMode: AddComicBookMode
     ) {
-        val fixedPath = fileManager.replace(fix.filePath, fileData, addMode)
+        default {
+            val fixedPath = fileManager.replace(fix.filePath, fileData, addMode)
 
-        try {
-            val corruptedId =
-                requireNotNull(tagSource.getHardcodedTagId(TagType.TYPE_CORRUPTED)) { "Corrupted tag cannot be null" }
+            try {
+                val corruptedId =
+                    requireNotNull(tagSource.getHardcodedTagId(TagType.TYPE_CORRUPTED)) { "Corrupted tag cannot be null" }
 
-            coroutineContext.ensureActive()
+                coroutineContext.ensureActive()
 
-            localTransactionRunner.run {
-                comicBookSource.removeTags(fix.id, Collections.singleton(corruptedId))
+                localTransactionRunner.run {
+                    comicBookSource.removeTags(fix.id, Collections.singleton(corruptedId))
 
-                comicBookSource.updatePath(NewBookPath(fix.id, fixedPath))
-            }
-        } catch (_: Throwable) {
-            //use noncancellable context to prevent cancel remove tmp files
-            withContext(NonCancellable) {
-                fileManager.remove(fixedPath)
+                    comicBookSource.updatePath(NewBookPath(fix.id, fixedPath))
+                }
+            } catch (t: Throwable) {
+                //use noncancellable context to prevent cancel remove tmp files
+                withContext(NonCancellable) {
+                    fileManager.remove(fixedPath)
+                }
+                throw t
             }
         }
-
     }
 }

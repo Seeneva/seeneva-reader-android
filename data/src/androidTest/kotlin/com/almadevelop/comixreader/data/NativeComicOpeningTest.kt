@@ -27,7 +27,7 @@ class NativeComicOpeningTest {
 
     private val nativeSource: NativeSource = NativeSourceImpl(context, TestCoroutineDispatcher())
 
-    private val comicsCacheDir = requireNotNull(context.externalCacheDir).resolve(COMICS_ROOT_DIR)
+    private val comicsCacheDir = requireNotNull(context.cacheDir).resolve(COMICS_ROOT_DIR)
 
     private val sourceOfTruth by lazy {
         val jsonStr = assets.open("$COMICS_ROOT_DIR/truth_source.json")

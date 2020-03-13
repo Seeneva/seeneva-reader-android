@@ -1,7 +1,9 @@
 package com.almadevelop.comixreader
 
 import android.app.Application
+import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.multidex.MultiDex
 import com.almadevelop.comixreader.AppNotification.createComicNotificationChannels
 import com.almadevelop.comixreader.di.setup
 import com.almadevelop.comixreader.work.SyncManager
@@ -23,6 +25,11 @@ class ComicsApplication : Application() {
         startKoin { setup(this@ComicsApplication) }
 
         prepare()
+    }
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        MultiDex.install(this)
     }
 
     /**

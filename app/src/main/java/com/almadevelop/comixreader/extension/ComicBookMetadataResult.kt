@@ -18,7 +18,6 @@ fun ComicAddResult.humanDescription(res: Resources): String {
         AddType.NoComicPagesError -> R.string.notification_open_metatada_error_no_pages
         AddType.ContainerUnsupportedError -> R.string.notification_open_metatada_error_open_container_unsupported
         AddType.ContainerMagicIOError -> R.string.notification_open_metatada_error_open_container_magic
-        AddType.ContainerUnknownFileFormatError -> R.string.notification_open_metatada_error_open_container_unknown
         AddType.Success -> R.string.notification_open_metatada_success
         AddType.AlreadyOpened -> R.string.notification_open_metatada_already_opened
     }
@@ -34,7 +33,6 @@ fun ComicAddResult.humanDescriptionShort(res: Resources): String {
 
         AddType.ContainerUnsupportedError -> R.string.notification_open_metatada_error_open_container_unsupported_short
         AddType.ContainerMagicIOError -> R.string.notification_open_metatada_error_open_container_magic_short
-        AddType.ContainerUnknownFileFormatError -> R.string.notification_open_metatada_error_open_container_unknown_short
 
         AddType.Success -> R.string.notification_open_metatada_success_short
         AddType.AlreadyOpened -> R.string.notification_open_metatada_already_opened_short

@@ -102,10 +102,8 @@
     <string name="notification_open_metatada_error_read_container_short">\'%1$s\': can\'t read</string>
     <string name="notification_open_metatada_error_open_container_magic">Can\'t determine provided comic book file extension</string>
     <string name="notification_open_metatada_error_open_container_magic_short">\'%1$s\': can\'t determine file extension</string>
-    <string name="notification_open_metatada_error_open_container_unsupported">Provided comic book file is currently unsupported</string>
-    <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': currently unsupported</string>
-    <string name="notification_open_metatada_error_open_container_unknown">Provided file is not supported</string>
-    <string name="notification_open_metatada_error_open_container_unknown_short">\'%1$s\': not supported</string>
+    <string name="notification_open_metatada_error_open_container_unsupported">Provided file is not supported</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': is not supported</string>
     <string name="notification_open_metatada_error_no_pages">Provided comic book file doesn\'t have any pages</string>
     <string name="notification_open_metatada_error_no_pages_short">\'%1$s\': doesn\'t have any pages</string>
     <string name="notification_open_metatada_error_image">Can\'t read comic book page data</string>

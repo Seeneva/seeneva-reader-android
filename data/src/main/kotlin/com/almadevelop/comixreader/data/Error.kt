@@ -39,32 +39,25 @@ class NativeException(val code: Int, message: String? = null) : RuntimeException
         val CODE_CONTAINER_OPEN_MAGIC_IO = 2
 
         /**
-         * Unknown comic container file format
-         */
-        @JvmStatic
-        @Keep
-        val CODE_CONTAINER_OPEN_UNKNOWN_FORMAT = 3
-
-        /**
          * Comic book archive doesn't contain any images
          */
         @JvmStatic
         @Keep
-        val CODE_EMPTY_BOOK = 4
+        val CODE_EMPTY_BOOK = 3
 
         /**
          * Can't open one or more image in the comic book archive
          */
         @JvmStatic
         @Keep
-        val CODE_IMAGE_OPEN = 5
+        val CODE_IMAGE_OPEN = 4
 
         /**
          * Can't find the file in the comic book container (e.g. comic page by it position)
          */
         @JvmStatic
         @Keep
-        val CODE_CONTAINER_CANT_FIND_FILE = 6
+        val CODE_CONTAINER_CANT_FIND_FILE = 5
     }
 }
 

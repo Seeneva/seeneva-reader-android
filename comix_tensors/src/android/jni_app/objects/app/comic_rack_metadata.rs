@@ -18,7 +18,10 @@ fn class_descr(env: &JNIEnv) -> &'static CacheClassDescr {
                               format!("(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[L{};)V", COMIC_RACK_PAGE_TYPE).as_str()));
 }
 
-pub fn new<'a>(env: &'a JNIEnv, comic_info: &Option<ComicInfoData>) -> JniResult<ComicRackMetadata<'a>> {
+pub fn new<'a>(
+    env: &'a JNIEnv,
+    comic_info: &Option<ComicInfoData>,
+) -> JniResult<ComicRackMetadata<'a>> {
     let CacheClassDescr(class, constructor) = class_descr(env);
 
     match comic_info {
@@ -80,7 +83,10 @@ pub mod page {
                                   "(Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Integer;Ljava/lang/Integer;)V"));
     }
 
-    pub fn new<'a>(env: &'a JNIEnv, page: &ComicInfoPageData) -> JniResult<ComicRackPageMetadata<'a>> {
+    pub fn new<'a>(
+        env: &'a JNIEnv,
+        page: &ComicInfoPageData,
+    ) -> JniResult<ComicRackPageMetadata<'a>> {
         let CacheClassDescr(class, constructor) = class_descr(env);
 
         env.new_object_unchecked(

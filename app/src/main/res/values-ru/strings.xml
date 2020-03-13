@@ -104,10 +104,8 @@
     <string name="notification_open_metatada_error_read_container_short">\'%1$s\': не удалось прочитать файл</string>
     <string name="notification_open_metatada_error_open_container_magic">Не удалось распознать расширение файла комикса</string>
     <string name="notification_open_metatada_error_open_container_magic_short">\'%1$s\': не удалось распознать расширение файла</string>
-    <string name="notification_open_metatada_error_open_container_unsupported">Данный файл комикса ещё не поддерживается</string>
-    <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': ещё не поддерживается</string>
-    <string name="notification_open_metatada_error_open_container_unknown">Данный файл не поддерживается</string>
-    <string name="notification_open_metatada_error_open_container_unknown_short">\'%1$s\': не поддерживается</string>
+    <string name="notification_open_metatada_error_open_container_unsupported">Данный файл не поддерживается</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': не поддерживается</string>
     <string name="notification_open_metatada_error_no_pages">Файл комикса не содержит страниц</string>
     <string name="notification_open_metatada_error_no_pages_short">\'%1$s\': не содержит страниц</string>
     <string name="notification_open_metatada_error_image">Не удалось прочитать данные из страницы комикса</string>
