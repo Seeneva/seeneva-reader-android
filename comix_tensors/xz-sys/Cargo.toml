@@ -1,0 +1,13 @@
+[package]
+name = "xz-sys"
+version = "5.2.5"
+authors = ["Sergey Solodovnikov <elementa.ru@gmail.com>"]
+edition = "2018"
+links = "xz"
+build = "build.rs"
+
+[lib]
+crate-type = ["lib"]
+
+[build-dependencies]
+autotools = "0.2"

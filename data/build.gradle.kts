@@ -44,7 +44,7 @@ private val ndkToolchainsPath by lazy {
 
 private val jniLibsPath = { name: String ->
     android.sourceSets
-        .findByName(name)!!
+        .getByName(name)
         .jniLibs
         .srcDirs
         .first()
@@ -92,44 +92,30 @@ fun setRustTask(variant: LibraryVariant) {
 
                 //execute Rust Cargo build
                 val rustBuildResult = exec {
-                    workingDir(rustPath.toString());
-
-                    //setup cargo. It can be overrided via .cargo/config TOML file
-                    //https://doc.rust-lang.org/cargo/reference/config.html
-                    {
-                        val cargoTriple = abi.rustTriple.replace('-', '_').toUpperCase()
-
-                        environment(
-                            "CARGO_TARGET_${cargoTriple}_LINKER",
-                            "$toolchainsBinPath/${abi.cxxLinker(minSdkVersion)}"
-                        )
-                        environment(
-                            "CARGO_TARGET_${cargoTriple}_AR",
-                            "$toolchainsBinPath/${abi.ar}"
-                        )
-
-                        Unit
-                    }()
-
-                    //set libc linker and ar
-                    environment(
-                        "CC_${abi.rustTriple}",
-                        "$toolchainsBinPath/${abi.cLinker(minSdkVersion)}"
-                    )
+                    workingDir(rustPath.toString())
 
                     environment(
-                        "CXX_${abi.rustTriple}",
-                        "$toolchainsBinPath/${abi.cxxLinker(minSdkVersion)}"
+                        //setup cargo. It can be overrided via .cargo/config TOML file
+                        //https://doc.rust-lang.org/cargo/reference/config.html
+                        *abi.rustTriple.replace('-', '_').toUpperCase().let {
+                            val cargoTriple = abi.rustTriple.replace('-', '_').toUpperCase()
+
+                            arrayOf(
+                                "CARGO_TARGET_${cargoTriple}_LINKER" to
+                                        "$toolchainsBinPath/${abi.cxxLinker(minSdkVersion)}",
+                                "CARGO_TARGET_${cargoTriple}_AR" to
+                                        "$toolchainsBinPath/${abi.ar}"
+                            )
+                        },
+                        //set libc linker and ar
+                        //You can alse set specific flags by CXX_${abi.rustTriple} (CXX_i686-linux-android)
+                        //https://github.com/alexcrichton/cc-rs#external-configuration-via-environment-variables
+                        "CC" to "$toolchainsBinPath/${abi.cLinker(minSdkVersion)}",
+                        "CXX" to "$toolchainsBinPath/${abi.cxxLinker(minSdkVersion)}",
+                        "AR" to "$toolchainsBinPath/${abi.ar}",
+                        "CXXFLAGS" to abi.compileFlags(minSdkVersion),
+                        "CFLAGS" to abi.compileFlags(minSdkVersion)
                     )
-
-                    environment(
-                        "AR_${abi.rustTriple}",
-                        "$toolchainsBinPath/${abi.ar}"
-                    )
-
-                    environment("CXXFLAGS_${abi.rustTriple}", abi.compileFlags(minSdkVersion))
-                    environment("CFLAGS_${abi.rustTriple}", abi.compileFlags(minSdkVersion))
-
 
                     commandLine(rustBuildConfig.cmdArgs(abi))
                 }
@@ -137,7 +123,10 @@ fun setRustTask(variant: LibraryVariant) {
                 rustBuildResult.assertNormalExitValue()
 
                 copy {
-                    from(rustPath.resolve("target/${abi.rustTriple}/${rustBuildConfig.name.toLowerCase()}").toString()) {
+                    from(
+                        rustPath.resolve("target/${abi.rustTriple}/${rustBuildConfig.name.toLowerCase()}")
+                            .toString()
+                    ) {
                         include("*.so")
                     }
 

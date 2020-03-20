@@ -7,7 +7,6 @@ data class ComicAddResult(val type: Type, val data: FullFileData) {
         ContainerReadError,
         ContainerUnsupportedError, //Opening errors
         ContainerMagicIOError,
-        ContainerUnknownFileFormatError,
         NoComicPagesError,
         CantOpenPageImage
     }

@@ -1,5 +1,3 @@
-use std::os::unix::io::RawFd;
-
 use jni::objects::{JObject, JString};
 use jni::JNIEnv;
 use tokio::prelude::*;
@@ -17,15 +15,13 @@ mod error;
 /// Return error if any goes wrong or task was cancelled using [cancel_receiver]
 pub fn comic_book_metadata<'a>(
     env: &'a JNIEnv,
-    fd: RawFd,
+    mut fd: FileRawFd,
     comics_path: JString,
     comics_name: JString,
     task_callback: JObject<'a>,
 ) -> InitTaskResult<'a> {
     let comics_path = env.new_global_ref(comics_path.into())?;
     let comics_name = env.new_global_ref(comics_name.into())?;
-
-    let mut fd = FileRawFd::new(fd);
 
     let init_fd = fd.dup()?;
 

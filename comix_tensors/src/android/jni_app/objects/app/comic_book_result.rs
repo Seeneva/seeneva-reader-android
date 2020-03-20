@@ -6,7 +6,9 @@ use once_cell::sync::OnceCell;
 
 use crate::{ComicInfo, ComicPageMetadata};
 
-use super::{comic_book_page, comic_rack_metadata, constants::*, try_cache_class_descr, CacheClassDescr};
+use super::{
+    comic_book_page, comic_rack_metadata, constants::*, try_cache_class_descr, CacheClassDescr,
+};
 
 ///Init success Java variant
 pub fn new_success<'a>(

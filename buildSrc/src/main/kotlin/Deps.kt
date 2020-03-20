@@ -32,7 +32,7 @@ object Version {
 
     const val THREETENABP = "1.2.2"
 
-    const val TINYLOG = "2.0.0"
+    const val TINYLOG = "2.1.0"
 }
 
 object Deps {

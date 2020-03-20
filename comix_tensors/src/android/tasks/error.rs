@@ -29,15 +29,8 @@ impl AsJThrowable for InitComicContainerError {
         use InitComicContainerError::*;
 
         let code = match self {
-            UnsupportedType(_) => NativeException::Code::ContainerOpenUnsupported,
-            Magic(magic_err) => {
-                use crate::MagicTypeError::*;
-
-                match magic_err {
-                    IO(_) => NativeException::Code::ContainerOpenMagicIo,
-                    UnknownFormat => NativeException::Code::ContainerOpenUnknownFormat,
-                }
-            }
+            Unsupported => NativeException::Code::ContainerOpenUnsupported,
+            IO(_) => NativeException::Code::ContainerOpenMagicIo,
         };
 
         NativeException::new(env, code, self.as_jni_error_msg())

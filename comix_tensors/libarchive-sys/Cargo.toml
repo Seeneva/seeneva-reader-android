@@ -1,0 +1,21 @@
+[package]
+name = "libarchive-sys"
+version = "3.4.2"
+authors = ["Sergey Solodovnikov <elementa.ru@gmail.com>"]
+edition = "2018"
+links = "archive"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+libc = "0.2"
+
+[target.'cfg(target_os="android")'.dependencies]
+xz-sys = {path = "../xz-sys"}
+
+[build-dependencies]
+cc = "1.0"

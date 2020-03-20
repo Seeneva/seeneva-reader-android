@@ -3,15 +3,13 @@ package com.almadevelop.comixreader.data.source.jni
 import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import com.almadevelop.comixreader.common.coroutines.Dispatched
-import com.almadevelop.comixreader.common.coroutines.Dispatchers
-import com.almadevelop.comixreader.common.coroutines.io
 import com.almadevelop.comixreader.common.entity.FileHashData
 import com.almadevelop.comixreader.data.entity.ComicBook
 import com.almadevelop.comixreader.data.entity.ComicImage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import org.tinylog.kotlin.Logger
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -82,15 +80,8 @@ internal class NativeSourceImpl(
                     fd,
                     path.toString(),
                     initName,
-                    object : Native.Callback<ComicBook> {
-                        override fun taskResult(result: ComicBook) {
-                            cont.resume(result)
-                        }
-
-                        override fun taskError(error: Throwable) {
-                            cont.resumeWithException(error)
-                        }
-                    })
+                    BaseCallback(cont)
+                )
             }
         }
 
@@ -106,15 +97,7 @@ internal class NativeSourceImpl(
         imageResize: NativeSource.ImageResize
     ) = withContext(dispatcher) {
         cancellableTask<ComicImage>(path) { fd, cont ->
-            val nativeCallback = object : Native.Callback<ComicImage> {
-                override fun taskResult(result: ComicImage) {
-                    cont.resume(result)
-                }
-
-                override fun taskError(error: Throwable) {
-                    cont.resumeWithException(error)
-                }
-            }
+            val nativeCallback = BaseCallback(cont)
 
             when (imageResize) {
                 is NativeSource.ImageResize.None -> Native.getImage(
@@ -162,5 +145,16 @@ internal class NativeSourceImpl(
         return requireNotNull(
             context.contentResolver.openFileDescriptor(this, "r")
         ) { "Can't open Android file descriptor" }
+    }
+
+    private data class BaseCallback<T>(private val cont: Continuation<T>) : Native.Callback<T> {
+        override fun taskResult(result: T) {
+            cont.resume(result)
+        }
+
+        override fun taskError(error: Throwable) {
+            Logger.error(error)
+            cont.resumeWithException(error)
+        }
     }
 }

@@ -1,14 +1,12 @@
-use std::os::unix::io::RawFd;
-
 use jni::objects::JObject;
 use jni::JNIEnv;
 use tokio::prelude::*;
 
 use crate::android::jni_app::prelude::*;
 use crate::comics::prelude::*;
+use crate::FileRawFd;
 
 use super::{error::TaskError, execute_task, InitTaskResult};
-use crate::FileRawFd;
 
 mod error;
 
@@ -22,13 +20,11 @@ pub enum ExtractImageType {
 
 pub fn get_comic_book_image<'a>(
     env: &'a JNIEnv,
-    fd: RawFd,
+    fd: FileRawFd,
     image_position: usize,
     image_type: ExtractImageType,
     task_callback: JObject<'a>,
 ) -> InitTaskResult<'a> {
-    let fd = FileRawFd::new(fd);
-
     let task_future = {
         let img_file_future = future::result(ComicContainerVariant::init(fd))
             .from_err::<TaskError>()

@@ -1,10 +1,11 @@
 pub const PACKAGE_NAME: &str = "com/almadevelop/comixreader";
 
-pub const COMIC_RACK_METADATA_TYPE: &str = "com/almadevelop/comixreader/data/entity/ComicRackMetadata";
-pub const COMIC_RACK_PAGE_TYPE: &str = "com/almadevelop/comixreader/data/entity/ComicRackPageMetadata";
+pub const COMIC_RACK_METADATA_TYPE: &str =
+    "com/almadevelop/comixreader/data/entity/ComicRackMetadata";
+pub const COMIC_RACK_PAGE_TYPE: &str =
+    "com/almadevelop/comixreader/data/entity/ComicRackPageMetadata";
 
-pub const COMIC_BOOK_PAGE_TYPE: &str =
-    "com/almadevelop/comixreader/data/entity/ComicBookPage";
+pub const COMIC_BOOK_PAGE_TYPE: &str = "com/almadevelop/comixreader/data/entity/ComicBookPage";
 
 pub const FILE_HASH_TYPE: &str = "com/almadevelop/comixreader/common/entity/FileHashData";
 

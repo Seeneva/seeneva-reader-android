@@ -1,10 +1,10 @@
 use tokio::prelude::*;
 
 use self::actions::*;
-use self::archive::ArchiveFile;
+use self::container::ArchiveFile;
 
 mod actions;
-mod archive;
+mod container;
 mod magic;
 
 #[derive(Debug, Clone, Default)]
@@ -144,9 +144,8 @@ pub mod prelude {
     };
     //pub use super::preprocessor::{ComicPreprocessError, ComicPreprocessing};
     pub use super::actions::{GetComicFileMetadataError, GetComicImageError};
-    pub use super::archive::{
+    pub use super::container::{
         hash_metadata as archive_hash_metadata, CalcArchiveHashError, ComicContainerError,
         ComicContainerVariant, InitComicContainerError,
     };
-    pub use super::magic::MagicTypeError;
 }

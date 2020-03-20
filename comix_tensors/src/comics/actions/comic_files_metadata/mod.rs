@@ -6,7 +6,7 @@ use image::guess_format as guess_image_format;
 use tokio::prelude::stream::Fuse;
 use tokio::prelude::*;
 
-use crate::comics::archive::ArchiveFile;
+use crate::comics::container::ArchiveFile;
 use crate::comics::magic::MagicType;
 use crate::comics::ComicBookMetadataType;
 

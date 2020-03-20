@@ -1,7 +1,7 @@
 use image;
 use tokio::prelude::*;
 
-use crate::comics::archive::ArchiveFile;
+use crate::comics::container::ArchiveFile;
 
 pub use self::error::GetComicImageError;
 

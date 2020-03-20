@@ -2,8 +2,6 @@
 #![allow(non_snake_case)]
 
 use std::any::Any;
-use std::fs::File;
-use std::os::unix::io::FromRawFd;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 
@@ -15,6 +13,7 @@ use tokio::prelude::*;
 use tasks::prelude::*;
 
 use crate::comics::prelude::archive_hash_metadata;
+use crate::FileRawFd;
 
 use self::jni_app::prelude::*;
 
@@ -62,12 +61,20 @@ pub unsafe extern "C" fn Java_com_almadevelop_comixreader_data_source_jni_Native
     env: JNIEnv,
     task: JObject,
 ) -> jboolean {
-    future::lazy(|| cancel_task(&env, task).map_err(|e| AssertUnwindSafe(e)))
-        .catch_unwind()
-        .wait()
-        .and_then(|result| result.map_err(|AssertUnwindSafe(e)| Box::new(e) as Box<dyn Any + Send>))
-        .map_err(|e| e.into_jni_error_wrapper())
-        .jni_error_unwrap(&env, || "Can't cancel task", || false) as _
+    if task.is_null() {
+        throw_illegal_argument_exception(&env, "Task cannot be null");
+
+        false as _
+    } else {
+        future::lazy(|| cancel_task(&env, task).map_err(|e| AssertUnwindSafe(e)))
+            .catch_unwind()
+            .wait()
+            .and_then(|result| {
+                result.map_err(|AssertUnwindSafe(e)| Box::new(e) as Box<dyn Any + Send>)
+            })
+            .map_err(|e| e.into_jni_error_wrapper())
+            .jni_error_unwrap(&env, || "Can't cancel task", || false) as _
+    }
 }
 
 //TODO REMEMBER!!! output bytebuffer from interpretr FLOAT_BYTES_LEN * BATCH_SIZE * 9750 * 10 (4, 4,9750, 10)
@@ -84,39 +91,34 @@ pub unsafe extern "C" fn Java_com_almadevelop_comixreader_data_source_jni_Native
     comic_book_name: JString,
     callback: JObject,
 ) -> jobject {
-    if file_descriptor < 0 {
-        throw_illegal_argument_exception(&env, "File descriptor is negative");
+    match check_fd(&env, file_descriptor).and_then(|fd| {
+        check_callback(&env, callback)?;
 
-        return JObject::null().into_inner();
+        if file_path.is_null() {
+            throw_illegal_argument_exception(&env, "File path cannot be null");
+
+            return Err(());
+        }
+
+        if comic_book_name.is_null() {
+            throw_illegal_argument_exception(&env, "Comic book name cannot be null");
+
+            return Err(());
+        }
+
+        Ok(fd)
+    }) {
+        Ok(fd) => future::lazy(|| {
+            comic_book_metadata_task(&env, fd, file_path, comic_book_name, callback)
+                .map_err(|e| AssertUnwindSafe(e))
+        })
+        .catch_unwind()
+        .wait()
+        .and_then(|result| result.map_err(|AssertUnwindSafe(e)| e.into_any()))
+        .map_err(|e| e.into_jni_error_wrapper())
+        .jni_error_unwrap(&env, || "Can't get comic book metadata", || JObject::null()),
+        _ => JObject::null(),
     }
-
-    if callback.is_null() {
-        throw_illegal_argument_exception(&env, "Callback cannot be null");
-
-        return JObject::null().into_inner();
-    }
-
-    if file_path.is_null() {
-        throw_illegal_argument_exception(&env, "File path cannot be null");
-
-        return JObject::null().into_inner();
-    }
-
-    if comic_book_name.is_null() {
-        throw_illegal_argument_exception(&env, "Comic book name cannot be null");
-
-        return JObject::null().into_inner();
-    }
-
-    future::lazy(|| {
-        comic_book_metadata_task(&env, file_descriptor, file_path, comic_book_name, callback)
-            .map_err(|e| AssertUnwindSafe(e))
-    })
-    .catch_unwind()
-    .wait()
-    .and_then(|result| result.map_err(|AssertUnwindSafe(e)| e.into_any()))
-    .map_err(|e| e.into_jni_error_wrapper())
-    .jni_error_unwrap(&env, || "Can't get comic book metadata", || JObject::null())
     .into_inner()
 }
 
@@ -126,26 +128,32 @@ pub unsafe extern "C" fn Java_com_almadevelop_comixreader_data_source_jni_Native
     _: JClass,
     file_descriptor: jint,
 ) -> jobject {
-    if file_descriptor < 0 {
-        throw_illegal_argument_exception(&env, "File descriptor is negative");
+    use crate::comics::prelude::CalcArchiveHashError;
 
-        return JObject::null().into_inner();
+    // Helper with unwind boundaries
+    fn archive_hash_metadata_inner(
+        mut fd: FileRawFd,
+    ) -> Result<(u64, impl AsRef<[u8]>), CalcArchiveHashError> {
+        archive_hash_metadata(&mut fd)
     }
 
-    future::lazy(|| {
-        archive_hash_metadata(&mut (File::from_raw_fd(file_descriptor) as File))
-            .map_err(|e| Box::new(e) as Box<dyn Any + Send>)
-            .and_then(|(size, hash)| {
-                app_objects::file_hash::new(&env, size, &hash)
-                    .map_err(|e| Box::new(e) as Box<dyn Any + Send>)
-            })
-            .map_err(|e| AssertUnwindSafe(e))
-    })
-    .catch_unwind()
-    .wait()
-    .and_then(|result| result.map_err(|AssertUnwindSafe(e)| e))
-    .map_err(|e| e.into_jni_error_wrapper())
-    .jni_error_unwrap(&env, || "Can't get comic file data", || JObject::null())
+    match check_fd(&env, file_descriptor) {
+        Ok(fd) => future::lazy(|| {
+            archive_hash_metadata_inner(fd)
+                .map_err(|e| Box::new(e) as Box<dyn Any + Send>)
+                .and_then(|(size, hash)| {
+                    app_objects::file_hash::new(&env, size, &hash)
+                        .map_err(|e| Box::new(e) as Box<dyn Any + Send>)
+                })
+                .map_err(|e| AssertUnwindSafe(e))
+        })
+        .catch_unwind()
+        .wait()
+        .and_then(|result| result.map_err(|AssertUnwindSafe(e)| e))
+        .map_err(|e| e.into_jni_error_wrapper())
+        .jni_error_unwrap(&env, || "Can't get comic file data", || JObject::null()),
+        _ => JObject::null(),
+    }
     .into_inner()
 }
 
@@ -158,27 +166,32 @@ pub unsafe extern "C" fn Java_com_almadevelop_comixreader_data_source_jni_Native
     image_position: jlong,
     callback: JObject,
 ) -> jobject {
-    if image_position < 0 {
-        throw_illegal_argument_exception(&env, "Image position can't be negative");
+    match check_fd(&env, file_descriptor).and_then(|fd| {
+        if image_position < 0 {
+            throw_illegal_argument_exception(&env, "Image position can't be negative");
 
-        return JObject::null().into_inner();
+            return Err(());
+        }
+
+        Ok(fd)
+    }) {
+        Ok(fd) => future::lazy(|| {
+            get_comic_book_image_task(
+                &env,
+                fd,
+                image_position as _,
+                ExtractImageType::Default,
+                callback,
+            )
+            .map_err(|e| AssertUnwindSafe(e))
+        })
+        .catch_unwind()
+        .wait()
+        .and_then(|result| result.map_err(|AssertUnwindSafe(e)| e.into_any()))
+        .map_err(|e| e.into_jni_error_wrapper())
+        .jni_error_unwrap(&env, || "Can't get comic book image", || JObject::null()),
+        _ => JObject::null(),
     }
-
-    future::lazy(|| {
-        get_comic_book_image_task(
-            &env,
-            file_descriptor,
-            image_position as _,
-            ExtractImageType::Default,
-            callback,
-        )
-        .map_err(|e| AssertUnwindSafe(e))
-    })
-    .catch_unwind()
-    .wait()
-    .and_then(|result| result.map_err(|AssertUnwindSafe(e)| e.into_any()))
-    .map_err(|e| e.into_jni_error_wrapper())
-    .jni_error_unwrap(&env, || "Can't get comic book image", || JObject::null())
     .into_inner()
 }
 
@@ -192,44 +205,72 @@ pub unsafe extern "C" fn Java_com_almadevelop_comixreader_data_source_jni_Native
     image_height: jint,
     callback: JObject,
 ) -> jobject {
-    if image_position < 0 {
-        throw_illegal_argument_exception(&env, "Image position can't be negative");
+    match check_fd(&env, file_descriptor).and_then(|fd| {
+        if image_position < 0 {
+            throw_illegal_argument_exception(&env, "Image position can't be negative");
 
-        return JObject::null().into_inner();
-    }
+            return Err(());
+        }
 
-    if image_width < 0 || image_height < 0 {
-        throw_illegal_argument_exception(
+        if image_width < 0 || image_height < 0 {
+            throw_illegal_argument_exception(
+                &env,
+                format!(
+                    "Width and height cannot be negative. Width {}, height {}",
+                    image_width, image_height
+                ),
+            );
+
+            return Err(());
+        }
+
+        Ok(fd)
+    }) {
+        Ok(fd) => future::lazy(|| {
+            get_comic_book_image_task(
+                &env,
+                fd,
+                image_position as _,
+                ExtractImageType::Thumbnail((image_width as _, image_height as _)),
+                callback,
+            )
+            .map_err(|e| AssertUnwindSafe(e))
+        })
+        .catch_unwind()
+        .wait()
+        .and_then(|result| result.map_err(|AssertUnwindSafe(e)| e.into_any()))
+        .map_err(|e| e.into_jni_error_wrapper())
+        .jni_error_unwrap(
             &env,
-            format!(
-                "Width and height cannot be negative. Width {}, height {}",
-                image_width, image_height
-            ),
-        );
-
-        return JObject::null().into_inner();
+            || "Can't get comic book image thumbnail",
+            || JObject::null(),
+        ),
+        _ => JObject::null(),
     }
-
-    future::lazy(|| {
-        get_comic_book_image_task(
-            &env,
-            file_descriptor,
-            image_position as _,
-            ExtractImageType::Thumbnail((image_width as _, image_height as _)),
-            callback,
-        )
-        .map_err(|e| AssertUnwindSafe(e))
-    })
-    .catch_unwind()
-    .wait()
-    .and_then(|result| result.map_err(|AssertUnwindSafe(e)| e.into_any()))
-    .map_err(|e| e.into_jni_error_wrapper())
-    .jni_error_unwrap(
-        &env,
-        || "Can't get comic book image thumbnail",
-        || JObject::null(),
-    )
     .into_inner()
+}
+
+/// Check provided file descriptor and return wrapper around it in case of success
+fn check_fd(env: &JNIEnv, fd: jint) -> Result<FileRawFd, ()> {
+    if fd < 0 {
+        throw_illegal_argument_exception(&env, "File descriptor is negative");
+
+        Err(())
+    } else {
+        // Wrap file descriptor to auto close it in the end of the function
+        Ok(FileRawFd::new(fd))
+    }
+}
+
+/// Check provided callback from Java side
+fn check_callback(env: &JNIEnv, callback: JObject) -> Result<(), ()> {
+    if callback.is_null() {
+        throw_illegal_argument_exception(&env, "Callback cannot be null");
+
+        Err(())
+    } else {
+        Ok(())
+    }
 }
 
 /////Return model config from Android AssetsManager by its name [asset_file_name]
