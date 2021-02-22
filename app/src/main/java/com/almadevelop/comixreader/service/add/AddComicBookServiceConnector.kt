@@ -6,16 +6,15 @@ import com.almadevelop.comixreader.common.coroutines.Dispatchers
 import com.almadevelop.comixreader.logic.comic.AddComicBookMode
 import com.almadevelop.comixreader.logic.entity.ComicAddResult
 import com.almadevelop.comixreader.service.BaseServiceConnector
-import com.almadevelop.comixreader.service.ServiceConnector
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
-import java.util.*
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.transformLatest
 
-interface AddComicBookServiceConnector : ServiceConnector {
-    /**
-     * @see AddComicBookServiceBinder.subscribe
-     */
-    suspend fun subscribe(): Flow<ComicAddResult>
-
+interface AddComicBookServiceConnector {
     /**
      * @see AddComicBookServiceBinder.add
      */
@@ -24,17 +23,17 @@ interface AddComicBookServiceConnector : ServiceConnector {
         addComicBookMode: AddComicBookMode,
         openFlags: Int
     ): ComicAddResult {
-        return add(Collections.singletonList(path), addComicBookMode, openFlags).first()
+        return add(listOf(path), addComicBookMode, openFlags).single()
     }
 
     /**
      * @see AddComicBookServiceBinder.add
      */
-    suspend fun add(
+    fun add(
         paths: List<Uri>,
         addComicBookMode: AddComicBookMode,
         openFlags: Int
-    ): List<ComicAddResult>
+    ): Flow<ComicAddResult>
 
     /**
      * @see AddComicBookServiceBinder.cancel
@@ -42,25 +41,31 @@ interface AddComicBookServiceConnector : ServiceConnector {
     suspend fun cancel(comicBookPath: Uri): Boolean
 }
 
-class AddComicBookServiceConnectorImpl(context: Context, dispatchers: Dispatchers) :
-    BaseServiceConnector<AddComicBookServiceBinder>(context, dispatchers),
-    AddComicBookServiceConnector {
-    override suspend fun subscribe(): Flow<ComicAddResult> {
-        return bind().subscribe()
-    }
-
-    override suspend fun add(
+class AddComicBookServiceConnectorImpl(
+    context: Context,
+    parent: Job?,
+    dispatchers: Dispatchers
+) : BaseServiceConnector<AddComicBookService, AddComicBookServiceBinder>(
+    context,
+    parent,
+    dispatchers,
+    AddComicBookService::class.java
+), AddComicBookServiceConnector {
+    override fun add(
         paths: List<Uri>,
         addComicBookMode: AddComicBookMode,
         openFlags: Int
-    ): List<ComicAddResult> {
-        return bind().add(paths, addComicBookMode, openFlags)
+    ) = binderFlow.transformLatest {
+        //We need to prevent Service binder from disconnect
+        // so it is really critical to transform this FLow into Service Flow
+        if (it is BinderState.Connected<AddComicBookServiceBinder>) {
+            emitAll(it.binder.add(paths, addComicBookMode, openFlags))
+            //We do not need this SharedFlow anymore. We need to call cancel here to close subscription.
+            //If Service doesn't have any work to do and its binder was disconnected it will be destroyed
+            currentCoroutineContext().cancel()
+        }
     }
 
-    override suspend fun cancel(comicBookPath: Uri): Boolean {
-        return bind().cancel(comicBookPath)
-    }
-
-    private suspend fun bind() =
-        bind(AddComicBookService::class.java)
+    override suspend fun cancel(comicBookPath: Uri) =
+        onBind { it.cancel(comicBookPath) }
 }

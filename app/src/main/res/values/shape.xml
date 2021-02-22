@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppShapeOverlay.ComicListItem" parent="">
+        <item name="cornerSize">@dimen/comic_thumb_corner_radius</item>
+    </style>
+
+    <style name="AppShapeOverlay.ComicGridItemCover" parent="AppShapeOverlay.ComicListItem" />
+
+    <style name="AppShapeOverlay.ComicListItemCover" parent="">
+        <item name="cornerSize">0dp</item>
+        <item name="cornerSizeTopLeft">@dimen/comic_thumb_corner_radius</item>
+        <item name="cornerSizeBottomLeft">@dimen/comic_thumb_corner_radius</item>
+    </style>
+
+    <style name="AppShapeOverlay.DraggableBottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">0dp</item>
+        <item name="cornerSizeTopLeft">@dimen/bottom_sheet_drag_corner_radius</item>
+        <item name="cornerSizeTopRight">@dimen/bottom_sheet_drag_corner_radius</item>
+    </style>
+
+</resources>

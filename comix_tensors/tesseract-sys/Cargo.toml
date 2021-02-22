@@ -1,0 +1,21 @@
+[package]
+name = "tesseract-sys"
+version = "4.1.1"
+authors = ["Sergey Solodovnikov"]
+edition = "2018"
+links = "tesseract"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+pkg-config = "0.3"
+autotools = "0.2.1"
+bindgen = "0.55"
+build-deps = "0.1"
+cc = "1.0"
+build-helper = { path = "../build-helper" }
+
+[dependencies]
+libc = "0.2"
+leptonica-sys = { path = "../leptonica-sys" }

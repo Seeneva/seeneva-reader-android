@@ -10,16 +10,19 @@ import android.widget.TextView
 import androidx.core.view.get
 import androidx.core.view.plusAssign
 import com.almadevelop.comixreader.R
+import com.almadevelop.comixreader.binding.getValue
+import com.almadevelop.comixreader.binding.viewBinding
+import com.almadevelop.comixreader.databinding.DialogComicFiltersBinding
+import com.almadevelop.comixreader.di.autoInit
+import com.almadevelop.comixreader.di.getValue
+import com.almadevelop.comixreader.di.koinLifecycleScope
+import com.almadevelop.comixreader.di.requireParentFragmentScope
 import com.almadevelop.comixreader.extension.inflate
-import com.almadevelop.comixreader.extension.parentKoinScope
-import com.almadevelop.comixreader.extension.setDraggableBackground
 import com.almadevelop.comixreader.logic.entity.query.filter.Filter
 import com.almadevelop.comixreader.logic.entity.query.filter.FilterGroup
-import com.almadevelop.comixreader.presenter.BasePresenterBottomSheetDialog
 import com.almadevelop.comixreader.presenter.PresenterStatefulView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import kotlinx.android.synthetic.main.dialog_comic_filters.*
-import org.koin.androidx.scope.currentScope
+import com.almadevelop.comixreader.screen.list.dialog.BaseDraggableDialog
+import org.koin.core.scope.KoinScopeComponent
 import java.io.Serializable
 import java.util.*
 
@@ -28,26 +31,16 @@ interface EditFiltersView : PresenterStatefulView {
     fun filtersAccepted(acceptedFilters: Map<FilterGroup.ID, Filter>)
 }
 
-class EditFiltersDialog : BasePresenterBottomSheetDialog(), EditFiltersView {
-    init {
-        setStyle(STYLE_NORMAL, R.style.AppBottomSheetTheme_NonCollapsed)
-    }
+class EditFiltersDialog : BaseDraggableDialog(), EditFiltersView, KoinScopeComponent {
+    private val viewBinding by viewBinding(DialogComicFiltersBinding::bind)
 
-    override val presenter = currentScope.get<EditFiltersPresenter>()
+    private val lifecycleScope = koinLifecycleScope { it.linkTo(requireParentFragmentScope()) }
 
-    private val callback by lazy { parentKoinScope.getOrNull<Callback>() }
+    override val scope by lifecycleScope
 
-    private val bottomSheetBehavior by lazy {
-        requireNotNull(dialog).findViewById<View>(R.id.design_bottom_sheet)
-            .let { BottomSheetBehavior.from(it) }
-    }
+    private val presenter by lifecycleScope.autoInit<EditFiltersPresenter>()
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        setDraggableBackground()
-
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-    }
+    private val callback by lazy { scope.getOrNull<Callback>() }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,11 +57,16 @@ class EditFiltersDialog : BasePresenterBottomSheetDialog(), EditFiltersView {
         filterGroups.forEach { filterGroup ->
             val filterGroupId = filterGroup.id
 
-            filtersContentView.inflate<View>(R.layout.layout_comic_filter, true, layoutInflater)
+            viewBinding.filtersContentView.inflate<View>(
+                R.layout.layout_comic_filter,
+                true,
+                layoutInflater
+            )
 
-            val titleView = filtersContentView[filtersContentView.childCount - 2] as TextView
+            val titleView =
+                viewBinding.filtersContentView[viewBinding.filtersContentView.childCount - 2] as TextView
             val filtersRadioGroup =
-                filtersContentView[filtersContentView.childCount - 1] as RadioGroup
+                viewBinding.filtersContentView[viewBinding.filtersContentView.childCount - 1] as RadioGroup
 
             titleView.text = filterGroup.title
 

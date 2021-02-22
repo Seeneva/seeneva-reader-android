@@ -13,11 +13,9 @@ val ComicAddResult.success: Boolean
 
 fun ComicAddResult.humanDescription(res: Resources): String {
     val resId = when (type) {
-        AddType.CantOpenPageImage -> R.string.notification_open_metatada_error_image
         AddType.ContainerReadError -> R.string.notification_open_metatada_error_read_container
         AddType.NoComicPagesError -> R.string.notification_open_metatada_error_no_pages
         AddType.ContainerUnsupportedError -> R.string.notification_open_metatada_error_open_container_unsupported
-        AddType.ContainerMagicIOError -> R.string.notification_open_metatada_error_open_container_magic
         AddType.Success -> R.string.notification_open_metatada_success
         AddType.AlreadyOpened -> R.string.notification_open_metatada_already_opened
     }
@@ -27,12 +25,10 @@ fun ComicAddResult.humanDescription(res: Resources): String {
 
 fun ComicAddResult.humanDescriptionShort(res: Resources): String {
     val resId = when (type) {
-        AddType.CantOpenPageImage -> R.string.notification_open_metatada_error_image_short
         AddType.ContainerReadError -> R.string.notification_open_metatada_error_read_container_short
         AddType.NoComicPagesError -> R.string.notification_open_metatada_error_no_pages_short
 
         AddType.ContainerUnsupportedError -> R.string.notification_open_metatada_error_open_container_unsupported_short
-        AddType.ContainerMagicIOError -> R.string.notification_open_metatada_error_open_container_magic_short
 
         AddType.Success -> R.string.notification_open_metatada_success_short
         AddType.AlreadyOpened -> R.string.notification_open_metatada_already_opened_short

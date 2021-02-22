@@ -1,40 +1,21 @@
-use std::error::Error;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use thiserror::Error as DeriveError;
 
-use image::ImageError;
+use crate::comics::container::ComicContainerError;
+use crate::task::CancelledError;
 
-#[derive(Debug)]
-pub enum GetComicImageError {
-    ///Cant find image in the comic book container by it position
-    CantFind,
-    ///Error occured when tried to open image
-    OpenError(ImageError),
-    ///File does not have any content
-    EmptyFile,
+#[derive(DeriveError, Debug)]
+pub enum GetComicRawImageError {
+    ///Error occurred while trying to find raw comic book page
+    #[error("Can't get comic book raw page. Container error: '{0}'")]
+    ContainerError(#[from] Box<dyn ComicContainerError>),
+    ///Error occurred when tried to open image
+    #[error("Can't open comic book page as image. Error: '{0}'")]
+    ImgError(#[from] image::ImageError),
+    /// Task was cancelled
+    #[error("{0}")]
+    Cancelled(#[from] CancelledError),
 }
 
-impl Display for GetComicImageError {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        use self::GetComicImageError::*;
-
-        match self {
-            CantFind => writeln!(f, "Can't find comic image by position"),
-            OpenError(_) => writeln!(f, "Can't open comic image by position"),
-            EmptyFile => writeln!(
-                f,
-                "Can't open comic image by position. It doesn't have any content"
-            ),
-        }
-    }
-}
-
-impl Error for GetComicImageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        use self::GetComicImageError::*;
-
-        match self {
-            OpenError(e) => Some(e),
-            _ => None,
-        }
-    }
-}
+#[derive(DeriveError, Debug, Copy, Clone)]
+#[error("{0}")]
+pub struct ResizeComicImageError(#[from] pub CancelledError);

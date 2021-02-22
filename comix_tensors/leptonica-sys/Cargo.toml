@@ -1,0 +1,19 @@
+[package]
+name = "leptonica-sys"
+version = "1.80.0"
+authors = ["Sergey Solodovnikov"]
+edition = "2018"
+links = "lept"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+pkg-config = "0.3"
+autotools = "0.2.1"
+bindgen = "0.55"
+cc = "1.0"
+build-deps = "0.1"
+
+[dependencies]
+libc = "0.2"

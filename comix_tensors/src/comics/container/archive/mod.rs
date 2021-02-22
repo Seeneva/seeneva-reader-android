@@ -1,160 +1,154 @@
-use std::ops::{Deref, DerefMut};
+use std::io::Read;
 
-use tokio::prelude::*;
+use libarchive_rs::{
+    Archive, ArchiveError, Builder as ArchiveBuilder, Entry, FileType, Format,
+    Source as ArchiveSource, Status as ArchiveStatus, SysErrorKind as ArchiveSysErrorKind,
+};
 
-use libarchive_rs::{Archive as LibArchive, *};
+use super::{
+    ComicContainerError, ComicContainerFile, ComicContainerVariant, FilesIter, FindFileResult,
+};
 
-use crate::comics::container::{ArchiveFile, ComicContainer, ComicFilesStream, FindFileFuture};
-use crate::FileRawFd;
-
-pub use self::error::ArchiveError;
+pub use self::error::*;
 
 mod error;
 
-type ArchiveResult<T> = Result<T, ArchiveError>;
-
-#[derive(Debug)]
-pub struct Archive {
-    fd: FileRawFd,
-}
-
-impl Archive {
-    pub fn new(fd: FileRawFd) -> Self {
-        Archive { fd }
-    }
-
-    /// Open archive
-    fn open(&self) -> impl Future<Item = LibArchiveWrapper, Error = ArchiveError> {
-        future::result(self.fd.dup())
-            .map_err(Into::into)
-            .and_then(|fd| LibArchiveWrapper::new(fd).map_err(Into::into))
-    }
-}
-
-impl ComicContainer for Archive {
-    fn files(&self) -> ComicFilesStream {
-        Box::new(
-            self.open()
-                .map(stream::iter_result)
-                .flatten_stream()
-                .from_err(),
-        )
-    }
-
-    fn file_by_position(&self, pos: usize) -> FindFileFuture {
-        Box::new(
-            self.open()
-                .and_then(move |mut archive| future::result(archive.file_by_position(pos)))
-                .from_err(),
-        )
-    }
-}
-
-#[derive(Debug)]
-struct LibArchiveWrapper(LibArchive);
-
-impl LibArchiveWrapper {
-    fn new(fd: FileRawFd) -> ArchiveResult<Self> {
-        ArchiveBuilder::new()
-            .add_format_zip()
-            .add_format_tar()
-            .add_format_7zip()
-            .add_format_rar5()
-            .add_format_rar()
-            .open_fd(fd.into_fd())
-            .map_err(Into::into)
-            .map(|inner| LibArchiveWrapper(inner))
-    }
-
-    /// Try to find file in the archive by it position.
-    ///
-    /// Return `Ok(None)` if file cannot be found
-    fn file_by_position(&mut self, pos: usize) -> ArchiveResult<Option<ArchiveFile>> {
-        loop {
-            let file_pos = self.current_pos() as usize;
-
-            match self.next_entry()? {
-                None => return Ok(None), //cannot find a file by position
-                Some(entry) if file_pos == pos => {
-                    return Ok(entry)
-                        .map(|e| (e.file_type(), e.file_path().to_owned()))
-                        .and_then(|(file_type, file_path)| {
-                            build_archive_file(self, file_pos, file_type, file_path)
-                        })
-                        .map(Into::into)
-                }
-                _ => continue,
-            };
-        }
-    }
+/// Return base comic book archive reader builder
+fn base_comic_archive_builder() -> ArchiveBuilder {
+    // Comic book historical formats: .cbz (zip), .cbr (rar), .cb7 (7z), .cbt (tar)
+    Archive::builder()
+        .add_format(Format::Zip)
+        .add_format(Format::Tar)
+        .add_format(Format::SevenZip)
+        .add_format(Format::Rar)
+        .add_format(Format::Rar5)
 }
 
 /// Build archive file from parts
-fn build_archive_file(
-    archive: &LibArchive,
-    entry_pos: usize,
-    entry_type: ArchiveEntryType,
-    entry_name: String,
-) -> ArchiveResult<ArchiveFile> {
-    let is_dir = entry_type == ArchiveEntryType::Directory;
+fn build_comic_container_file(archive: &mut Archive, entry: &Entry) -> Result<ComicContainerFile> {
+    let e_pos = archive.current_pos();
+    let e_path = entry.path();
+    let e_type = entry.file_type();
 
     debug!(
-        "File extracted. Pos: '{}'. Name: '{}'. Type: '{:?}'",
-        entry_pos, entry_name, entry_type
+        "File extracted. Pos: '{}'. Path: '{}'. Type: '{:?}'",
+        e_pos, e_path, e_type
     );
 
-    let content = if is_dir { None } else { archive.read_data() };
+    // ignore non file entries
+    let content = match e_type {
+        FileType::RegularFile => {
+            let mut buf = Vec::with_capacity(entry.file_size());
 
-    Ok(ArchiveFile {
-        pos: entry_pos,
-        name: entry_name,
-        is_dir,
+            //ignore errors
+            archive.read_to_end(&mut buf)?;
+
+            buf
+        }
+        _ => {
+            return Err(Error::NotAFile(e_type));
+        }
+    };
+
+    Ok(ComicContainerFile {
+        pos: e_pos,
+        name: e_path.to_string(),
         content,
     })
 }
 
-impl Deref for LibArchiveWrapper {
-    type Target = LibArchive;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for LibArchiveWrapper {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl IntoIterator for LibArchiveWrapper {
-    type Item = ArchiveResult<ArchiveFile>;
-    type IntoIter = LibArchiveIterator;
-
-    fn into_iter(self) -> Self::IntoIter {
-        LibArchiveIterator { archive: self }
-    }
-}
-
+/// Archive comic book container which filter only image pages
 #[derive(Debug)]
-struct LibArchiveIterator {
-    archive: LibArchiveWrapper,
+pub struct ArchiveComicContainer(Archive);
+
+impl ArchiveComicContainer {
+    /// Create new comic book container from provided [archive]
+    fn new(archive: Archive) -> Self {
+        ArchiveComicContainer(archive)
+    }
+
+    /// Open comic book from provided archive source
+    pub fn open(source: impl Into<ArchiveSource>) -> Result<Self> {
+        base_comic_archive_builder()
+            .read(source)
+            .map(Into::into)
+            .map_err(Into::into)
+    }
 }
 
-impl Iterator for LibArchiveIterator {
-    type Item = ArchiveResult<ArchiveFile>;
+impl From<Archive> for ArchiveComicContainer {
+    fn from(archive: Archive) -> Self {
+        Self::new(archive)
+    }
+}
+
+impl ComicContainerVariant for ArchiveComicContainer {
+    fn files(&mut self) -> FilesIter {
+        Box::new(
+            ArchiveComicIterator {
+                archive: self,
+                entry: None,
+            }
+            .map(|result| result.map_err(Into::into)),
+        )
+    }
+
+    fn file_at(&mut self, pos: usize) -> FindFileResult {
+        if let Some(entry) = self.0.by_position(pos).map_err(Error::from)? {
+            build_comic_container_file(&mut self.0, &entry)
+                .map(Some)
+                .map_err(Into::into)
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+/// Iterator over all comic book pages
+#[derive(Debug)]
+struct ArchiveComicIterator<'a> {
+    archive: &'a mut ArchiveComicContainer,
+    entry: Option<Entry>,
+}
+
+impl Iterator for ArchiveComicIterator<'_> {
+    type Item = Result<ComicContainerFile>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let file_pos = self.archive.current_pos() as usize;
+        let entry = if let Some(entry) = self.entry.as_mut() {
+            entry
+        } else {
+            match Entry::new(Some(&self.archive.0)) {
+                Ok(entry) => self.entry.get_or_insert(entry),
+                Err(e) => {
+                    error!("Can't init libarchive entry: '{}'", e);
+                    return None;
+                }
+            }
+        };
 
-        self.archive
-            .next_entry()
-            .transpose()?
-            .map(|entry| (entry.file_type(), entry.file_path().to_owned()))
-            .map_err(Into::into)
-            .and_then(|(file_type, file_path)| {
-                build_archive_file(&self.archive, file_pos, file_type, file_path)
-            })
-            .into()
+        loop {
+            match self.archive.0.next_entry_into(entry).transpose()? {
+                Ok(_) => match build_comic_container_file(&mut self.archive.0, entry) {
+                    Err(Error::NotAFile(_)) => {
+                        //silently ignore any non file entries
+                        continue;
+                    }
+                    result => {
+                        return Some(result);
+                    }
+                },
+                Err(ArchiveError::Sys(
+                    ArchiveSysErrorKind::ArchiveStatus(ArchiveStatus::Fatal),
+                    _,
+                )) => {
+                    // something really bad happened. It is better to return from the iterator
+                    return None;
+                }
+                Err(e) => {
+                    return Some(Err(e.into()));
+                }
+            };
+        }
     }
 }

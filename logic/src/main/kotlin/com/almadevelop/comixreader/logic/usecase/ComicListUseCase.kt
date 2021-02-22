@@ -16,7 +16,6 @@ import com.almadevelop.comixreader.logic.extension.getHardcodedTagId
 import com.almadevelop.comixreader.logic.extension.hasTag
 import com.almadevelop.comixreader.logic.mapper.ComicMetadataIntoComicListItem
 import kotlinx.coroutines.flow.*
-import org.tinylog.kotlin.Logger
 import com.almadevelop.comixreader.data.source.local.db.query.QueryParams as DataLayerQueryParams
 
 interface ComicListUseCase {
@@ -34,7 +33,11 @@ interface ComicListUseCase {
 
     suspend fun getPage(start: Int, count: Int, params: QueryParams): List<ComicListItem>
 
-    suspend fun subscribeUpdates(start: Int, count: Int, params: QueryParams): Flow<Unit>
+    /**
+     * Create [Flow] which will emit when comic books have been changed
+     * @param params comic book query params
+     */
+    fun subscribeUpdates(params: QueryParams): Flow<Unit>
 }
 
 private suspend fun QueryParamsResolver.FiltersEditor.defaultResolverEditor() {
@@ -90,12 +93,14 @@ internal class ComicListUseCaseImpl(
         }
     }
 
-    override suspend fun subscribeUpdates(start: Int, count: Int, params: QueryParams) =
-        comicBookSource.subscribeSimpleWithTags()
-            .drop(1)
-            .conflate()
-            .map { Unit }
-            .flowOn(dispatchers.io)
+    override fun subscribeUpdates(params: QueryParams) =
+        flow {
+            emitAll(comicBookSource.subscribeSimpleWithTags(params.resolve(0, 0))
+                .drop(1) //we do not want to receive first emit
+                .map { Unit }
+                .conflate()
+                .flowOn(dispatchers.io))
+        }
 
     private suspend fun QueryParams.resolve(start: Int, count: Int): DataLayerQueryParams =
         queryParamsResolver.resolve(

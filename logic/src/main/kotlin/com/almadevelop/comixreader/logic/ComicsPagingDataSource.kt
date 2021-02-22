@@ -18,17 +18,17 @@ import kotlinx.coroutines.runBlocking
 import kotlin.properties.Delegates
 
 abstract class ComicsPagingDataSourceFactory : DataSource.Factory<Int, ComicListItem>() {
-    private lateinit var currentDataSource: DataSource<Int, ComicListItem>
+    private var currentDataSource: DataSource<Int, ComicListItem>? = null
 
-    var queryParams: QueryParams? by Delegates.observable(null) { _, old: QueryParams?, new: QueryParams? ->
+    /**
+     * Current comic book query params
+     * Change it to invalidate last created [DataSource]
+     */
+    var queryParams by Delegates.observable<QueryParams?>(null) { _, old, new ->
         if (old != new) {
-            if (::currentDataSource.isInitialized) {
-                currentDataSource.invalidate()
-            }
+            currentDataSource?.invalidate()
         }
     }
-
-    var invalidateCallback: DataSource.InvalidatedCallback? = null
 
     override fun create(): DataSource<Int, ComicListItem> =
         createInner().also { currentDataSource = it }
@@ -43,21 +43,21 @@ internal class ComicsPagingDataSource(
     override val dispatchers: Dispatchers,
     private val useCase: ComicListUseCase,
     private val queryParams: QueryParams?,
-    private val additionalInvalidateCallback: InvalidatedCallback?,
     parentJob: Job?
 ) : PositionalDataSource<ComicListItem>(), CoroutineScope, Dispatched {
     override val coroutineContext = Job(parentJob) + dispatchers.main
 
     private var updatesJob: Job? = null
-    private var updateFrom = 0
-    private var updateTo = 0
 
     init {
+        coroutineContext[Job]!!.invokeOnCompletion { invalidate() }
+    }
+
+    override fun invalidate() {
+        super.invalidate()
+
         //cancel coroutine job if this data source marked as invalid
-        addInvalidatedCallback {
-            cancel()
-            additionalInvalidateCallback?.onInvalidated()
-        }
+        coroutineContext.cancel()
     }
 
     override fun loadInitial(
@@ -81,29 +81,21 @@ internal class ComicsPagingDataSource(
                 val result = loadRangeInternal(position, loadSize)
 
                 if (result.size == loadSize) {
-                    //calculate update values for subscription
-                    if (position < updateFrom) {
-                        updateFrom = position
-                    } else {
-                        updateTo += result.size
-                    }
-
                     callback.onResult(result, position, totalCount)
                 } else {
                     invalidate()
                 }
             }
 
-            //Subscribe to data update if paging data source is still valid
             if (!isInvalid) {
                 updatesJob?.cancel()
 
-                updatesJob =
-                    useCase.subscribeUpdates(updateFrom, updateTo, requireNotNull(queryParams))
-                        .takeWhile { !isInvalid }
-                        .take(1)
-                        .onEach { invalidate() }
-                        .launchIn(this@ComicsPagingDataSource)
+                //Subscribe to data update if paging data source is still valid
+                updatesJob = useCase.subscribeUpdates(requireNotNull(queryParams))
+                    .takeWhile { !isInvalid }
+                    .take(1)
+                    .onEach { invalidate() }
+                    .launchIn(this@ComicsPagingDataSource)
             }
         }
     }
@@ -115,9 +107,7 @@ internal class ComicsPagingDataSource(
     }
 
     private suspend fun loadRangeInternal(position: Int, loadSize: Int): List<ComicListItem> {
-        requireNotNull(queryParams)
-
-        return useCase.getPage(position, loadSize, queryParams)
+        return useCase.getPage(position, loadSize, requireNotNull(queryParams))
     }
 
     /**
@@ -133,6 +123,6 @@ internal class ComicsPagingDataSource(
         private val parentJob: Job? = null
     ) : ComicsPagingDataSourceFactory() {
         override fun createInner(): DataSource<Int, ComicListItem> =
-            ComicsPagingDataSource(dispatchers, useCase, queryParams, invalidateCallback, parentJob)
+            ComicsPagingDataSource(dispatchers, useCase, queryParams, parentJob)
     }
 }

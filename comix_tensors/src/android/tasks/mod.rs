@@ -1,141 +1,129 @@
-use std::error::Error;
-use std::panic::AssertUnwindSafe;
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 use std::sync::Arc;
 
-use futures::sync::oneshot::SpawnHandle;
-use jni::errors::Error as JniError;
 use jni::errors::Result as JniResult;
-use jni::objects::JObject;
+use jni::objects::{JObject, JThrowable};
 use jni::{Executor as JniExecutor, JNIEnv};
-use tokio::prelude::*;
 
-use crate::future_executor;
+use crate::comics::container::InitComicContainerError;
+use crate::task::{new_task, CancelledError, Task};
 
-use super::jni_app::prelude::*;
+use super::jni_app::*;
+
+pub use self::{comic_book_image::*, comic_book_metadata::*, ml::*};
+
+macro_rules! unwrap_task_result {
+    ($result:expr, $env:expr) => {
+        $result.err_into_jni_throwable(Throwable::NativeFatalError, &$env)?
+    };
+}
 
 mod comic_book_image;
 mod comic_book_metadata;
-mod error;
+mod ml;
 
-pub mod prelude {
-    pub use super::cancel_task;
-    pub use super::comic_book_image::{
-        get_comic_book_image as get_comic_book_image_task, ExtractImageType,
-    };
-    pub use super::comic_book_metadata::comic_book_metadata as comic_book_metadata_task;
-}
+type SpawnTaskResult<'a> = JniResult<JObject<'a>>;
 
-///name of Java field which will contain pointer to cancel sender
-const TASK_ID_JNI_FIELD: &str = "id";
-
-type InitTaskResult<'a> = Result<JObject<'a>, error::InitTaskError<dyn Error + Send>>;
-
-///Block the thread until provided Future from [f] function not finished
-/// Return result of the task
-fn execute_task<'a, Mapper, Fut, I>(
-    env: &'a JNIEnv,
-    task_callback: JObject<'a>,
-    future: Fut,
-    result_mapper: Mapper,
-) -> InitTaskResult<'a>
+/// Spawn new comic book task in the new thread
+fn spawn_task<'jni, N, F>(
+    name: N,
+    env: &'jni JNIEnv,
+    callback: JObject<'jni>,
+    f: F,
+) -> SpawnTaskResult<'jni>
 where
-    Mapper: FnOnce(&JNIEnv, I) -> JniResult<jni::sys::jobject> + Send + 'static,
-    Fut: Future<Item = I, Error = error::TaskError> + Send + 'static,
-    I: Send,
+    N: std::fmt::Display + Send + 'static,
+    F: for<'jni1> FnOnce(Task, &'jni1 JNIEnv) -> Result<JObject<'jni1>, TaskError<'jni1>>
+        + Send
+        + 'static,
 {
-    //create a Java Task object for this task
-    let task = app_objects::task::new(env)?;
+    debug!("Queue new task: '{}'", name);
 
-    let task_future = {
-        let task_callback = env.new_global_ref(task_callback)?;
+    let jni_executor = JniExecutor::new(Arc::new(env.get_java_vm()?));
 
-        let task = env.new_global_ref(task)?;
+    let callback = env.new_global_ref(callback)?;
 
-        let executor = JniExecutor::new(Arc::new(env.get_java_vm()?));
+    app_objects::task::new(
+        env,
+        new_task(move |task| {
+            let thread_id = std::thread::current().id();
 
-        AssertUnwindSafe(future).catch_unwind().then(move |result| {
-            executor.with_attached(move |env| {
-                let task_callback = task_callback;
+            debug!("Execute task: '{}'. Thread: {:?}", name, thread_id);
 
-                let result = {
-                    let task = task;
+            jni_executor
+                .with_attached(|env| {
+                    let callback = callback;
 
-                    //at any case should try to remove pointer from Java object
-                    extract_task_handler(&env, task.as_obj())
-                        .map(|_| ())
-                        .or_else(|e| {
-                            match e.0 {
-                                //ignore lock error. We will hope that another thread close it properly
-                                jni::errors::ErrorKind::TryLock => Ok(()),
-                                _ => Err(e),
-                            }
-                        })
-                        .map_err(|e| Box::new(e) as Box<_>)
-                        .and(result)
-                };
+                    match f(task, env) {
+                        Ok(result_object) => {
+                            debug!("Send task '{}' result. Thread: {:?}", name, thread_id);
+                            send_task_result(env, callback.as_obj(), result_object)
+                        }
+                        Err(TaskError::Throwable(result_error)) => {
+                            debug!("Send task '{}' error. Thread: {:?}", name, thread_id);
+                            send_task_error(env, callback.as_obj(), result_error)
+                        }
+                        Err(TaskError::Cancelled) => {
+                            debug!("Task '{}' cancelled. Thread: {:?}", name, thread_id);
+                            // do nothing cause task was cancelled
+                            Ok(())
+                        }
+                    }
+                })
+                .expect("Can't proceed task");
 
-                let result = match result {
-                    Ok(Ok(result)) => result_mapper(&env, result).and_then(|result| {
-                        callback::send_task_result(
-                            &env,
-                            task_callback.as_obj(),
-                            JObject::from(result),
-                        )
-                    }),
-                    Ok(Err(err)) => err.as_throwable(&env).and_then(|result| {
-                        callback::send_task_error(&env, task_callback.as_obj(), result)
-                    }),
-                    Err(fatal_error) => fatal_error.as_throwable(&env).and_then(|result| {
-                        callback::send_task_error(&env, task_callback.as_obj(), result)
-                    }),
-                };
-
-                result
-                    .as_ref()
-                    .map_err(|e| e.into_jni_error_wrapper())
-                    .jni_fatal_unwrap(env, || "Can't send task result");
-
-                result
-            })
-        })
-    };
-
-    //spawn a new task in the executor
-    let task_handle = futures::sync::oneshot::spawn(task_future, &future_executor()?);
-
-    //set pointer to a spawned handler in the Task
-    set_task_handler(env, task, task_handle)?;
-
-    Ok(task)
+            debug!("Task: '{}' finished. Thread: {:?}", name, thread_id);
+        }),
+    )
 }
 
-///Cancel provided task [task]
-pub fn cancel_task(env: &JNIEnv, task: JObject) -> JniResult<bool> {
-    info!("Cancel task");
-
-    extract_task_handler(env, task)
-        .and_then(|handler| {
-            drop(handler);
-            info!("Task cancelled");
-            Ok(true)
-        })
-        .or_else(|e| match e.0 {
-            //ignore lock error
-            jni::errors::ErrorKind::TryLock => Ok(false),
-            _ => Err(e),
-        })
+#[derive(Copy, Clone)]
+enum TaskError<'jni> {
+    /// task should return this throwable
+    Throwable(JThrowable<'jni>),
+    // task was cancelled
+    Cancelled,
 }
 
-///Set [task_obj] id using pointer to the [cancel_sender]
-fn set_task_handler(
-    env: &JNIEnv,
-    task_id: JObject,
-    task_handler: SpawnHandle<(), JniError>,
-) -> JniResult<()> {
-    env.set_rust_field(task_id, TASK_ID_JNI_FIELD, task_handler)
+impl<'jni> From<JThrowable<'jni>> for TaskError<'jni> {
+    fn from(throwable: JThrowable<'jni>) -> Self {
+        Self::Throwable(throwable)
+    }
 }
 
-///Extract [CancelSender] from task [task_obj]
-fn extract_task_handler(env: &JNIEnv, task_id: JObject) -> JniResult<SpawnHandle<(), JniError>> {
-    env.take_rust_field(task_id, TASK_ID_JNI_FIELD)
+impl<'jni> From<CancelledError> for TaskError<'jni> {
+    fn from(_: CancelledError) -> Self {
+        TaskError::Cancelled
+    }
+}
+
+impl Debug for TaskError<'_> {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let msg = match self {
+            Self::Throwable(_) => "Throwable",
+            Self::Cancelled => "Cancelled",
+        };
+
+        writeln!(f, "{}", msg)
+    }
+}
+
+/// Helper to convert comic book container init errors into JNI Throwable
+fn container_result_into_throwable<'jni, T>(
+    result: Result<T, InitComicContainerError>,
+    env: &'jni JNIEnv,
+) -> Result<T, JThrowable<'jni>> {
+    result.map_err(|err| {
+        let throwable_type = match err {
+            InitComicContainerError::Unsupported => {
+                Throwable::NativeException(NativeExceptionCode::ContainerOpenUnsupported)
+            }
+            InitComicContainerError::ContainerError(_) => {
+                Throwable::NativeException(NativeExceptionCode::ContainerRead)
+            }
+            _ => Throwable::NativeFatalError,
+        };
+
+        err.try_as_jni_throwable(throwable_type, env)
+    })
 }

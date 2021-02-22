@@ -11,6 +11,7 @@ import com.almadevelop.comixreader.data.source.local.db.converters.FindResultTyp
 import com.almadevelop.comixreader.data.source.local.db.converters.InstantLongConverter
 import com.almadevelop.comixreader.data.source.local.db.converters.UriStringConverter
 import com.almadevelop.comixreader.data.source.local.db.dao.*
+import com.almadevelop.comixreader.data.source.local.db.entity.ComicPageObjectText
 import com.almadevelop.comixreader.data.source.local.db.entity.TaggedComicBook
 import java.util.concurrent.Executor
 
@@ -25,14 +26,22 @@ private const val DB_NAME = "reader_data.db"
         ComicRackMetadata::class,
         ComicRackPageMetadata::class,
         ComicTag::class,
-        TaggedComicBook::class
+        TaggedComicBook::class,
+        ComicPageObject::class,
+        ComicPageObjectText::class,
     ]
 )
-@TypeConverters(value = [UriStringConverter::class, InstantLongConverter::class, FindResultTypeIntConverter::class])
+@TypeConverters(
+    value = [UriStringConverter::class,
+        InstantLongConverter::class,
+        FindResultTypeIntConverter::class]
+)
 internal abstract class ComicDatabase : RoomDatabase() {
     abstract fun comicBookSource(): ComicBookSource
 
     abstract fun comicBookPageSource(): ComicBookPageSource
+
+    abstract fun comicBookPageObjectSource(): ComicPageObjectSource
 
     abstract fun comicRackMetadataSource(): ComicRackMetadataSource
 

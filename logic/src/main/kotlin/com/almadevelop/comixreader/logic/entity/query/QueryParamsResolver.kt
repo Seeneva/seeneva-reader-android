@@ -1,13 +1,13 @@
 package com.almadevelop.comixreader.logic.entity.query
 
+import com.almadevelop.comixreader.data.source.local.db.dao.ComicTagSource
 import com.almadevelop.comixreader.data.source.local.db.query.TagFilterType
 import com.almadevelop.comixreader.data.source.local.db.query.TagsFilters
-import com.almadevelop.comixreader.data.source.local.db.dao.ComicTagSource
 import com.almadevelop.comixreader.logic.entity.TagType
 import com.almadevelop.comixreader.logic.entity.query.filter.TagTypeFilter
 import kotlinx.coroutines.ensureActive
 import kotlin.coroutines.coroutineContext
-import com.almadevelop.comixreader.data.source.local.db.query.CountQueryParams as DatyaLayerCountQueryParams
+import com.almadevelop.comixreader.data.source.local.db.query.CountQueryParams as DataLayerCountQueryParams
 import com.almadevelop.comixreader.data.source.local.db.query.QueryParams as DataLayerQueryParams
 
 /**
@@ -34,7 +34,7 @@ internal interface QueryParamsResolver {
     suspend fun resolveCount(
         queryParams: QueryParams,
         edit: suspend FiltersEditor.() -> Unit = {}
-    ): DatyaLayerCountQueryParams
+    ): DataLayerCountQueryParams
 
     interface FiltersEditor {
         fun addTagFilter(tagId: Long, filterType: TagFilterType)
@@ -69,7 +69,7 @@ internal class QueryParamsResolverImpl(
     override suspend fun resolveCount(
         queryParams: QueryParams,
         edit: suspend QueryParamsResolver.FiltersEditor.() -> Unit
-    ) = DatyaLayerCountQueryParams(queryParams.titleQuery, queryParams.tagsFilters(edit))
+    ) = DataLayerCountQueryParams(queryParams.titleQuery, queryParams.tagsFilters(edit))
 
     /**
      * Retrieve query tags filters
@@ -83,9 +83,9 @@ internal class QueryParamsResolverImpl(
                     it.addTagFilter(filter.tagType, filter.filterType)
                 }
             }
-        }.apply { edit() }
-            .filters
-            .takeIf { it.isNotEmpty() }
+
+            it.edit()
+        }.filters.takeIf { it.isNotEmpty() }
     }
 
     private class FiltersEditorImpl(
@@ -103,8 +103,8 @@ internal class QueryParamsResolverImpl(
         override suspend fun addTagFilter(tagType: TagType, filterType: TagFilterType) {
             tagSource.findByType(tagType.ordinal).let {
                 if (it == null && filterType == TagFilterType.Include) {
-                    //if we don't have such tag yet than ignore all comic books
-                    0L
+                    //if we don't have such tag yet than ignore all comic books by adding impossible tag id
+                    Long.MIN_VALUE
                 } else {
                     it?.id
                 }

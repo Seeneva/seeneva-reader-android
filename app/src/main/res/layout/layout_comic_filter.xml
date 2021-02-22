@@ -7,14 +7,10 @@
     tools:parentTag="androidx.appcompat.widget.LinearLayoutCompat">
 
     <TextView
+        style="@style/TextTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:minHeight="32dp"
-        android:gravity="center_vertical"
         android:paddingLeft="6dp"
-        android:textAppearance="?textAppearanceSubtitle2"
         tools:text="@tools:sample/lorem" />
 
     <RadioGroup

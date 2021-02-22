@@ -2,35 +2,39 @@ package com.almadevelop.comixreader.logic.usecase
 
 import com.almadevelop.comixreader.common.coroutines.Dispatched
 import com.almadevelop.comixreader.common.coroutines.Dispatchers
-import com.almadevelop.comixreader.common.coroutines.default
+import com.almadevelop.comixreader.common.coroutines.io
 import com.almadevelop.comixreader.data.NativeException
 import com.almadevelop.comixreader.data.entity.FindResult
+import com.almadevelop.comixreader.data.entity.ml.Interpreter
 import com.almadevelop.comixreader.data.source.jni.NativeSource
 import com.almadevelop.comixreader.data.source.local.db.LocalTransactionRunner
 import com.almadevelop.comixreader.data.source.local.db.dao.ComicBookSource
 import com.almadevelop.comixreader.data.source.local.db.dao.ComicTagSource
-import com.almadevelop.comixreader.data.source.local.db.entity.NewBookPath
 import com.almadevelop.comixreader.data.source.local.db.entity.SimpleComicBookWithTags
 import com.almadevelop.comixreader.logic.comic.AddComicBookMode
 import com.almadevelop.comixreader.logic.comic.LibraryFileManager
 import com.almadevelop.comixreader.logic.entity.*
 import com.almadevelop.comixreader.logic.extension.getHardcodedTagId
 import com.almadevelop.comixreader.logic.extension.hasHardcodedTag
+import com.almadevelop.comixreader.logic.storage.InterpreterObjectStorage
+import com.almadevelop.comixreader.logic.storage.withBorrow
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.tinylog.kotlin.Logger
-import java.util.*
-import kotlin.coroutines.coroutineContext
 
 /**
  * Use [com.almadevelop.comixreader.logic.comic.Library] tol call it
  */
 internal interface AddingUseCase {
-    suspend fun add(fileData: FullFileData, addMode: AddComicBookMode): ComicAddResult
+    suspend fun add(
+        fileData: FullFileData,
+        addMode: AddComicBookMode,
+    ): ComicAddResult
 }
 
 internal class AddingUseCaseImpl(
+    private val interpreterObjectStorage: InterpreterObjectStorage,
     private val fileManager: LibraryFileManager,
     private val nativeSource: NativeSource,
     private val comicBookSource: ComicBookSource,
@@ -38,7 +42,14 @@ internal class AddingUseCaseImpl(
     private val localTransactionRunner: LocalTransactionRunner,
     override val dispatchers: Dispatchers
 ) : AddingUseCase, Dispatched {
-    override suspend fun add(fileData: FullFileData, addMode: AddComicBookMode): ComicAddResult {
+    // can be received from app setting in the future
+    private val direction
+        get() = Direction.LTR
+
+    override suspend fun add(
+        fileData: FullFileData,
+        addMode: AddComicBookMode,
+    ): ComicAddResult {
         Logger.debug("Add comic into library by uri: '${fileData.path}'")
 
         /*
@@ -50,10 +61,14 @@ internal class AddingUseCaseImpl(
         4. RROFIT!!!!!!!!
         */
         return when (val findResult =
-            comicBookSource.findByPathOrContent(fileData.path, fileData.asFileHashData())) {
+            comicBookSource.findByContentOrPath(fileData.path, fileData.asFileHashData())) {
             null -> {
                 //just add a new comic book without replace
-                processAdding(fileData) { simpleAdding(fileData, addMode) }
+                processAdding(fileData) {
+                    interpreterObjectStorage.withBorrow {
+                        simpleAdding(fileData, addMode, it)
+                    }
+                }
             }
             else -> {
                 val (findType, savedComicBook) = findResult
@@ -76,7 +91,16 @@ internal class AddingUseCaseImpl(
                     }
                 } else {
                     //otherwise we should replace old comic book with a new one
-                    processAdding(fileData) { replace(savedComicBook, fileData, addMode) }
+                    processAdding(fileData) {
+                        interpreterObjectStorage.withBorrow {
+                            replace(
+                                savedComicBook,
+                                fileData,
+                                addMode,
+                                it
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -97,12 +121,8 @@ internal class AddingUseCaseImpl(
                         ComicAddResult.Type.ContainerReadError
                     NativeException.CODE_CONTAINER_OPEN_UNSUPPORTED ->
                         ComicAddResult.Type.ContainerUnsupportedError
-                    NativeException.CODE_CONTAINER_OPEN_MAGIC_IO ->
-                        ComicAddResult.Type.ContainerMagicIOError
                     NativeException.CODE_EMPTY_BOOK ->
                         ComicAddResult.Type.NoComicPagesError
-                    NativeException.CODE_IMAGE_OPEN ->
-                        ComicAddResult.Type.CantOpenPageImage
                     else -> throw it
                 }
             }
@@ -118,13 +138,22 @@ internal class AddingUseCaseImpl(
      * @throws NativeException
      * @throws com.almadevelop.comixreader.data.NativeFatalError
      */
-    private suspend fun simpleAdding(fileData: SimpleFileData, addMode: AddComicBookMode) {
-        default {
+    private suspend fun simpleAdding(
+        fileData: SimpleFileData,
+        addMode: AddComicBookMode,
+        interpreter: Interpreter
+    ) {
+        io {
             val comicBookPath = fileManager.add(fileData, addMode)
 
             try {
                 val comicsMetadata =
-                    nativeSource.getComicsMetadata(comicBookPath, fileData.nameWithoutExtension)
+                    nativeSource.getComicsMetadata(
+                        comicBookPath,
+                        fileData.nameWithoutExtension,
+                        direction.id,
+                        interpreter
+                    )
 
                 ensureActive()
 
@@ -146,15 +175,20 @@ internal class AddingUseCaseImpl(
     private suspend fun replace(
         toReplace: SimpleComicBookWithTags,
         fileData: SimpleFileData,
-        addMode: AddComicBookMode
+        addMode: AddComicBookMode,
+        interpreter: Interpreter
     ) {
-        default {
+        io {
             val comicBookPath = fileManager.replace(toReplace.filePath, fileData, addMode)
 
             try {
                 val comicsMetadata =
-                    nativeSource.getComicsMetadata(comicBookPath, fileData.nameWithoutExtension)
-                        .copy(id = toReplace.id)
+                    nativeSource.getComicsMetadata(
+                        comicBookPath,
+                        fileData.nameWithoutExtension,
+                        direction.id,
+                        interpreter
+                    ).copy(id = toReplace.id)
 
                 ensureActive()
 
@@ -177,7 +211,7 @@ internal class AddingUseCaseImpl(
         fileData: SimpleFileData,
         addMode: AddComicBookMode
     ) {
-        default {
+        io {
             val fixedPath = fileManager.replace(fix.filePath, fileData, addMode)
 
             try {
@@ -187,9 +221,9 @@ internal class AddingUseCaseImpl(
                 coroutineContext.ensureActive()
 
                 localTransactionRunner.run {
-                    comicBookSource.removeTags(fix.id, Collections.singleton(corruptedId))
+                    comicBookSource.removeTags(fix.id, setOf(corruptedId))
 
-                    comicBookSource.updatePath(NewBookPath(fix.id, fixedPath))
+                    comicBookSource.updatePath(fix.id, fixedPath)
                 }
             } catch (t: Throwable) {
                 //use noncancellable context to prevent cancel remove tmp files

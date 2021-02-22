@@ -9,13 +9,6 @@ import androidx.annotation.Keep
 @Keep
 class NativeFatalError(message: String) : Error(message)
 
-///**
-// * Throwed in case of data duplication in the local store
-// */
-//class EntityDuplicateException internal constructor(cause: UniqueViolationException) :
-//    RuntimeException(cause)
-
-
 @Keep
 @Suppress("unused")
 class NativeException(val code: Int, message: String? = null) : RuntimeException(message) {
@@ -32,32 +25,25 @@ class NativeException(val code: Int, message: String? = null) : RuntimeException
         val CODE_CONTAINER_OPEN_UNSUPPORTED = 1
 
         /**
-         * IO error during determine file format by it magic numbers
-         */
-        @JvmStatic
-        @Keep
-        val CODE_CONTAINER_OPEN_MAGIC_IO = 2
-
-        /**
          * Comic book archive doesn't contain any images
          */
         @JvmStatic
         @Keep
-        val CODE_EMPTY_BOOK = 3
+        val CODE_EMPTY_BOOK = 2
 
         /**
          * Can't open one or more image in the comic book archive
          */
         @JvmStatic
         @Keep
-        val CODE_IMAGE_OPEN = 4
+        val CODE_IMAGE_OPEN = 3
 
         /**
          * Can't find the file in the comic book container (e.g. comic page by it position)
          */
         @JvmStatic
         @Keep
-        val CODE_CONTAINER_CANT_FIND_FILE = 5
+        val CODE_CONTAINER_CANT_FIND_FILE = 4
     }
 }
 

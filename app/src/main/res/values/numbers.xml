@@ -3,5 +3,7 @@
     <integer name="comic_title_length">100</integer>
     <integer name="comic_thumb_grid_size">2</integer>
 
-    <item name="comic_list_thumb_width_percentage" format="float" type="dimen">0.25</item>
+    <item name="comic_viewer_preview_height_percentage" format="float" type="dimen">0.3</item>
+
+    <item name="viewer_hide_page_object_x_percentage" format="float" type="dimen">0.2</item>
 </resources>

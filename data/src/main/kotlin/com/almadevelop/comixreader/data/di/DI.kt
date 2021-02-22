@@ -26,5 +26,7 @@ object Modules {
 
         single { get<ComicDatabase>().comicBookSource() }
         single { get<ComicDatabase>().comicTagSource() }
+        single { get<ComicDatabase>().comicBookPageSource() }
+        single { get<ComicDatabase>().comicBookPageObjectSource() }
     }
 }

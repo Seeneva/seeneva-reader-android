@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy
 import com.almadevelop.comixreader.data.entity.ComicRackPageMetadata
 
 @Dao
-interface ComicRackPageMetadataSource {
+internal interface ComicRackPageMetadataSource {
     /**
      * Insert or replace metadata pages
      * @param pages comic book metadata pages

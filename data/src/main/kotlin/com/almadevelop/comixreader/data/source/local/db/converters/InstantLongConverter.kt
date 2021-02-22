@@ -1,7 +1,7 @@
 package com.almadevelop.comixreader.data.source.local.db.converters
 
 import androidx.room.TypeConverter
-import org.threeten.bp.Instant
+import java.time.Instant
 
 internal class InstantLongConverter {
     /**

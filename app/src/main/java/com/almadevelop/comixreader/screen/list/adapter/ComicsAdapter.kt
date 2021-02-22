@@ -6,85 +6,101 @@ import androidx.annotation.LayoutRes
 import androidx.paging.PagedList
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.selection.ItemDetailsLookup
+import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.almadevelop.comixreader.R
 import com.almadevelop.comixreader.extension.inflate
 import com.almadevelop.comixreader.logic.ComicListViewType
 import com.almadevelop.comixreader.logic.entity.ComicListItem
-import com.almadevelop.comixreader.screen.list.ListState
-import com.almadevelop.comixreader.widget.ComicThumbView
+import com.almadevelop.comixreader.logic.image.ImageLoader
+import com.almadevelop.comixreader.widget.ComicCoverView
+import com.almadevelop.comixreader.widget.ComicItemView
 import java.lang.ref.WeakReference
 
-typealias ComicListObserver = (previousList: List<ComicListItem>?, currentList: List<ComicListItem>?) -> Unit
+typealias ComicListObserver = (previousList: List<ComicListItem?>?, currentList: List<ComicListItem?>?) -> Unit
 
 class ComicsAdapter(
     private var comicViewType: ComicListViewType,
+    private val imageLoader: ImageLoader,
     private val callback: Callback
 ) : PagedListAdapter<ComicListItem, RecyclerView.ViewHolder>(ComicDiffUtilCallback()) {
     //observer of the diff utils [onCurrentListChanged]
     private val currentListObservers: MutableList<WeakReference<ComicListObserver>> = arrayListOf()
 
-    //it can be different viewTypes, but not for now :)
-    /**
-     * Begin offset from the real data. It can be progress bars and etc.
-     */
-    private var beginOffset = 0
-    /**
-     * End offset from the real data
-     */
-    private var endOffset = 0
-
     init {
+        //we need it to use [com.almadevelop.comixreader.screen.list.selection.ComicIdSelectionProvider]
+        //[RecyclerView.findViewHolderForItemId]
         setHasStableIds(true)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            R.layout.vh_comics_grid -> ComicsGridViewHolder(
-                parent,
-                callback
-            )
-            R.layout.vh_comic_list -> ComicsListViewHolder(
-                parent,
-                callback
-            )
-            R.layout.vh_comics_progress -> ProgressViewHolder(parent)
-            else -> throw IllegalArgumentException("Unknown view type: $viewType")
+            R.layout.vh_comic_grid, R.layout.vh_comic_list ->
+                ComicsViewHolder(parent, viewType, imageLoader, callback)
+            R.layout.vh_comic_grid_placeholder, R.layout.vh_comic_list_placeholder ->
+                Placeholder(parent, viewType)
+            else ->
+                throw IllegalArgumentException("Unknown view type: $viewType")
+        }
+    }
+
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+        payloads: List<Any>
+    ) {
+        val handled =
+            if (payloads.contains(SelectionTracker.SELECTION_CHANGED_MARKER) && holder is ComicsViewHolder) {
+                holder.onSelectionChanged(requireNotNull(getItem(position)).isSelected())
+
+                true
+            } else {
+                false
+            }
+
+        if (!handled) {
+            super.onBindViewHolder(holder, position, payloads)
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is ComicsViewHolder -> {
-                val item = requireNotNull(getItem(position - beginOffset))
+                val comicItem = getItem(position)!!
 
-                holder.bind(item, item.isSelected())
+                holder.bind(comicItem, comicItem.isSelected())
             }
         }
     }
 
-    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-        super.onViewRecycled(holder)
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        super.onViewAttachedToWindow(holder)
         if (holder is ComicsViewHolder) {
-            holder.unbind()
+            holder.onAttachChange(true)
         }
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return if (isLoaderPosition(position)) {
-            R.layout.vh_comics_progress
-        } else {
-            when (comicViewType) {
-                ComicListViewType.Grid -> R.layout.vh_comics_grid
-                ComicListViewType.List -> R.layout.vh_comic_list
+    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        if (holder is ComicsViewHolder) {
+            holder.onAttachChange(false)
+        }
+    }
+
+    override fun getItemViewType(position: Int) =
+        when (comicViewType) {
+            ComicListViewType.GRID -> if (getItem(position) == null) {
+                R.layout.vh_comic_grid_placeholder
+            } else {
+                R.layout.vh_comic_grid
+            }
+            ComicListViewType.LIST -> if (getItem(position) == null) {
+                R.layout.vh_comic_list_placeholder
+            } else {
+                R.layout.vh_comic_list
             }
         }
-    }
-
-    override fun getItemCount(): Int {
-        return super.getItemCount() + beginOffset + endOffset
-    }
 
     override fun onCurrentListChanged(
         previousList: PagedList<ComicListItem>?,
@@ -94,69 +110,11 @@ class ComicsAdapter(
         notifyListObservers(previousList, currentList)
     }
 
-    override fun getItemId(position: Int): Long {
-        return if (isLoaderPosition(position)) {
-            RecyclerView.NO_ID
-        } else {
-            getItem(position - beginOffset)?.id ?: RecyclerView.NO_ID
-        }
-    }
-
-    override fun submitList(pagedList: PagedList<ComicListItem>?) {
-        throw UnsupportedOperationException()
-    }
-
-    override fun submitList(pagedList: PagedList<ComicListItem>?, commitCallback: Runnable?) {
-        throw UnsupportedOperationException()
-    }
-
-    /**
-     * @return is comic book loader indicator located by position
-     */
-    fun isLoaderPosition(position: Int): Boolean {
-        return when (position) {
-            in (0 until beginOffset), in (itemCount - endOffset until itemCount) -> true
-            else -> false
-        }
-    }
-
-    fun submitList(pagedList: PagedList<ComicListItem>, listState: ListState) {
-        while (beginOffset > 0) {
-            beginOffset--
-            notifyItemRemoved(0)
-        }
-
-        while (endOffset > 0) {
-            endOffset--
-            notifyItemRemoved(itemCount)
-        }
-
-        super.submitList(pagedList) { updateListState(listState) }
-    }
-
-    fun updateListState(listState: ListState) {
-        if (!listState.frontReached) {
-            if (beginOffset == 0) {
-                notifyItemInserted(beginOffset++)
-            }
-        } else {
-            if (beginOffset > 0) {
-                notifyItemRemoved(--beginOffset)
-            }
-        }
-
-        if (!listState.endReached) {
-            if (endOffset == 0) {
-                endOffset++
-                notifyItemInserted(itemCount)
-            }
-        } else {
-            if (endOffset > 0) {
-                notifyItemRemoved(itemCount)
-                endOffset--
-            }
-        }
-    }
+    override fun getItemId(position: Int) =
+        //just set id for placeholders as negative position
+        getItem(position)?.id
+            ?: (-position.dec()
+                .toLong()).let { if (it == RecyclerView.NO_ID) Long.MIN_VALUE else it }
 
     /**
      * Add observers which would be notified after DiffUtil finished
@@ -214,51 +172,81 @@ class ComicsAdapter(
 
     private fun ComicListItem.isSelected() = callback.isItemSelected(this)
 
-    class ProgressViewHolder(parent: ViewGroup) :
-        RecyclerView.ViewHolder(parent.inflate(R.layout.vh_comics_progress))
-
-    abstract class ComicsViewHolder(
+    class Placeholder(
         parent: ViewGroup,
         @LayoutRes layout: Int,
+    ) : RecyclerView.ViewHolder(parent.inflate(layout)) {
+
+        private val coverView = itemView.findViewById<ComicCoverView>(R.id.cover)
+
+        private val context
+            get() = itemView.context
+
+        init {
+            coverView.setImageDrawable(ComicItemView.placeholderDrawable(context))
+        }
+    }
+
+    class ComicsViewHolder(
+        parent: ViewGroup,
+        @LayoutRes layout: Int,
+        imageLoader: ImageLoader,
         private val callback: Callback
     ) : RecyclerView.ViewHolder(parent.inflate(layout)) {
         private val selectionDetails: ItemDetailsLookup.ItemDetails<Long>
             get() = SelectionDetails(displayedComic.id, adapterPosition)
 
-        private val thumbnailView: ComicThumbView
-            get() = itemView as ComicThumbView
+        private val comicItemView: ComicItemView
+            get() = itemView as ComicItemView
 
         private lateinit var displayedComic: ComicListItem
 
         init {
-            thumbnailView.setOnActionsClickListener(object : ComicThumbView.OnActionsClickListener {
-                override fun onActionClick(action: ComicThumbView.Action) {
+            comicItemView.setOnActionsClickListener(object : ComicItemView.OnActionsClickListener {
+
+                override fun onActionClick(action: ComicItemView.Action) {
                     when (action) {
-                        ComicThumbView.Action.INFO -> callback.onItemInfoClick(displayedComic)
-                        ComicThumbView.Action.DELETE -> callback.onItemDeleteClick(displayedComic)
-                        ComicThumbView.Action.RENAME -> callback.onItemRenameClick(displayedComic)
-                        ComicThumbView.Action.MARK_READ -> callback.onMarkAsReadClick(displayedComic)
+                        ComicItemView.Action.INFO ->
+                            callback.onItemInfoClick(displayedComic)
+                        ComicItemView.Action.DELETE ->
+                            callback.onItemDeleteClick(displayedComic)
+                        ComicItemView.Action.RENAME ->
+                            callback.onItemRenameClick(displayedComic)
+                        ComicItemView.Action.MARK_READ ->
+                            callback.onMarkAsReadClick(displayedComic)
                     }
                 }
             })
+
+            comicItemView.setOnClickListener { callback.onComicBookClick(displayedComic) }
+
+            comicItemView.setImageLoader(imageLoader)
         }
 
         fun bind(comic: ComicListItem, selected: Boolean) {
             displayedComic = comic
 
-            thumbnailView.also {
-                it.isActivated = selected
+            comicItemView.isActivated = selected
+        }
 
-                it.showComicBook(displayedComic)
+        fun onAttachChange(attached: Boolean) {
+            comicItemView.apply {
+                //we need to cancel image loading on detach
+                //and show again comic book on attach
+                if (!attached) {
+                    onDetach()
+                } else {
+                    showComicBook(displayedComic)
+                }
             }
         }
 
-        fun unbind() {
-            thumbnailView.cancelImageLoading()
+        fun onSelectionChanged(selected: Boolean) {
+            comicItemView.isActivated = selected
         }
 
         fun getSelectionDetails(e: MotionEvent): ItemDetailsLookup.ItemDetails<Long>? {
-            return if (thumbnailView.iSelectionZone(e.rawX, e.rawY)) {
+            return if (comicItemView.iSelectionZone(e.rawX, e.rawY)) {
                 selectionDetails
             } else {
                 null
@@ -269,7 +257,7 @@ class ComicsAdapter(
             private val id: Long,
             private val position: Int
         ) : ItemDetailsLookup.ItemDetails<Long>() {
-            override fun getSelectionKey(): Long? {
+            override fun getSelectionKey(): Long {
                 return id
             }
 
@@ -278,12 +266,6 @@ class ComicsAdapter(
             }
         }
     }
-
-    class ComicsGridViewHolder(parent: ViewGroup, callback: Callback) :
-        ComicsViewHolder(parent, R.layout.vh_comics_grid, callback)
-
-    class ComicsListViewHolder(parent: ViewGroup, callback: Callback) :
-        ComicsViewHolder(parent, R.layout.vh_comic_list, callback)
 
     interface Callback {
         fun onItemDeleteClick(comic: ComicListItem)
@@ -295,6 +277,11 @@ class ComicsAdapter(
         fun onMarkAsReadClick(comic: ComicListItem)
 
         fun isItemSelected(comic: ComicListItem): Boolean
+
+        /**
+         * User click on comic book item
+         */
+        fun onComicBookClick(comic: ComicListItem)
     }
 
     private class ComicDiffUtilCallback : DiffUtil.ItemCallback<ComicListItem>() {

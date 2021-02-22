@@ -1,9 +1,14 @@
 package com.almadevelop.comixreader.data.source.jni
 
+import android.content.res.AssetManager
+import android.graphics.Bitmap
 import androidx.annotation.AnyThread
+import androidx.annotation.FloatRange
 import com.almadevelop.comixreader.common.entity.FileHashData
 import com.almadevelop.comixreader.data.entity.ComicBook
-import com.almadevelop.comixreader.data.entity.ComicImage
+import com.almadevelop.comixreader.data.entity.ComicPageImageData
+import com.almadevelop.comixreader.data.entity.ml.Interpreter
+import com.almadevelop.comixreader.data.entity.ml.Tesseract
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -15,6 +20,44 @@ internal object Native {
     }
 
     /**
+     * Native call to init ML Interpreter from Android assets by [modelAssetName]
+     *
+     * Will be executed on background thread
+     *
+     * @param assetManager Android asset manager
+     * @param modelAssetName ML model asset name
+     * @param callback result callback
+     * @return return task which can be used for [Task.cancel]
+     */
+    @AnyThread
+    @JvmStatic
+    external fun initInterpreterFromAsset(
+        assetManager: AssetManager,
+        modelAssetName: String,
+        callback: Callback<Interpreter>
+    ): Task
+
+    /**
+     * Native call to init Tesseract from Android assets by [tessDataName]
+     *
+     * Will be executed on background thread
+     *
+     * @param assetManager Android asset manager
+     * @param tessDataName Tesseract data asset name
+     * @param tessDataLang Tesseract data language
+     * @param callback result callback
+     * @return return task which can be used for [Task.cancel]
+     */
+    @AnyThread
+    @JvmStatic
+    external fun initTesseractFromAsset(
+        assetManager: AssetManager,
+        tessDataName: String,
+        tessDataLang: String,
+        callback: Callback<Tesseract>
+    ): Task
+
+    /**
      * Native call to open comic book by provided file descriptor
      *
      * Run on background thread
@@ -22,6 +65,8 @@ internal object Native {
      * @param fd file descriptor of comic book file
      * @param filePath path to the file
      * @param displayName comic book display name
+     * @param direction comic book read direction
+     * @param interpreter ML interpreter
      * @param callback result callback
      * @return return task which can be used for [Task.cancel]
      */
@@ -31,6 +76,8 @@ internal object Native {
         fd: Int,
         filePath: String,
         displayName: String,
+        direction: Int,
+        interpreter: Interpreter,
         callback: Callback<ComicBook>
     ): Task
 
@@ -44,36 +91,61 @@ internal object Native {
     external fun getComicFileData(fd: Int): FileHashData
 
     /**
-     * Native call to get image by it [imagePosition]
+     * Native call to get comic book page image data by it [position]
      *
      * @param fd file descriptor of comic book file
-     * @param imagePosition position of image in the comic book container
+     * @param position position of image in the comic book container
      * @param callback result callback
      * @return return task which can be used for [Task.cancel]
      */
     @AnyThread
     @JvmStatic
-    external fun getImage(fd: Int, imagePosition: Long, callback: Callback<ComicImage>): Task
+    external fun getPageImageData(
+        fd: Int,
+        position: Long,
+        callback: Callback<ComicPageImageData>
+    ): Task
 
     /**
-     * Native call to get image by it [imagePosition] and downscale it to the desired size.
-     * This function doesn't change aspect ration of the image. So result image's size can be slightly different
+     * Decode image received using [getPageImageData].
      *
-     * @param fd file descriptor of comic book file
-     * @param imagePosition position of image in the comic book container
-     * @param width desired image width
-     * @param height desired image height
+     * @param pageImageData source image which will be decoded
+     * @param bitmap target [Bitmap]
+     * * Source image will be resized to the dimensions of the bitmap
+     * * Supported color spaces: [Bitmap.Config.ARGB_8888] and [Bitmap.Config.RGB_565]
+     * @param crop
+     * * pass null to disable cropping
+     * * pass 4 values to crop image [x, y, width, height]
+     * @param resizeFast pass true to enable fast resizing. But output image can be less accurate
      * @param callback result callback
      * @return return task which can be used for [Task.cancel]
      */
     @AnyThread
     @JvmStatic
-    external fun getImageThumbnail(
-        fd: Int,
-        imagePosition: Long,
-        width: Int,
-        height: Int,
-        callback: Callback<ComicImage>
+    external fun decodePage(
+        pageImageData: ComicPageImageData,
+        bitmap: Bitmap,
+        crop: IntArray?,
+        resizeFast: Boolean,
+        callback: Callback<Unit>
+    ): Task
+
+    /**
+     * Recognise text on provided [Bitmap]. Will return empty [String] in case if no text was found
+     *
+     * @param tesseract tesseract instance
+     * @param bitmap source bitmap where text should be recognised
+     * @param wordMinConf minimal confidence for each recognised word
+     * @param callback result callback
+     * @return return task which can be used for [Task.cancel]
+     */
+    @AnyThread
+    @JvmStatic
+    external fun recogniseText(
+        tesseract: Tesseract,
+        bitmap: Bitmap,
+        @FloatRange(from = 0.0, to = 1.0) wordMinConf: Float,
+        callback: Callback<String>
     ): Task
 
     /**
@@ -107,10 +179,27 @@ internal object Native {
          * Set from JNI. Pointer to the native object that used to [cancel]
          */
         @Suppress("unused")
-        @Volatile
-        private var id: Long = EMPTY_PTR
+        private var id: Long = NULL_PTR
 
         private val cancelled = AtomicBoolean(false)
+
+        /**
+         * Call to cancel this task
+         *
+         * @return is task was cancelled. false may indicate empty task or if cancellation is already in progress
+         * @throws com.almadevelop.comixreader.data.NativeFatalError in case of any native error
+         */
+        @AnyThread
+        fun cancel(): Boolean {
+            return if (cancelled.compareAndSet(false, true)) {
+                cancelNative()
+            } else {
+                false
+            }
+        }
+
+        @AnyThread
+        private external fun cancelNative(): Boolean
 
         override fun toString() = "Task(id=$id, cancelled=${cancelled.get()})"
 
@@ -129,26 +218,8 @@ internal object Native {
             return id.hashCode()
         }
 
-        /**
-         * Call to cancel this task
-         *
-         * @return is task was cancelled. false may indicate empty task or if cancellation is already in progress
-         * @throws com.almadevelop.comixreader.data.NativeFatalError in case of any native error
-         */
-        @AnyThread
-        fun cancel(): Boolean {
-            return if (!cancelled.getAndSet(true) && id != EMPTY_PTR) {
-                cancelNative()
-            } else {
-                false
-            }
-        }
-
-        @AnyThread
-        external fun cancelNative(): Boolean
-
         private companion object {
-            private const val EMPTY_PTR = 0L
+            private const val NULL_PTR = 0L
         }
     }
 }

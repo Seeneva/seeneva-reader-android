@@ -46,6 +46,8 @@ data class FullComicBookWithTags(val comicBook: ComicBook, val tags: List<ComicT
  */
 internal fun FullComicBookWithTagsInner?.intoPublic(): FullComicBookWithTags? =
     this?.let {
-        val comicBook = comicBook.copy(metadata = metadataWithPages.intoPublic(), pages = pages)
+        val comicBook = comicBook.copy(
+            metadata = metadataWithPages.intoPublic(),
+            pages = pages)
         FullComicBookWithTags(comicBook, tags)
     }

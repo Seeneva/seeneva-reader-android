@@ -1,9 +1,9 @@
 import com.android.build.gradle.BaseExtension
-import extension.Extension
-import extension.RustBuildConfig
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    kotlin("jvm") version Version.KOTLIN
+    kotlin("plugin.serialization") version Version.KOTLIN
     kotlin("android") version Version.KOTLIN apply false
 }
 
@@ -14,10 +14,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:3.6.0")
+        classpath("com.android.tools.build:gradle:4.1.2")
         //classpath(kotlin("gradle-plugin", Version.KOTLIN))
-        //classpath("com.google.gms:google-services:4.2.0")
-        //classpath("io.objectbox:objectbox-gradle-plugin:${Version.OBJECT_BOX}")
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -39,15 +37,16 @@ subprojects {
             plugin("com.android.library")
         }
         plugin("org.jetbrains.kotlin.android")
-        plugin("org.jetbrains.kotlin.android.extensions")
     }
 
     configure<BaseExtension> {
-        compileSdkVersion(29)
+        //TODO update when fixed https://github.com/android/ndk/issues/1391 or build my own libz?
+        ndkVersion = "21.3.6528147"
+        compileSdkVersion(30)
 
         defaultConfig {
             minSdkVersion(16)
-            targetSdkVersion(29)
+            targetSdkVersion(30)
 
             versionCode = 1
             versionName = "1.0"
@@ -57,6 +56,8 @@ subprojects {
         }
 
         compileOptions {
+            isCoreLibraryDesugaringEnabled = true
+
             sourceCompatibility = JavaVersion.VERSION_1_8
             targetCompatibility = JavaVersion.VERSION_1_8
         }
@@ -65,24 +66,10 @@ subprojects {
             java.srcDir("src/$name/kotlin")
         }
 
-        flavorDimensions(FlavorDimension.RUST_BUILD_TYPE)
-
-        productFlavors {
-            register("rustDebug") {
-                require(this is ExtensionAware)
-
-                setDimension(FlavorDimension.RUST_BUILD_TYPE)
-
-                extra[Extension.RUST_BUILD_EXTENSION] = RustBuildConfig.Debug
-            }
-
-            register("rustRelease") {
-                require(this is ExtensionAware)
-
-                setDimension(FlavorDimension.RUST_BUILD_TYPE)
-
-                extra[Extension.RUST_BUILD_EXTENSION] = RustBuildConfig.Release
-            }
+        packagingOptions {
+            pickFirst("META-INF/atomicfu.kotlin_module")
+            pickFirst("META-INF/AL2.0")
+            pickFirst("META-INF/LGPL2.1")
         }
     }
 
@@ -97,33 +84,37 @@ subprojects {
     }
 
     dependencies {
-        "implementation"(kotlin("stdlib-jdk8", Version.KOTLIN))
-        "implementation"(Deps.KOTLINX_COROUTINES_ANDROID)
+        // some Java 8 features
+        // https://developer.android.com/studio/write/java8-support-table
+        "coreLibraryDesugaring"(Deps.ANDROID_JAVA8_DESUGAR)
 
-        "implementation"(Deps.ANDROIDX_ANNOTATIONS)
-        "implementation"(Deps.ANDROIDX_CORE_KTX)
+        implementation(Deps.KOTLINX_COROUTINES_ANDROID)
 
-        "implementation"(Deps.KOIN_ANDROID)
-        "implementation"(Deps.KOIN_ANDROIDX_SCOPE)
+        implementation(Deps.ANDROIDX_ANNOTATIONS)
+        implementation(Deps.ANDROIDX_CORE_KTX)
 
-        "implementation"(Deps.TINYLOG_API)
-        "implementation"(Deps.TINYLOG_IMPL)
+        //implementation(Deps.KOIN_ANDROID)
+        implementation(Deps.KOIN_ANDROIDX_SCOPE) {
+            exclude("androidx.viewpager")
+        }
 
-        "implementation"(Deps.THREETENABP)
+        implementation(Deps.TINYLOG_API)
+        implementation(Deps.TINYLOG_IMPL)
 
         if (name != "common") {
-            "implementation"(project(":common"))
+            implementation(project(":common"))
         }
 
-        "testImplementation"(Deps.KOTLINX_COROUTINES_TEST)
-        "testImplementation"(kotlin("test-junit", Version.KOTLIN))
-        "testImplementation"(Deps.ANDROIDX_TEST_JUNIT_KTX)
+        testImplementation(Deps.KOTLINX_COROUTINES_TEST)
+        testImplementation(Deps.KOTLINX_COROUTINES_CORE)
+        testImplementation(kotlin("test-junit", Version.KOTLIN))
+        testImplementation(Deps.ANDROIDX_TEST_JUNIT_KTX)
 
-        "testImplementation"(Deps.MOCKK)
-        "testImplementation"(Deps.KLUENT) {
+        testImplementation(Deps.MOCKK)
+        testImplementation(Deps.KLUENT) {
             exclude("com.nhaarman.mockitokotlin2")
         }
-        "testImplementation"(Deps.KOIN_TEST) {
+        testImplementation(Deps.KOIN_TEST) {
             exclude("org.mockito")
         }
 
@@ -131,22 +122,15 @@ subprojects {
         "androidTestImplementation"(Deps.KLUENT) {
             exclude("com.nhaarman.mockitokotlin2")
         }
-//        "androidTestImplementation"(Deps.KOIN_TEST) {
-//            exclude("org.mockito")
-//        }
 
-        "androidTestImplementation"("androidx.test:runner:1.2.0")
+        "androidTestImplementation"("androidx.test:runner:1.3.0")
         "androidTestImplementation"(Deps.ANDROIDX_TEST_JUNIT_KTX)
-        "androidTestImplementation"("androidx.test.espresso:espresso-core:3.2.0")
+        "androidTestImplementation"("androidx.test.espresso:espresso-core:3.3.0")
 
         "androidTestImplementation"(Deps.KOTLINX_COROUTINES_TEST)
         "androidTestImplementation"(kotlin("test-junit", Version.KOTLIN))
-        "androidTestImplementation"("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0")
+        "androidTestImplementation"(Deps.KOTLINX_SERIALIZATION_JSON)
     }
-}
-
-tasks.create("clean", Delete::class.java) {
-    delete(rootProject.buildDir)
 }
 
 val Project.isAppLayer: Boolean

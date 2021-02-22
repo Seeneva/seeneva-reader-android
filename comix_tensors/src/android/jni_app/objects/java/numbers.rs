@@ -1,24 +1,20 @@
 use jni::errors::Result as JniResult;
-use jni::objects::{JClass, JObject, JValue};
+use jni::objects::{JObject, JValue};
 use jni::JNIEnv;
 use num_traits::Num;
-use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 
-use super::{constants::*, try_cache_class_descr, CacheClassDescr};
+use super::{constants, new_nullable_obj, Constructor, JniClassConstructorCache};
 
-///Base function to create new Java number instance
-fn new_number<'a, F, N>(env: &'a JNIEnv, class_init: F, number: Option<N>) -> JniResult<JObject<'a>>
+///Base function to create new Java number instances
+fn new_number<'jni, N>(
+    constructor: &Constructor<'_, 'jni>,
+    number: Option<N>,
+) -> JniResult<JObject<'jni>>
 where
-    F: FnOnce(&JNIEnv) -> &'static CacheClassDescr,
-    N: Into<JValue<'a>> + Num,
+    N: Into<JValue<'jni>> + Num,
 {
-    match number {
-        Some(number) => {
-            let CacheClassDescr(class, constructor) = class_init(env);
-            env.new_object_unchecked(JClass::from(class.as_obj()), *constructor, &[number.into()])
-        }
-        None => Ok(JObject::null()),
-    }
+    new_nullable_obj(constructor, number)
 }
 
 pub mod integer {
@@ -26,17 +22,14 @@ pub mod integer {
 
     use super::*;
 
-    static CLASS_DESCR: OnceCell<CacheClassDescr> = OnceCell::new();
+    static CONSTRUCTOR: Lazy<JniClassConstructorCache<&str, &str>> =
+        Lazy::new(|| (constants::JAVA_INTEGER_TYPE, "(I)V").into());
 
     pub type Integer<'a> = JObject<'a>;
 
-    fn class_init(env: &JNIEnv) -> &'static CacheClassDescr {
-        return CLASS_DESCR.get_or_init(|| try_cache_class_descr(env, JAVA_INTEGER_TYPE, "(I)V"));
-    }
-
     ///Construct new Java Integer object
     pub fn new<'a>(env: &'a JNIEnv, int: Option<jint>) -> JniResult<Integer<'a>> {
-        return new_number(env, class_init, int);
+        new_number(&CONSTRUCTOR.init(env)?, int)
     }
 }
 
@@ -45,16 +38,13 @@ pub mod long {
 
     use super::*;
 
-    static CLASS_DESCR: OnceCell<CacheClassDescr> = OnceCell::new();
+    static CONSTRUCTOR: Lazy<JniClassConstructorCache<&str, &str>> =
+        Lazy::new(|| (constants::JAVA_LONG_TYPE, "(J)V").into());
 
     pub type Long<'a> = JObject<'a>;
 
-    fn class_init(env: &JNIEnv) -> &'static CacheClassDescr {
-        return CLASS_DESCR.get_or_init(|| try_cache_class_descr(env, JAVA_LONG_TYPE, "(J)V"));
-    }
-
     ///Construct new Java Long object
     pub fn new<'a>(env: &'a JNIEnv, long: Option<jlong>) -> JniResult<Long<'a>> {
-        return new_number(env, class_init, long);
+        new_number(&CONSTRUCTOR.init(env)?, long)
     }
 }

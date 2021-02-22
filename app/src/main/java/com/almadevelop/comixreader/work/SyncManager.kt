@@ -1,6 +1,8 @@
 package com.almadevelop.comixreader.work
 
-import androidx.work.*
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.almadevelop.comixreader.work.worker.SyncWorker
 import java.util.concurrent.TimeUnit
 

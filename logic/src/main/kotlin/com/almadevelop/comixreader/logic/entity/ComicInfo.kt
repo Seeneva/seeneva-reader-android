@@ -1,8 +1,11 @@
 package com.almadevelop.comixreader.logic.entity
 
 import android.net.Uri
-import org.threeten.bp.temporal.TemporalAccessor
+import java.time.temporal.TemporalAccessor
 
+/**
+ * Full comic book metadata
+ */
 data class ComicInfo(
     val id: Long,
     val displayName: CharSequence,

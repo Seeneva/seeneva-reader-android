@@ -2,14 +2,18 @@ package com.almadevelop.comixreader.screen.list
 
 import android.content.Intent
 import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
 import android.view.*
 import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.*
+import androidx.fragment.app.Fragment
 import androidx.paging.PagedList
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
@@ -17,9 +21,15 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.almadevelop.comixreader.R
-import com.almadevelop.comixreader.di.getOrCreateGlideScope
+import com.almadevelop.comixreader.binding.getValue
+import com.almadevelop.comixreader.binding.viewBinding
+import com.almadevelop.comixreader.databinding.FragmentComicListBinding
+import com.almadevelop.comixreader.di.autoInit
+import com.almadevelop.comixreader.di.getValue
+import com.almadevelop.comixreader.di.koinLifecycleScope
 import com.almadevelop.comixreader.extension.humanDescriptionShort
 import com.almadevelop.comixreader.extension.inflate
+import com.almadevelop.comixreader.extension.observe
 import com.almadevelop.comixreader.extension.success
 import com.almadevelop.comixreader.logic.ComicListViewType
 import com.almadevelop.comixreader.logic.comic.AddComicBookMode
@@ -29,16 +39,15 @@ import com.almadevelop.comixreader.logic.entity.ComicListItem
 import com.almadevelop.comixreader.logic.entity.query.QuerySort
 import com.almadevelop.comixreader.logic.entity.query.filter.Filter
 import com.almadevelop.comixreader.logic.entity.query.filter.FilterGroup
-import com.almadevelop.comixreader.presenter.BasePresenterFragment
 import com.almadevelop.comixreader.presenter.PresenterStatefulView
 import com.almadevelop.comixreader.screen.MainContent
 import com.almadevelop.comixreader.screen.list.adapter.ComicsAdapter
 import com.almadevelop.comixreader.screen.list.adapter.FiltersAdapter
 import com.almadevelop.comixreader.screen.list.dialog.AddModeSelectorDialog
 import com.almadevelop.comixreader.screen.list.dialog.ComicRenameDialog
-import com.almadevelop.comixreader.screen.list.dialog.ComicsSortDialog
 import com.almadevelop.comixreader.screen.list.dialog.filters.EditFiltersDialog
 import com.almadevelop.comixreader.screen.list.dialog.info.ComicInfoFragment
+import com.almadevelop.comixreader.screen.list.dialog.radiobuttons.ComicsSortDialog
 import com.almadevelop.comixreader.screen.list.entity.FilterLabel
 import com.almadevelop.comixreader.screen.list.selection.ComicDetailsLookup
 import com.almadevelop.comixreader.screen.list.selection.ComicIdSelectionProvider
@@ -46,28 +55,18 @@ import com.almadevelop.comixreader.screen.list.selection.ComicSelectionActionMod
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.fragment_comic_list.*
-import org.koin.androidx.scope.currentScope
+import org.koin.core.scope.KoinScopeComponent
+import org.koin.core.scope.Scope
+import org.koin.core.scope.get
+import org.koin.core.scope.inject
 import java.util.*
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 interface ComicsListView : PresenterStatefulView {
-    /**
-     * Show comic book selector
-     * @param intent describes selector
-     * @param requestCode request code used with startActivityForResult
-     */
-    fun showComicBookSelector(intent: Intent, requestCode: Int)
-
     fun showFilters(filters: List<FilterLabel>)
 
-    /**
-     * Show all available add modes
-     */
-    fun showAddModeSelector()
-
-    fun setComicsPagedList(list: PagedList<ComicListItem>, listState: ListState)
+    fun setComicsPagedList(list: PagedList<ComicListItem?>)
 
     /**
      * Set and show a new screen state
@@ -75,11 +74,9 @@ interface ComicsListView : PresenterStatefulView {
      */
     fun showScreenState(newScreenState: ScreenState)
 
-    fun updateComicsListState(listState: ListState)
-
     fun onComicsMarkedRemoved(ids: Set<Long>)
 
-    fun onComicOpened(result: ComicAddResult)
+    fun onComicAdded(result: ComicAddResult)
 
     /**
      * Show sort selector
@@ -90,8 +87,6 @@ interface ComicsListView : PresenterStatefulView {
     fun showFiltersEditor(selectedFilters: Map<FilterGroup.ID, Filter>)
 
     fun setComicListType(listViewType: ComicListViewType)
-
-    fun showNoFileManagerError()
 
     /**
      * Sync state changed
@@ -108,18 +103,21 @@ interface ComicsListView : PresenterStatefulView {
          * Comic books list showed
          */
         STATE_DEFAULT,
+
         /**
          * Nothing has been found with such filters
          */
         STATE_NOTHING_FOUND,
+
         /**
          * No comics at all
          */
         STATE_EMPTY(false),
+
         /**
-         * Comic list first time inited
+         * Comic list loading
          */
-        STATE_INIT(false)
+        STATE_LOADING(false)
     }
 
     /**
@@ -130,10 +128,12 @@ interface ComicsListView : PresenterStatefulView {
          * Sync available and idle
          */
         IDLE,
+
         /**
          * Sync not available and idle
          */
         DISABLED,
+
         /**
          * Sync available and in progress
          */
@@ -141,18 +141,25 @@ interface ComicsListView : PresenterStatefulView {
     }
 }
 
-
-class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
+class ComicsListFragment : Fragment(R.layout.fragment_comic_list),
     MainContent,
     ComicsListView,
     ComicsSortDialog.Callback,
     ComicRenameDialog.Callback,
     EditFiltersDialog.Callback,
-    AddModeSelectorDialog.Callback {
+    AddModeSelectorDialog.Callback,
+    KoinScopeComponent {
+    private val viewBinding by viewBinding(FragmentComicListBinding::bind)
+
+    private val lifecycleScope = koinLifecycleScope()
+
+    override val scope: Scope by lifecycleScope
 
     private var activityActionBarContent: SearchView? = null
 
-    override val presenter: ComicsListPresenter = currentScope.get()
+    private val presenter by lifecycleScope.autoInit<ComicsListPresenter>()
+
+    private val router by inject<ComicListRouter>()
 
     private val gridSpanCount by lazy { resources.getInteger(R.integer.comic_thumb_grid_size) }
 
@@ -166,14 +173,11 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
         presenter.onListTypeChanged(newType)
 
         when (newType) {
-            ComicListViewType.Grid -> {
+            ComicListViewType.GRID -> {
                 listLayoutManager.spanCount = gridSpanCount
-                listLayoutManager.spanSizeLookup =
-                    ComicsGridSpanSizeLookup(listAdapter, gridSpanCount)
             }
-            ComicListViewType.List -> {
+            ComicListViewType.LIST -> {
                 listLayoutManager.spanCount = 1
-                listLayoutManager.spanSizeLookup = GridLayoutManager.DefaultSpanSizeLookup()
             }
         }
 
@@ -182,11 +186,7 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
         requireActivity().invalidateOptionsMenu()
     }
 
-    private val listLayoutManager by lazy {
-        GridLayoutManager(requireContext(), gridSpanCount).also {
-            it.spanSizeLookup = ComicsGridSpanSizeLookup(listAdapter, gridSpanCount)
-        }
-    }
+    private val listLayoutManager by lazy { GridLayoutManager(requireContext(), gridSpanCount) }
 
     private lateinit var listSelectionTracker: SelectionTracker<Long>
 
@@ -196,32 +196,42 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
         }
     })
 
-    private val listAdapter = ComicsAdapter(
-        currentListType,
-        object : ComicsAdapter.Callback {
-            override fun onItemDeleteClick(comic: ComicListItem) {
-                presenter.deleteComicBook(Collections.singleton(comic.id))
-            }
-
-            override fun onItemRenameClick(comic: ComicListItem) {
-                showRenameComicBookWindow(comic)
-            }
-
-            override fun onItemInfoClick(comic: ComicListItem) {
-                if (childFragmentManager.findFragmentByTag(TAG_INFO) == null) {
-                    ComicInfoFragment.newInstance(comic.id, comic.title.toString())
-                        .show(childFragmentManager, TAG_INFO)
+    private val listAdapter by lazy {
+        ComicsAdapter(
+            currentListType,
+            get(),
+            object : ComicsAdapter.Callback {
+                override fun onItemDeleteClick(comic: ComicListItem) {
+                    presenter.deleteComicBook(setOf(comic.id))
                 }
-            }
 
-            override fun onMarkAsReadClick(comic: ComicListItem) {
-                presenter.toggleComicCompletedMark(comic.id)
-            }
+                override fun onItemRenameClick(comic: ComicListItem) {
+                    showRenameComicBook(comic)
+                }
 
-            override fun isItemSelected(comic: ComicListItem): Boolean {
-                return listSelectionTracker.isSelected(comic.id)
-            }
-        })
+                override fun onItemInfoClick(comic: ComicListItem) {
+                    if (childFragmentManager.findFragmentByTag(TAG_INFO) == null) {
+                        ComicInfoFragment.newInstance(comic.id, comic.title.toString())
+                            .show(childFragmentManager, TAG_INFO)
+                    }
+                }
+
+                override fun onMarkAsReadClick(comic: ComicListItem) {
+                    presenter.toggleComicCompletedMark(comic.id)
+                }
+
+                override fun isItemSelected(comic: ComicListItem): Boolean {
+                    return listSelectionTracker.isSelected(comic.id)
+                }
+
+                override fun onComicBookClick(comic: ComicListItem) {
+                    //open comic book viewer only if where is no selection
+                    if (!listSelectionTracker.hasSelection()) {
+                        router.showComicBookViewer(comic.id)
+                    }
+                }
+            })
+    }
 
 
     /**
@@ -235,7 +245,8 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
             if (isRootParentScrollingView(requireNotNull(view)) != null) {
                 //if list is empty than fling list to show toolbar
                 if (oldState == ComicsListView.ScreenState.STATE_DEFAULT) {
-                    recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                    viewBinding.recyclerView.addOnScrollListener(object :
+                        RecyclerView.OnScrollListener() {
                         override fun onScrollStateChanged(
                             recyclerView: RecyclerView,
                             newState: Int
@@ -251,9 +262,9 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
                     })
 
                     //fling to restore appbarLayout visibility
-                    recyclerView.fling(0, -recyclerView.maxFlingVelocity)
+                    viewBinding.recyclerView.fling(0, -viewBinding.recyclerView.maxFlingVelocity)
                 } else {
-                    recyclerView.suppressLayout(false)
+                    viewBinding.recyclerView.suppressLayout(false)
 
                     showCurrentState()
                 }
@@ -281,14 +292,14 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
      * Current sync state
      */
     private var currentSyncState by Delegates.observable(ComicsListView.SyncState.IDLE) { _, _, newState ->
-        with(swipeSyncView) {
+        with(viewBinding.swipeSyncView) {
             when (newState) {
                 ComicsListView.SyncState.IN_PROGRESS -> {
-                    isEnabled = true
+                    isEnabled = !listSelectionTracker.hasSelection()
                     isRefreshing = true
                 }
                 ComicsListView.SyncState.IDLE -> {
-                    isEnabled = true
+                    isEnabled = !listSelectionTracker.hasSelection()
                     isRefreshing = false
                 }
                 ComicsListView.SyncState.DISABLED -> {
@@ -302,22 +313,22 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
         requireActivity().invalidateOptionsMenu()
     }
 
-    init {
-        //prepare glide scope to be able use it on attached views
-        getOrCreateGlideScope()
-    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-    override fun prepareView(savedInstanceState: Bundle?) {
         setHasOptionsMenu(true)
 
-        with(swipeSyncView) {
+        with(viewBinding.swipeSyncView) {
             setColorSchemeResources(R.color.deep_purple_400)
             setOnRefreshListener { presenter.onSyncClick() }
         }
 
-        filtersRecyclerView.also {
+        viewBinding.filtersRecyclerView.also {
             it.layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+
+            it.addItemDecoration(FilterDecoration(resources.getDimensionPixelSize(R.dimen.comic_filter_list_margin)))
+
             it.adapter = filtersAdapter
 
             it.doOnNextLayout { v ->
@@ -325,7 +336,7 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
             }
         }
 
-        recyclerView.also {
+        viewBinding.recyclerView.also {
             it.setHasFixedSize(true)
 
             it.layoutManager = listLayoutManager
@@ -337,17 +348,19 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
 
         listSelectionTracker = SelectionTracker.Builder(
             COMIC_SELECTION_ID,
-            recyclerView,
-            ComicIdSelectionProvider(recyclerView),
-            ComicDetailsLookup(recyclerView),
+            viewBinding.recyclerView,
+            ComicIdSelectionProvider(viewBinding.recyclerView),
+            ComicDetailsLookup(viewBinding.recyclerView),
             StorageStrategy.createLongStorage()
         ).build().also {
             it.addObserver(
                 ComicSelectionActionModeObserver(
-                    requireActivity() as AppCompatActivity,
                     listAdapter,
                     it,
                     object : ComicSelectionActionModeObserver.ActionModeCallback {
+                        override fun start(callback: ActionMode.Callback) =
+                            (requireActivity() as AppCompatActivity).startSupportActionMode(callback)
+
                         override fun onMarkAsRemovedSelectedClick() {
                             presenter.deleteComicBook(listSelectionTracker.selection.toHashSet())
                         }
@@ -361,8 +374,43 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
                     })
             )
 
+            it.addObserver(object : SelectionTracker.SelectionObserver<Long>() {
+                override fun onSelectionChanged() {
+                    super.onSelectionChanged()
+                    //prevent swipe to scroll event while selectiong
+                    viewBinding.swipeSyncView.isEnabled = !listSelectionTracker.hasSelection()
+                }
+            })
+
             it.onRestoreInstanceState(savedInstanceState)
         }
+
+        router.resultFlow.observe(viewLifecycleOwner) {
+            fun showSnackbar(@StringRes msg: Int) {
+                Snackbar.make(
+                    findSnackBarView(requireView()),
+                    msg,
+                    Snackbar.LENGTH_SHORT
+                ).show()
+            }
+
+            when (it) {
+                is ComicListRouterResult.ComicBookChose -> {
+                    presenter.addComicBooks(it.mode, it.paths, it.flags)
+                }
+                is ComicListRouterResult.NonExistentBook -> {
+                    showSnackbar(R.string.comic_list_error_view_non_existed)
+                }
+                is ComicListRouterResult.CorruptedComicBook -> {
+                    showSnackbar(R.string.comic_list_error_view_corrupted)
+                }
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        router.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -384,11 +432,11 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
                 val titleResId: Int
 
                 when (currentListType) {
-                    ComicListViewType.Grid -> {
+                    ComicListViewType.GRID -> {
                         iconResId = R.drawable.ic_round_view_list_24dp
                         titleResId = R.string.comic_list_as_list
                     }
-                    ComicListViewType.List -> {
+                    ComicListViewType.LIST -> {
                         iconResId = R.drawable.ic_round_view_module_24dp
                         titleResId = R.string.comic_list_as_grid
                     }
@@ -411,7 +459,7 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
     override fun onOptionsItemSelected(item: MenuItem) =
         when (item.itemId) {
             R.id.add -> {
-                presenter.onAddComicBookClick()
+                onAddComicBookClick()
                 true
             }
             R.id.sort -> {
@@ -460,10 +508,6 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
         }
     }
 
-    override fun showComicBookSelector(intent: Intent, requestCode: Int) {
-        startActivityForResult(intent, requestCode)
-    }
-
     override fun showFilters(filters: List<FilterLabel>) {
         if (filters.isNotEmpty()) {
             filtersAdapter.submitList(filters)
@@ -477,65 +521,57 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
 
             if (filterShowing) {
                 targetFilterTranslation = 0
-                resultComicListTopPadding = recyclerView.paddingTop + filtersRecyclerView.height
+                resultComicListTopPadding =
+                    viewBinding.recyclerView.paddingTop + viewBinding.filtersRecyclerView.height
             } else {
-                targetFilterTranslation = -filtersRecyclerView.height
-                resultComicListTopPadding = recyclerView.paddingTop - filtersRecyclerView.height
+                targetFilterTranslation = -viewBinding.filtersRecyclerView.height
+                resultComicListTopPadding =
+                    viewBinding.recyclerView.paddingTop - viewBinding.filtersRecyclerView.height
             }
 
-            if (filtersRecyclerView.translationY != targetFilterTranslation.toFloat()) {
-                ViewCompat.animate(filtersRecyclerView)
+            if (viewBinding.filtersRecyclerView.translationY != targetFilterTranslation.toFloat()) {
+                ViewCompat.animate(viewBinding.filtersRecyclerView)
                     .translationY(targetFilterTranslation.toFloat())
                     .setDuration(170L)
                     .setInterpolator(AccelerateDecelerateInterpolator())
                     .setUpdateListener(object : ViewPropertyAnimatorUpdateListener {
-                        private var previousTranslationY = filtersRecyclerView.translationY
+                        private var previousTranslationY =
+                            viewBinding.filtersRecyclerView.translationY
 
                         override fun onAnimationUpdate(view: View) {
                             val translationDiff =
                                 (previousTranslationY - view.translationY).roundToInt()
 
-                            recyclerView.updatePadding(top = recyclerView.paddingTop - translationDiff)
-                            recyclerView.scrollBy(0, translationDiff)
+                            viewBinding.recyclerView.updatePadding(top = viewBinding.recyclerView.paddingTop - translationDiff)
+                            viewBinding.recyclerView.scrollBy(0, translationDiff)
 
                             previousTranslationY = view.translationY
                         }
                     })
                     .also {
                         if (filterShowing) {
-                            it.withStartAction { filtersRecyclerView.isVisible = true }
+                            it.withStartAction { viewBinding.filtersRecyclerView.isVisible = true }
                         }
 
                         it.withEndAction {
                             if (!filterShowing) {
-                                filtersRecyclerView.isInvisible = true
+                                viewBinding.filtersRecyclerView.isInvisible = true
                             }
 
                             //just fix different between float value (translationY) and Int value (padding)
-                            recyclerView.updatePadding(top = resultComicListTopPadding)
+                            viewBinding.recyclerView.updatePadding(top = resultComicListTopPadding)
                         }
                     }
             }
         }
 
-        filtersRecyclerView.doOnLayout { animateFilters(filters.isNotEmpty()) }
-
+        viewBinding.filtersRecyclerView.doOnLayout { animateFilters(filters.isNotEmpty()) }
     }
 
-    override fun showAddModeSelector() {
-        AddModeSelectorDialog.newInstance().show(childFragmentManager, TAG_ADD_MODE_SELECTOR)
-    }
-
-    override fun setComicsPagedList(list: PagedList<ComicListItem>, listState: ListState) {
-        listAdapter.submitList(list, listState)
-    }
-
-    override fun updateComicsListState(listState: ListState) {
-        listAdapter.updateListState(listState)
-
-        //it will prevent from list scrolling after some user's changes (e.g rename or completed state change)
-        if(recyclerView.computeVerticalScrollOffset() > 0) {
-            recyclerView.scrollBy(0, 0)
+    override fun setComicsPagedList(list: PagedList<ComicListItem?>) {
+        //do not calculate diff on the same list again. It can cause some visual issues
+        if (listAdapter.currentList !== list) {
+            listAdapter.submitList(list)
         }
     }
 
@@ -544,10 +580,13 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
     }
 
     override fun onComicsMarkedRemoved(ids: Set<Long>) {
+        //remove selection if any
+        listSelectionTracker.setItemsSelected(ids, false)
+
         val text =
             resources.getQuantityString(R.plurals.comic_list_comic_book_removed, ids.size, ids.size)
 
-        Snackbar.make(findSnackBarView(view!!), text, Snackbar.LENGTH_LONG).also {
+        Snackbar.make(findSnackBarView(requireView()), text, Snackbar.LENGTH_LONG).also {
             it.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                 override fun onDismissed(transientBottomBar: Snackbar, event: Int) {
                     super.onDismissed(transientBottomBar, event)
@@ -562,9 +601,11 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
         }.show()
     }
 
-    override fun onComicOpened(result: ComicAddResult) {
+    override fun onComicAdded(result: ComicAddResult) {
         Snackbar.make(
-            findSnackBarView(view!!), result.humanDescriptionShort(resources), if (result.success) {
+            findSnackBarView(requireView()),
+            result.humanDescriptionShort(resources),
+            if (result.success) {
                 Snackbar.LENGTH_SHORT
             } else {
                 Snackbar.LENGTH_LONG
@@ -574,7 +615,7 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
 
     override fun showComicSortTypes(currentSort: QuerySort) {
         if (childFragmentManager.findFragmentByTag(TAG_SORT) == null) {
-            ComicsSortDialog.newInstance(currentSort.key).show(childFragmentManager, TAG_SORT)
+            ComicsSortDialog.newInstance(currentSort).show(childFragmentManager, TAG_SORT)
         }
     }
 
@@ -595,8 +636,21 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
         presenter.onFiltersAccepted(acceptedFilters)
     }
 
-    override fun onAddModeSelecetd(selectedMode: AddComicBookMode) {
-        presenter.onAddModeSelected(selectedMode)
+    override fun onAddModeSelected(selectedMode: AddComicBookMode) {
+        if (!router.showComicBookSelector(selectedMode)) {
+            //show install package manager from store message
+            val installFileManagerIntent = ComicHelper.installFileManagerIntent
+
+            Snackbar.make(
+                findSnackBarView(requireView()),
+                R.string.comic_list_error_no_file_manager,
+                Snackbar.LENGTH_SHORT
+            ).also {
+                if (installFileManagerIntent.resolveActivity(requireContext().packageManager) != null) {
+                    it.setAction(R.string.search) { startActivity(installFileManagerIntent) }
+                }
+            }.show()
+        }
     }
 
     override fun onTitleRenamed(id: Long, newTitle: String) {
@@ -611,22 +665,17 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
         }
     }
 
-    override fun showNoFileManagerError() {
-        val installFileManagerIntent = ComicHelper.installFileManagerIntent
-
-        Snackbar.make(
-            findSnackBarView(view!!),
-            R.string.comic_list_error_no_file_manager,
-            Snackbar.LENGTH_SHORT
-        ).also {
-            if (installFileManagerIntent.resolveActivity(requireContext().packageManager) != null) {
-                it.setAction(R.string.search) { startActivity(installFileManagerIntent) }
-            }
-        }.show()
-    }
-
     override fun onSyncStateChanged(state: ComicsListView.SyncState) {
         currentSyncState = state
+    }
+
+    private fun onAddComicBookClick() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            AddModeSelectorDialog.newInstance().show(childFragmentManager, TAG_ADD_MODE_SELECTOR)
+        } else {
+            //we can only import files
+            onAddModeSelected(AddComicBookMode.Import)
+        }
     }
 
     private fun nextComicListType() {
@@ -639,7 +688,7 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
      * Show comic book rename window
      * @param comic comic book toi rename
      */
-    private fun showRenameComicBookWindow(comic: ComicListItem) {
+    private fun showRenameComicBook(comic: ComicListItem) {
         if (childFragmentManager.findFragmentByTag(TAG_RENAME) == null) {
             ComicRenameDialog.newInstance(comic).show(childFragmentManager, TAG_RENAME)
         }
@@ -650,29 +699,39 @@ class ComicsListFragment : BasePresenterFragment(R.layout.fragment_comic_list),
      */
     private fun showCurrentState() {
         when (currentListScreenState) {
-            ComicsListView.ScreenState.STATE_DEFAULT -> contentMessageView.showContent()
-            ComicsListView.ScreenState.STATE_NOTHING_FOUND -> contentMessageView.showMessage(
+            ComicsListView.ScreenState.STATE_DEFAULT -> viewBinding.contentMessageView.showContent()
+            ComicsListView.ScreenState.STATE_NOTHING_FOUND -> viewBinding.contentMessageView.showMessage(
                 R.string.comic_list_message_not_found,
                 R.drawable.ic_round_search_24dp
             )
-            ComicsListView.ScreenState.STATE_EMPTY -> contentMessageView.showMessage(
+            ComicsListView.ScreenState.STATE_EMPTY -> viewBinding.contentMessageView.showMessage(
                 R.string.comic_list_message_empty,
                 R.drawable.ic_whale_simple
             )
-            ComicsListView.ScreenState.STATE_INIT -> contentMessageView.showLoading()
+            ComicsListView.ScreenState.STATE_LOADING -> viewBinding.contentMessageView.showLoading()
         }
     }
 
-    private class ComicsGridSpanSizeLookup(
-        private val adapter: ComicsAdapter,
-        private val spanCount: Int
-    ) : GridLayoutManager.SpanSizeLookup() {
-        override fun getSpanSize(position: Int): Int {
-            return if (adapter.isLoaderPosition(position)) {
-                spanCount
-            } else {
-                1
-            }
+    /**
+     * Filter list decorator which add margin between items
+     */
+    private class FilterDecoration(private val margin: Int) : RecyclerView.ItemDecoration() {
+        override fun getItemOffsets(
+            outRect: Rect,
+            view: View,
+            parent: RecyclerView,
+            state: RecyclerView.State
+        ) {
+            val position = parent.getChildAdapterPosition(view)
+
+            val halfMargin = margin / 2
+
+            outRect.set(
+                if (position == 0) margin else halfMargin,
+                outRect.top,
+                if (position == parent.adapter?.itemCount?.minus(1)) margin else halfMargin,
+                outRect.bottom
+            )
         }
     }
 

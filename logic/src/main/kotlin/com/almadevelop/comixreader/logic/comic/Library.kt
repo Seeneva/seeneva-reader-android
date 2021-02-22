@@ -5,17 +5,20 @@ import com.almadevelop.comixreader.logic.entity.FullFileData
 import com.almadevelop.comixreader.logic.usecase.AddingUseCase
 import com.almadevelop.comixreader.logic.usecase.DeleteBookByIdUseCase
 import com.almadevelop.comixreader.logic.usecase.SyncUseCase
-import kotlinx.coroutines.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.yield
 import org.tinylog.kotlin.Logger
-import java.util.*
 import kotlin.coroutines.coroutineContext
 
 interface Library {
+    /**
+     * Flow of library states
+     */
+    val state: StateFlow<State>
+
     /**
      * Add comic book into user library by provided [fileData]
      *
@@ -23,32 +26,29 @@ interface Library {
      * @param addMode adding mode
      * @return comic book metadata result
      */
-    suspend fun add(fileData: FullFileData, addMode: AddComicBookMode): ComicAddResult
+    suspend fun add(
+        fileData: FullFileData,
+        addMode: AddComicBookMode,
+    ): ComicAddResult
 
     /**
      * Permanent delete comic book by provided [id]
      * @param id comic book id to delete
      */
     suspend fun delete(id: Long) {
-        delete(Collections.singletonList(id))
+        delete(setOf(id))
     }
 
     /**
      * Permanent delete comic books by provided [ids]
      * @param ids comic books ids to delete
      */
-    suspend fun delete(ids: Collection<Long>)
+    suspend fun delete(ids: Set<Long>)
 
     /**
      * Sync all app's persisted permissions and files. Compare it to actual state.
      */
     suspend fun sync()
-
-    /**
-     * Create new flow of library states
-     * @return flow of library states
-     */
-    fun stateFlow(): Flow<State>
 
     /**
      * State of the library
@@ -58,10 +58,12 @@ interface Library {
          * Adding or removing operation is in progress
          */
         CHANGING,
+
         /**
          * Syncing operation is in progress
          */
         SYNCING,
+
         /**
          * Library is idle
          */
@@ -78,9 +80,9 @@ internal class LibraryImpl(
     private val syncUseCase by lazySyncUseCase
     private val deleteBookByIdUseCase by lazyDeleteBookByIdUseCase
 
-    private val stateChannel = ConflatedBroadcastChannel(Library.State.IDLE)
-
     private val mutex = Mutex()
+
+    override val state = MutableStateFlow(Library.State.IDLE)
 
     override suspend fun add(fileData: FullFileData, addMode: AddComicBookMode): ComicAddResult {
         Logger.debug("Add comic into adding queue by uri: '${fileData.path}'")
@@ -90,7 +92,7 @@ internal class LibraryImpl(
         }
     }
 
-    override suspend fun delete(ids: Collection<Long>) {
+    override suspend fun delete(ids: Set<Long>) {
         if (ids.isEmpty()) {
             return
         }
@@ -103,12 +105,14 @@ internal class LibraryImpl(
     override suspend fun sync() {
         //can be called only by one coroutine at single moment
         if (mutex.tryLock()) {
+            Logger.debug("Start sync library")
+
             try {
-                stateChannel.send(Library.State.SYNCING)
+                state.value = Library.State.SYNCING
 
                 syncUseCase.start()
             } finally {
-                stateChannel.send(Library.State.IDLE)
+                state.value = Library.State.IDLE
                 mutex.unlock()
                 Logger.debug("Sync finished")
             }
@@ -119,16 +123,13 @@ internal class LibraryImpl(
         }
     }
 
-    override fun stateFlow(): Flow<Library.State> =
-        stateChannel.asFlow()
-
     private suspend inline fun <T> Mutex.withStateLock(state: Library.State, action: () -> T): T {
         lock()
         try {
-            stateChannel.send(state)
+            this@LibraryImpl.state.value = state
             return action()
         } finally {
-            stateChannel.send(Library.State.IDLE)
+            this@LibraryImpl.state.value = Library.State.IDLE
             unlock()
         }
     }

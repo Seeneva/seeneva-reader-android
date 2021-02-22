@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "1f292bfe758c5e781e6f21f0047d9b6d",
+    "identityHash": "576a67607dbdc27dec2db03dbf142b8d",
     "entities": [
       {
         "tableName": "comic_book",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `file_path` TEXT NOT NULL, `file_size` INTEGER NOT NULL, `file_hash` BLOB NOT NULL, `display_name` TEXT NOT NULL, `cover_position` INTEGER NOT NULL, `action_time` INTEGER NOT NULL DEFAULT (strftime('%s', 'now')))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `file_path` TEXT NOT NULL, `file_size` INTEGER NOT NULL, `file_hash` BLOB NOT NULL, `display_name` TEXT NOT NULL, `cover_position` INTEGER NOT NULL, `direction` INTEGER NOT NULL, `action_time` INTEGER NOT NULL DEFAULT (strftime('%s', 'now')), `read_position` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -45,11 +45,23 @@
             "notNull": true
           },
           {
+            "fieldPath": "direction",
+            "columnName": "direction",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "actionTime",
             "columnName": "action_time",
             "affinity": "INTEGER",
             "notNull": true,
             "defaultValue": "(strftime('%s', 'now'))"
+          },
+          {
+            "fieldPath": "readPosition",
+            "columnName": "read_position",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -595,12 +607,178 @@
             ]
           }
         ]
+      },
+      {
+        "tableName": "comic_page_object",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `page_id` INTEGER NOT NULL, `model_id` INTEGER NOT NULL DEFAULT 0, `class_id` INTEGER NOT NULL, `probability` REAL NOT NULL, `y_min` REAL NOT NULL, `x_min` REAL NOT NULL, `y_max` REAL NOT NULL, `x_max` REAL NOT NULL, FOREIGN KEY(`page_id`) REFERENCES `comic_book_page`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pageId",
+            "columnName": "page_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modelId",
+            "columnName": "model_id",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "classId",
+            "columnName": "class_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prob",
+            "columnName": "probability",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "yMin",
+            "columnName": "y_min",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "xMin",
+            "columnName": "x_min",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "yMax",
+            "columnName": "y_max",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "xMax",
+            "columnName": "x_max",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "idx_page_id",
+            "unique": false,
+            "columnNames": [
+              "page_id"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_page_id` ON `${TABLE_NAME}` (`page_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "comic_book_page",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "page_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "comic_page_object_text",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `object_id` INTEGER NOT NULL, `model_id` INTEGER NOT NULL DEFAULT 0, `language` TEXT NOT NULL, `text` TEXT NOT NULL DEFAULT '', FOREIGN KEY(`object_id`) REFERENCES `comic_page_object`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "objectId",
+            "columnName": "object_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modelId",
+            "columnName": "model_id",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "language",
+            "columnName": "language",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "idx_obj_lang",
+            "unique": true,
+            "columnNames": [
+              "object_id",
+              "language"
+            ],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `idx_obj_lang` ON `${TABLE_NAME}` (`object_id`, `language`)"
+          },
+          {
+            "name": "index_comic_page_object_text_object_id",
+            "unique": false,
+            "columnNames": [
+              "object_id"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_comic_page_object_text_object_id` ON `${TABLE_NAME}` (`object_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "comic_page_object",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "object_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1f292bfe758c5e781e6f21f0047d9b6d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '576a67607dbdc27dec2db03dbf142b8d')"
     ]
   }
 }

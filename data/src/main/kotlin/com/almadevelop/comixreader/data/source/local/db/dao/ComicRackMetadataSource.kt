@@ -8,7 +8,7 @@ import com.almadevelop.comixreader.data.entity.ComicRackMetadata
 import com.almadevelop.comixreader.data.source.local.db.ComicDatabase
 
 @Dao
-abstract class ComicRackMetadataSource internal constructor(private val database: ComicDatabase) {
+internal abstract class ComicRackMetadataSource internal constructor(private val database: ComicDatabase) {
     /**
      * Insert or replace comic book metadata
      * @param metadata comic book metadata to insert

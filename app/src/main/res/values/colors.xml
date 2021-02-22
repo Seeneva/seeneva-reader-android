@@ -7,7 +7,10 @@
     <color name="deep_purple_400">#865DDD</color>
 
     <color name="grey_50">#FAFAFA</color>
+    <color name="white_alpha_50">#80FFFFFF</color>
     <color name="black_alpha_20">#33000000</color>
+    <color name="black_alpha_50">#B3000000</color>
+    <color name="black">#FF000000</color>
 
     <color name="red_800">#C03221</color>
 </resources>

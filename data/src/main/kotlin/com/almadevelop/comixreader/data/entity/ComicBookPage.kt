@@ -24,7 +24,7 @@ import androidx.room.*
         unique = true
     )]
 )
-data class ComicBookPage(
+data class ComicBookPage @JvmOverloads constructor(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = COLUMN_ID)
     val id: Long,
@@ -37,7 +37,9 @@ data class ComicBookPage(
     @ColumnInfo(name = COLUMN_WIDTH)
     val width: Int,
     @ColumnInfo(name = COLUMN_HEIGHT)
-    val height: Int
+    val height: Int,
+    @Ignore
+    val objects: List<ComicPageObject> = emptyList()
 ) {
 
     /**
@@ -50,8 +52,9 @@ data class ComicBookPage(
         position: Long,
         name: String,
         width: Int,
-        height: Int
-    ) : this(0, 0, position, name, width, height)
+        height: Int,
+        objects: Array<ComicPageObject>
+    ) : this(0, 0, position, name, width, height, objects.asList())
 
     companion object {
         internal const val TABLE_NAME = "comic_book_page"

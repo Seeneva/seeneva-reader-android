@@ -5,7 +5,6 @@
     <string name="sort_comic_list_name_asc">Title (A..Z)</string>
     <string name="sort_comic_list_name_desc">Title (Z..A)</string>
 
-
     <string name="filter_comic_completed_title">Completion status</string>
     <string name="filter_comic_completed_any">Any</string>
     <string name="filter_comic_completed_only">Completed</string>
@@ -23,4 +22,7 @@
     <string name="comic_tag_completed">Completed</string>
     <string name="comic_tag_removed">Removed</string>
     <string name="comic_tag_corrupted">Corrupted</string>
+
+    <string name="comic_script_direction_ltr">Left to right</string>
+    <string name="comic_script_direction_rtl">Right to left</string>
 </resources>

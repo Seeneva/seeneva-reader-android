@@ -1,59 +1,80 @@
+use std::convert::TryInto;
+
 use jni::errors::Result as JniResult;
-use jni::objects::{JClass, JObject, JValue};
+use jni::objects::{JObject, JValue};
 use jni::JNIEnv;
-use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 
-use crate::ComicPageMetadata as ComicPageMetadataData;
+use crate::comics::content::ComicPage;
 
-use super::{constants::*, string_to_jobject, try_cache_class_descr, CacheClassDescr};
+use super::{comic_book_page_object, constants, JniClassConstructorCache};
 
-static CLASS_DESCR: OnceCell<CacheClassDescr> = OnceCell::new();
+static CONSTRUCTOR: Lazy<JniClassConstructorCache<&str, String>> = Lazy::new(|| {
+    (
+        constants::COMIC_BOOK_PAGE_TYPE,
+        format!(
+            "(\
+    JLjava/lang/String;\
+    I\
+    I\
+    [L{};\
+    )V",
+            constants::COMIC_BOOK_PAGE_OBJECT_TYPE
+        ),
+    )
+        .into()
+});
 
 pub type ComicPageMetadata<'a> = JObject<'a>;
 pub type ComicPageMetadataArray<'a> = JObject<'a>;
 
-fn class_descr(env: &JNIEnv) -> &'static CacheClassDescr {
-    return CLASS_DESCR.get_or_init(|| {
-        try_cache_class_descr(env, COMIC_BOOK_PAGE_TYPE, "(JLjava/lang/String;II)V")
-    });
-}
-
 ///Map data from Rust implementation to it Java variant
-pub fn new<'b>(
-    env: &'b JNIEnv,
-    comic_page_metadata: &ComicPageMetadataData,
-) -> JniResult<ComicPageMetadata<'b>> {
-    let CacheClassDescr(class, constructor) = class_descr(env);
-
-    env.new_object_unchecked(
-        JClass::from(class.as_obj()),
-        *constructor,
-        &[
-            JValue::Long(comic_page_metadata.pos as _),
-            string_to_jobject(env, &Some(comic_page_metadata.name.as_str()))?.into(),
-            JValue::Int(comic_page_metadata.width as _),
-            JValue::Int(comic_page_metadata.height as _),
-        ],
-    )
+pub fn new<'b>(env: &'b JNIEnv, comic_page: &ComicPage) -> JniResult<ComicPageMetadata<'b>> {
+    CONSTRUCTOR.init(env).and_then(|constructor| {
+        constructor.create(&[
+            JValue::Long(
+                comic_page
+                    .pos
+                    .try_into()
+                    .expect("Can't convert page position to Long"),
+            ),
+            env.new_string(&comic_page.name)?.into(),
+            JValue::Int(
+                comic_page
+                    .width
+                    .try_into()
+                    .expect("Can't convert page width to Int"),
+            ),
+            JValue::Int(
+                comic_page
+                    .height
+                    .try_into()
+                    .expect("Can't convert page height to Int"),
+            ),
+            env.auto_local(comic_book_page_object::new_array(env, &comic_page.b_boxes)?)
+                .as_obj()
+                .into(),
+        ])
+    })
 }
 
 ///Create array from provided slice [`comic_pages`]
 pub fn new_array<'b>(
     env: &'b JNIEnv,
-    comic_pages: &[ComicPageMetadataData],
+    comic_pages: &[ComicPage],
 ) -> JniResult<ComicPageMetadataArray<'b>> {
-    let CacheClassDescr(class, _) = class_descr(env);
+    env.with_local_frame(comic_pages.len() as _, || {
+        let array = env.new_object_array(
+            comic_pages.len() as _,
+            CONSTRUCTOR.init(env)?.class_obj(),
+            JObject::null(),
+        )?;
 
-    let array = env.new_object_array(
-        comic_pages.len() as _,
-        JClass::from(class.as_obj()),
-        JObject::null(),
-    )?;
+        for (pos, page_metadata) in comic_pages.iter().enumerate() {
+            let page_metadata = new(env, page_metadata)?;
+            env.set_object_array_element(array, pos as _, page_metadata)?;
+        }
 
-    for (pos, page_metadata) in comic_pages.iter().enumerate() {
-        let page_metadata = new(env, page_metadata)?;
-        env.set_object_array_element(array, pos as _, page_metadata)?;
-    }
-
-    Ok(JObject::from(array))
+        Ok(JObject::from(array))
+    })
 }

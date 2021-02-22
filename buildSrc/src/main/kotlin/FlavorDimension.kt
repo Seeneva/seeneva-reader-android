@@ -1,3 +1,6 @@
-object FlavorDimension {
-    const val RUST_BUILD_TYPE = "rust_build_type"
+object RustBuildTypeFlavor{
+    const val NAME = "rust_build_type"
+
+    const val RUST_DEBUG = "rustDebug"
+    const val RUST_RELEASE = "rustRelease"
 }

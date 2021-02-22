@@ -1,28 +1,19 @@
 use jni::errors::Result as JniResult;
-use jni::objects::{JClass, JObject, JValue};
+use jni::objects::JObject;
 use jni::sys::jboolean;
 use jni::JNIEnv;
-use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 
-use super::{constants::*, try_cache_class_descr, CacheClassDescr};
+use super::{constants, new_nullable_obj, JniClassConstructorCache};
 
-static CLASS_DESCR: OnceCell<CacheClassDescr> = OnceCell::new();
+static CONSTRUCTOR: Lazy<JniClassConstructorCache<&str, &str>> =
+    Lazy::new(|| (constants::JAVA_BOOLEAN_TYPE, "(Z)V").into());
 
-fn class_init(env: &JNIEnv) -> &'static CacheClassDescr {
-    return CLASS_DESCR.get_or_init(|| try_cache_class_descr(env, JAVA_BOOLEAN_TYPE, "(Z)V"));
-}
+pub type Boolean<'a> = JObject<'a>;
 
 /// Return Java Boolean wrap object or null if [boolean] is [None]
-pub fn new<'a>(env: &'a JNIEnv, boolean: Option<jboolean>) -> JniResult<JObject<'a>> {
-    match boolean {
-        Some(boolean) => {
-            let CacheClassDescr(class, constructor) = class_init(env);
-            env.new_object_unchecked(
-                JClass::from(class.as_obj()),
-                *constructor,
-                &[JValue::Bool(boolean)],
-            )
-        }
-        None => Ok(JObject::null()),
-    }
+pub fn new<'a>(env: &'a JNIEnv, boolean: Option<jboolean>) -> JniResult<Boolean<'a>> {
+    CONSTRUCTOR
+        .init(env)
+        .and_then(|constructor| new_nullable_obj(&constructor, boolean))
 }

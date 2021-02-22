@@ -1,11 +1,22 @@
 plugins {
     kotlin("kapt")
-    kotlin("android.extensions")
 }
 
 android {
-    aaptOptions {
-        noCompress("tflite")  // Your model'onPagesBatchPrepared file extension: "tflite", "lite", etc.
+    buildFeatures {
+        viewBinding = true
+    }
+
+    splits {
+        abi {
+            isEnable = true
+
+            reset()
+
+            include(*Abi.values().map { it.abiName }.toTypedArray())
+
+            isUniversalApk = true
+        }
     }
 
     defaultConfig {
@@ -14,11 +25,7 @@ android {
         resConfigs("en", "ru")
         vectorDrawables.useSupportLibrary = true
 
-//        externalNativeBuild {
-//            cmake {
-//                cppFlags "-std=c++14"
-//            }
-//        }
+        missingDimensionStrategy(RustBuildTypeFlavor.NAME, RustBuildTypeFlavor.RUST_RELEASE)
     }
 
     buildTypes {
@@ -26,41 +33,52 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
+        getByName("debug") {
+            isMinifyEnabled = false
+            isDebuggable = true
+        }
     }
 
 //    testOptions{
 //        unitTests.setIncludeAndroidResources(true)
 //    }
-
-    packagingOptions {
-        pickFirst("META-INF/atomicfu.kotlin_module")
-    }
 }
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation(project(":logic"))
+    implementation(project(":logic")) {
+        exclude("androidx.viewpager")
+    }
 
-    implementation(Deps.ANDROIDX_APPCOMPAT)
+    implementation(Deps.ANDROIDX_APPCOMPAT) {
+        exclude("androidx.viewpager")
+    }
+    implementation(Deps.ANDROIDX_VIEW_PAGER) {
+        exclude("androidx.viewpager")
+    }
     implementation(Deps.ANDROIDX_RECYCLER_VIEW)
     implementation(Deps.ANDROIDX_RECYCLER_VIEW_SELECTION)
-    implementation(Deps.ANDROIDX_FRAGMENT_KTX)
+    implementation(Deps.ANDROIDX_FRAGMENT_KTX) {
+        exclude("androidx.viewpager")
+    }
     implementation(Deps.ANDROIDX_LIFECYCLE_SERVICE)
     implementation(Deps.ANDROIDX_LIFECYCLE_VIEWMODEL)
     implementation(Deps.ANDROIDX_LIFECYCLE_LIVEDATA)
     implementation(Deps.ANDROIDX_LIFECYCLE_JAVA8)
     implementation(Deps.ANDROIDX_PAGING_RUNTIME)
     implementation(Deps.ANDROIDX_CONSTRAINT_LAYOUT)
-    implementation(Deps.ANCROIDX_WORK_RUNTIME)
+    implementation(Deps.ANDROIDX_WORK_RUNTIME)
+    implementation(Deps.ANDROIDX_SWIPE_REFRESH_LAYOUT)
 
-    implementation(Deps.MATERIAL)
+    implementation(Deps.MATERIAL) {
+        exclude("androidx.viewpager")
+    }
 
-    implementation(Deps.KOIN_ANDROIDX_VIEWMODEL)
+    implementation(Deps.KOIN_ANDROIDX_VIEWMODEL) {
+        exclude("androidx.viewpager")
+    }
+    implementation(Deps.KOIN_ANDROIDX_WORKMANAGER)
 
-    kapt(Deps.GLIDE_COMPILER)
+    implementation(Deps.SCALE_IMAGE_VIEW)
 }
-//
-//apply {
-//    plugin("com.google.gms.google-services")
-//}

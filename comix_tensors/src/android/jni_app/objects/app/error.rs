@@ -1,34 +1,26 @@
 use jni::errors::Result as JniResult;
-use jni::objects::{JClass, JObject, JThrowable};
-use jni::strings::JNIString;
 use jni::JNIEnv;
-use once_cell::sync::OnceCell;
+use jni::objects::JThrowable;
+use jni::strings::JNIString;
+use once_cell::sync::Lazy;
 
-use super::{constants::*, try_cache_class_descr, CacheClassDescr};
+use super::{constants, JniClassConstructorCache};
 
 ///Represent any fatal error
 pub mod NativeFatalError {
     use super::*;
 
-    static CLASS_DESCR: OnceCell<CacheClassDescr> = OnceCell::new();
+    static CONSTRUCTOR: Lazy<JniClassConstructorCache<&str, &str>> =
+        Lazy::new(|| (constants::Errors::FATAL_TYPE, "(Ljava/lang/String;)V").into());
 
     ///Create a new one error
-    pub fn new<'a>(env: &JNIEnv<'a>, msg: impl Into<JNIString>) -> JniResult<JThrowable<'a>> {
-        let msg = env.new_string(msg)?;
+    pub fn new<'a>(env: &'a JNIEnv, msg: impl Into<JNIString>) -> JniResult<JThrowable<'a>> {
+        let msg = env.auto_local(env.new_string(msg)?);
 
-        let CacheClassDescr(ref class, ref constructor) = class_instance(env);
-
-        env.new_object_unchecked(
-            JClass::from(class.as_obj()),
-            *constructor,
-            &[JObject::from(msg).into()],
-        )
-        .map(Into::into)
-    }
-
-    fn class_instance(env: &JNIEnv) -> &'static CacheClassDescr {
-        CLASS_DESCR
-            .get_or_init(|| try_cache_class_descr(env, Errors::FATAL_TYPE, "(Ljava/lang/String;)V"))
+        CONSTRUCTOR
+            .init(env)
+            .and_then(|constructor| constructor.create(&[msg.as_obj().into()]))
+            .map(Into::into)
     }
 }
 
@@ -36,14 +28,14 @@ pub mod NativeFatalError {
 pub mod NativeException {
     use super::*;
 
-    static CLASS_DESCR: OnceCell<CacheClassDescr> = OnceCell::new();
+    static CONSTRUCTOR: Lazy<JniClassConstructorCache<&str, &str>> =
+        Lazy::new(|| (constants::Errors::EXCEPTION_TYPE, "(ILjava/lang/String;)V").into());
 
     ///Exception code
     #[derive(Debug, Copy, Clone)]
     pub enum Code {
         ContainerRead,
         ContainerOpenUnsupported,
-        ContainerOpenMagicIo,
         EmptyBook,
         ImageOpen,
         ContainerCantFindFile,
@@ -55,7 +47,6 @@ pub mod NativeException {
             match self {
                 Code::ContainerRead => "CODE_CONTAINER_READ",
                 Code::ContainerOpenUnsupported => "CODE_CONTAINER_OPEN_UNSUPPORTED",
-                Code::ContainerOpenMagicIo => "CODE_CONTAINER_OPEN_MAGIC_IO",
                 Code::EmptyBook => "CODE_EMPTY_BOOK",
                 Code::ImageOpen => "CODE_IMAGE_OPEN",
                 Code::ContainerCantFindFile => "CODE_CONTAINER_CANT_FIND_FILE",
@@ -65,27 +56,18 @@ pub mod NativeException {
 
     ///Create a new one exception
     pub fn new<'a>(
-        env: &JNIEnv<'a>,
+        env: &'a JNIEnv,
         code: Code,
         msg: impl Into<JNIString>,
     ) -> JniResult<JThrowable<'a>> {
-        let msg = env.new_string(msg)?;
+        let msg = env.auto_local(env.new_string(msg)?);
 
-        let CacheClassDescr(ref class, ref constructor) = class_instance(env);
+        let constructor = CONSTRUCTOR.init(env)?;
 
-        let code = env.get_static_field(class, code, "I").and_then(|v| v.i())?;
+        let code = env.get_static_field(constructor.class_obj(), code, "I")?;
 
-        env.new_object_unchecked(
-            JClass::from(class.as_obj()),
-            *constructor,
-            &[code.into(), JObject::from(msg).into()],
-        )
-        .map(Into::into)
-    }
-
-    fn class_instance(env: &JNIEnv) -> &'static CacheClassDescr {
-        CLASS_DESCR.get_or_init(|| {
-            try_cache_class_descr(env, Errors::EXCEPTION_TYPE, "(ILjava/lang/String;)V")
-        })
+        constructor
+            .create(&[code, msg.as_obj().into()])
+            .map(Into::into)
     }
 }

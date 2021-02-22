@@ -2,31 +2,23 @@ package com.almadevelop.comixreader.screen.list.dialog.info
 
 import com.almadevelop.comixreader.common.coroutines.Dispatchers
 import com.almadevelop.comixreader.presenter.BasePresenter
-import com.almadevelop.comixreader.presenter.ComponentPresenter
+import com.almadevelop.comixreader.presenter.Presenter
+import kotlinx.coroutines.flow.StateFlow
 
-interface ComicInfoPresenter : ComponentPresenter {
-    fun loadComicBookInfo(id: Long)
+interface ComicInfoPresenter : Presenter {
+    val comicInfoState: StateFlow<ComicInfoState>
 }
 
 class ComicInfoPresenterImpl(
     view: ComicInfoView,
     dispatchers: Dispatchers,
-    lazyViewModel: Lazy<ComicInfoViewModel>
+    private val viewModel: ComicInfoViewModel,
+    bookId: Long
 ) : BasePresenter<ComicInfoView>(view, dispatchers), ComicInfoPresenter {
-    private val viewModel by lazyViewModel
+    override val comicInfoState
+        get() = viewModel.comicInfoState
 
-    override fun onViewCreated() {
-        super.onViewCreated()
-
-        viewModel.comicInfoState.observe {
-            view.showComicInfoState(it)
-        }
-    }
-
-    override fun loadComicBookInfo(id: Long) {
-        //load only if the LiveData has no value
-        if (viewModel.comicInfoState.value == null) {
-            viewModel.loadInfo(id)
-        }
+    init {
+        viewModel.loadInfo(bookId)
     }
 }

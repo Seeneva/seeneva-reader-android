@@ -6,18 +6,15 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
-        <com.almadevelop.comixreader.widget.ComicThumbCoverView
-            android:id="@+id/cover"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:scaleType="fitXY"
+        <include
+            layout="@layout/layout_comic_list_thumb_cover"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_default="percent"
-            app:layout_constraintWidth_percent="@dimen/comic_list_thumb_width_percentage"
-            tools:src="@tools:sample/avatars" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/name"

@@ -1,7 +1,5 @@
 {
-    "rust.clippy_preference": "on",
-    "rust.racer_completion": true,
-    "rust.target": "i686-linux-android",
+    //"rust.target": "armv7-linux-androideabi",
     "lldb.dbgconfig": {
         //path to the lldb on the Android device
         "lldb_path": "/data/local/tmp/lldb",

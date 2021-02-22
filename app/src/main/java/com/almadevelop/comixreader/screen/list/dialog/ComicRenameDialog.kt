@@ -6,17 +6,16 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
-import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.getSystemService
 import androidx.fragment.app.DialogFragment
 import com.almadevelop.comixreader.R
-import com.almadevelop.comixreader.extension.parentKoinScope
+import com.almadevelop.comixreader.di.parentFragmentScope
 import com.almadevelop.comixreader.logic.entity.ComicListItem
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
-
 
 class ComicRenameDialog : DialogFragment() {
     @Suppress("InflateParams")
@@ -35,10 +34,10 @@ class ComicRenameDialog : DialogFragment() {
 
     private val imm by lazy { requireContext().getSystemService<InputMethodManager>()!! }
 
-    private val callback by lazy<Callback?> { parentKoinScope.getOrNull() }
+    private val callback by lazy { parentFragmentScope?.getOrNull<Callback>() }
 
-    private val clickListener = View.OnClickListener { v ->
-        when (v.id) {
+    private val clickListener = DialogInterface.OnClickListener { _, which ->
+        when (which) {
             DialogInterface.BUTTON_POSITIVE -> onFinish()
             DialogInterface.BUTTON_NEGATIVE -> dialog.cancel()
         }
@@ -83,10 +82,10 @@ class ComicRenameDialog : DialogFragment() {
             }
         }
 
-        return AlertDialog.Builder(requireContext())
+        return MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.comic_list_rename)
-            .setPositiveButton(R.string.all_ok, null)
-            .setNegativeButton(R.string.all_cancel, null)
+            .setPositiveButton(R.string.all_ok, clickListener)
+            .setNegativeButton(R.string.all_cancel, clickListener)
             .setView(titleInput)
             .setCancelable(false)
             .create()
@@ -97,17 +96,6 @@ class ComicRenameDialog : DialogFragment() {
                     onTitleChanged(titleEditText.text)
 
                     titleEditText.addTextChangedListener(textChangeListener)
-
-                    val setButton: (Int) -> Unit = { which ->
-                        dialog.getButton(which).apply {
-                            id = which
-                            setOnClickListener(clickListener)
-                        }
-                    }
-
-                    setButton(DialogInterface.BUTTON_POSITIVE)
-
-                    setButton(DialogInterface.BUTTON_NEGATIVE)
                 }
             }
     }
@@ -170,6 +158,7 @@ class ComicRenameDialog : DialogFragment() {
         }
 
         private fun Bundle.getComicId() = getLong(STATE_ID)
-        private fun Bundle.getComicTitle() = requireNotNull(getCharSequence(STATE_TITLE)) { "Set comic book title!" }
+        private fun Bundle.getComicTitle() =
+            requireNotNull(getCharSequence(STATE_TITLE)) { "Set comic book title!" }
     }
 }

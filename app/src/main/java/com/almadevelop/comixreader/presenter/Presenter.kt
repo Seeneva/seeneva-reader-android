@@ -1,51 +1,30 @@
 package com.almadevelop.comixreader.presenter
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.savedstate.SavedStateRegistry
 import com.almadevelop.comixreader.common.coroutines.Dispatched
 import com.almadevelop.comixreader.common.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
+import androidx.lifecycle.lifecycleScope as lifecycleCoroutineScope
 
 interface Presenter
 
-interface ComponentPresenter : Presenter {
-    fun onViewCreated() {
-        //do nothing
-    }
-
-    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        //do nothing
-    }
-}
-
 abstract class BasePresenter<V : PresenterView>(
     protected val view: V,
-    override val dispatchers: Dispatchers
-) : Presenter, CoroutineScope, Dispatched {
-    override val coroutineContext by lazy { Job() + dispatchers.main }
+    final override val dispatchers: Dispatchers
+) : Presenter, Dispatched {
+    protected val presenterScope =
+        CoroutineScope(Job(view.lifecycleCoroutineScope.coroutineContext.job) + dispatchers.main)
 
-    protected val context: Context
-        get() = view.presenterContext
+    protected val viewScope
+        get() = view.lifecycleCoroutineScope
 
-    init {
-        view.lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onDestroy(owner: LifecycleOwner) {
-                cancel()
-            }
-        })
-    }
-
-    protected inline fun <T> LiveData<T>.observe(crossinline observer: (T) -> Unit) {
-        observe(view, Observer { observer(it) })
-    }
+    protected val viewLifeCycle
+        get() = view.lifecycle
 }
 
 abstract class BaseStatefulPresenter<V : PresenterStatefulView>(
@@ -54,7 +33,7 @@ abstract class BaseStatefulPresenter<V : PresenterStatefulView>(
 ) : BasePresenter<V>(view, dispatchers), SavedStateRegistry.SavedStateProvider {
 
     init {
-        view.lifecycle.addObserver(object : DefaultLifecycleObserver {
+        viewLifeCycle.addObserver(object : DefaultLifecycleObserver {
             override fun onCreate(owner: LifecycleOwner) {
                 val key = this@BaseStatefulPresenter.javaClass.name
 

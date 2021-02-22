@@ -14,13 +14,13 @@ object ComicHelper {
      * Average comic page width
      */
     const val PAGE_WIDTH = 1988
+
     /**
-     * Average comic page heigth
+     * Average comic page height
      */
     const val PAGE_HEIGHT = 3056
 
-    val pageRatio: Float
-        get() = PAGE_HEIGHT.toFloat() / PAGE_WIDTH
+    const val PAGE_RATIO = PAGE_HEIGHT.toFloat() / PAGE_WIDTH
 
     /**
      * Intent what search for file manager in an app market
@@ -36,7 +36,7 @@ object ComicHelper {
      * @return path to the app inner comic book library directory
      */
     internal fun innerComicBookLibraryDir(context: Context): File =
-        context.filesDir
+        (context.getExternalFilesDir(null) ?: context.filesDir)
             .resolve("comic_library")
             .also {
                 if (!it.exists()) {
@@ -48,6 +48,7 @@ object ComicHelper {
      * @param addComicBookMode comic book open mode
      * @return open comic book intent. Depends on [addComicBookMode] and Android version
      */
+
     fun openComicBookIntent(addComicBookMode: AddComicBookMode): Intent {
         val baseOpenIntent =
             Intent().addCategory(Intent.CATEGORY_OPENABLE) //without it you can receive a "virtual" file
@@ -56,12 +57,11 @@ object ComicHelper {
                 .also {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                         it.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-
                     }
                     //.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/x-cbr"))
                 }
 
-        //on pre kit kat devices we have no choice. Any provided content can remove read permission atg any time.
+        //on pre kit kat devices we have no choice. Any provided content can remove read permission at any time.
         //So it is more reliable to copy files into our app directory
         val resultMode = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
             AddComicBookMode.Import
@@ -71,8 +71,12 @@ object ComicHelper {
 
         return when (resultMode) {
             AddComicBookMode.Import -> baseOpenIntent.setAction(Intent.ACTION_GET_CONTENT)
-            AddComicBookMode.Link -> baseOpenIntent.setAction(Intent.ACTION_OPEN_DOCUMENT)
-                .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+            AddComicBookMode.Link ->
+                //we have already check Android version. So supress warning
+                @Suppress("InlinedApi")
+                baseOpenIntent.setAction(Intent.ACTION_OPEN_DOCUMENT)
+                    .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+
         }
     }
 }
@@ -83,6 +87,6 @@ fun ContentResolver.releaseComicPermission(path: Uri) {
 }
 
 @RequiresApi(Build.VERSION_CODES.KITKAT)
-fun ContentResolver.takeComicPermission(path: Uri){
+fun ContentResolver.takeComicPermission(path: Uri) {
     takePersistableUriPermission(path, ComicHelper.persistPermissions)
 }

@@ -3,7 +3,6 @@ package com.almadevelop.comixreader.data.source.local.db.query
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.almadevelop.comixreader.data.entity.ComicBook
-import com.almadevelop.comixreader.data.entity.ComicTag
 import com.almadevelop.comixreader.data.source.local.db.entity.TaggedComicBook
 
 private const val ASC = "ASC"
@@ -60,7 +59,7 @@ private fun StringBuilder.appendSelectClause(distinct: Boolean, columns: String)
         append("DISTINCT ")
     }
 
-    appendln("$columns FROM ${ComicBook.TABLE_NAME}")
+    appendLine("$columns FROM ${ComicBook.TABLE_NAME}")
 }
 
 private fun StringBuilder.appendJoinClause(query: FilterQueryParams) {
@@ -69,7 +68,7 @@ private fun StringBuilder.appendJoinClause(query: FilterQueryParams) {
     }
 
     //need to jon comic_book -> tag table to filter by tabs
-    appendln("LEFT JOIN ${TaggedComicBook.TABLE_NAME} ON ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_ID} = ${TaggedComicBook.TABLE_NAME}.${TaggedComicBook.COLUMN_BOOK_ID}")
+    appendLine("LEFT JOIN ${TaggedComicBook.TABLE_NAME} ON ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_ID} = ${TaggedComicBook.TABLE_NAME}.${TaggedComicBook.COLUMN_BOOK_ID}")
 }
 
 /**
@@ -101,7 +100,7 @@ private fun StringBuilder.appendWhereClause(query: FilterQueryParams, args: Muta
     }
 
     if (whereClause.isNotEmpty()) {
-        appendln("WHERE $whereClause")
+        appendLine("WHERE $whereClause")
     }
 }
 
@@ -120,7 +119,7 @@ private fun StringBuilder.appendOrderByCause(sort: QuerySort?) {
         QuerySort.OpenTimeDesc -> ORDER_ACTION_TIME_DESC
     }
 
-    appendln("ORDER BY $sortCause")
+    appendLine("ORDER BY $sortCause")
 }
 
 /**
@@ -147,7 +146,7 @@ private fun StringBuilder.appendLimitClause(query: PagedQueryParams, args: Mutab
     }
 
     if (!limitOffsetClause.isNullOrEmpty()) {
-        appendln("LIMIT $limitOffsetClause")
+        appendLine("LIMIT $limitOffsetClause")
     }
 }
 
@@ -164,31 +163,37 @@ private fun StringBuilder.appendTagFilters(
         return
     }
 
-    filters[TagFilterType.Include].also { include ->
-        if (!include.isNullOrEmpty()) {
+    filters.forEach { (filterType, filterIds) ->
+        if (!filterIds.isNullOrEmpty()) {
             if (isNotEmpty()) {
                 append(" AND ")
             }
 
-            append("${TaggedComicBook.TABLE_NAME}.${TaggedComicBook.COLUMN_TAG_ID} IN (${include.placeHolders()})")
+            args.addAll(filterIds)
 
-            args.addAll(include)
-        }
-    }
+            val inOperator: String
+            val havingClause: String
 
-    filters[TagFilterType.Exclude].also { exclude ->
-        if (!exclude.isNullOrEmpty()) {
-            if (isNotEmpty()) {
-                append(" AND ")
+            when (filterType) {
+                TagFilterType.Include -> {
+                    inOperator = "IN"
+                    havingClause = "HAVING COUNT(${TaggedComicBook.COLUMN_TAG_ID}) = ?"
+                    args += filterIds.size
+                }
+                TagFilterType.Exclude -> {
+                    inOperator = "NOT IN"
+                    havingClause = ""
+                }
             }
 
             append(
                 """${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_ID}
-                    |NOT IN (SELECT ${TaggedComicBook.COLUMN_BOOK_ID} FROM ${TaggedComicBook.TABLE_NAME}
-                    |WHERE ${TaggedComicBook.COLUMN_TAG_ID} IN (${exclude.placeHolders()}))""".trimMargin()
+                |$inOperator (SELECT ${TaggedComicBook.COLUMN_BOOK_ID} FROM ${TaggedComicBook.TABLE_NAME}
+                |WHERE ${TaggedComicBook.COLUMN_TAG_ID} IN (${filterIds.placeHolders()})
+                |GROUP BY ${TaggedComicBook.COLUMN_BOOK_ID}
+                |$havingClause)
+            """.trimMargin()
             )
-
-            args.addAll(exclude)
         }
     }
 }

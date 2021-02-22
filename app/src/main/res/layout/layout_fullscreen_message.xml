@@ -14,7 +14,7 @@
         android:layout_marginBottom="8dp"
         android:alpha="0.2"
         android:scaleType="fitCenter"
-        android:tint="@color/cerulean"
+        app:tint="@color/cerulean"
         app:layout_constraintBottom_toTopOf="@id/message"
         app:layout_constraintHeight_default="percent"
         app:layout_constraintHeight_percent="0.3"

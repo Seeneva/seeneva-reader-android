@@ -22,4 +22,7 @@
     <string name="comic_tag_completed">Прочитанные</string>
     <string name="comic_tag_removed">Убранные</string>
     <string name="comic_tag_corrupted">Повреждённые</string>
+
+    <string name="comic_script_direction_ltr">Слева направо</string>
+    <string name="comic_script_direction_rtl">Справа налево</string>
 </resources>
