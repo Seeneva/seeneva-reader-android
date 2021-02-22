@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="BaseAppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/cerulean</item>
+        <item name="colorPrimaryVariant">@color/light_blue_800</item>
+        <item name="colorSecondary">@color/deep_purple_400</item>
+
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorError">@color/red_800</item>
+
+        <item name="sliderStyle">@style/AppWidget.Slider</item>
+        <item name="bottomSheetDialogTheme">@style/AppTheme.BottomSheetDialog</item>
+
+        <item name="android:colorBackground">@color/grey_50</item>
+
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="BaseAppTheme.Viewer">
+        <item name="android:colorBackground">@color/black</item>
+    </style>
+
+    <style name="AppTheme" parent="BaseAppTheme" />
+
+    <style name="AppTheme.Viewer" parent="BaseAppTheme.Viewer" />
+
+    <style name="AppTheme.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.Light.BottomSheetDialog" />
+
+    <style name="AppTheme.BottomSheetDialog.NonCollapsed">
+        <item name="bottomSheetStyle">@style/AppWidget.BottomSheet.NonCollapsed</item>
+    </style>
+
+    <style name="AppTheme.BottomSheetDialog.FullScreen">
+        <item name="bottomSheetStyle">@style/AppWidget.BottomSheet.NonCollapsed.FullScreen</item>
+    </style>
+
+</resources>

@@ -1,8 +1,6 @@
 package com.almadevelop.comixreader.service.add
 
 import android.net.Uri
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import com.almadevelop.comixreader.common.coroutines.Dispatchers
 import com.almadevelop.comixreader.common.entity.FileHashData
 import com.almadevelop.comixreader.logic.comic.AddComicBookMode
@@ -13,11 +11,9 @@ import com.almadevelop.comixreader.logic.entity.FullFileData
 import com.almadevelop.comixreader.logic.usecase.FileDataUseCase
 import com.almadevelop.comixreader.presenter.BasePresenter
 import com.almadevelop.comixreader.presenter.Presenter
+import com.almadevelop.comixreader.viewmodel.EventSender
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
 
 /**
  * Public interface of the presenter
@@ -31,7 +27,7 @@ interface AddComicBookPresenter : Presenter {
     /**
      * Subscribes into adding result events
      */
-    fun subscribe(): Flow<ComicAddResult>
+    val resultsFlow: Flow<ComicAddResult>
 
     /**
      * Add comic book into user library by provided [path]
@@ -58,30 +54,17 @@ interface AddComicBookPresenter : Presenter {
 
 class AddComicBookPresenterImpl(
     view: AddComicBookView,
-    private val fileDataUseCase: FileDataUseCase,
-    private val library: Library,
+    fileDataUseCase: FileDataUseCase,
+    library: Library,
     dispatchers: Dispatchers
 ) : BasePresenter<AddComicBookView>(view, dispatchers), AddComicBookPresenter {
-    private val tasks = Tasks()
+    private val tasks = Tasks(view, fileDataUseCase, library, presenterScope)
 
     override val tasksCount: Int
         get() = tasks.count
 
-    @ExperimentalCoroutinesApi
-    private val resultBroadcast = BroadcastChannel<ComicAddResult>(Channel.CONFLATED)
-
-    init {
-        view.lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onDestroy(owner: LifecycleOwner) {
-                resultBroadcast.cancel()
-            }
-        })
-    }
-
-    @FlowPreview
-    @ExperimentalCoroutinesApi
-    override fun subscribe() =
-        resultBroadcast.openSubscription().consumeAsFlow()
+    override val resultsFlow
+        get() = tasks.resultFlow
 
     override fun add(
         id: Int,
@@ -101,22 +84,33 @@ class AddComicBookPresenterImpl(
             tasks.cancel(comicBookPath)
         } else {
             //cancel all opening children jobs
-            requireNotNull(coroutineContext[Job]).cancelChildren()
+            requireNotNull(presenterScope.coroutineContext[Job]).cancelChildren()
 
             true
         }
     }
 
     //call every method from the same thread! e.g Main Thread
-    private inner class Tasks {
+    private class Tasks(
+        private val view: AddComicBookView,
+        private val fileDataUseCase: FileDataUseCase,
+        private val library: Library,
+        private val scope: CoroutineScope
+    ) {
+        private val resultSender = EventSender<ComicAddResult>()
+
         /**
          * All open tasks
          */
         private val openTasks = hashMapOf<Uri, OpenTask>()
+
         /**
          * File hash to file path. Needed to prevent open the same file twice
          */
         private val hashes = hashMapOf<FileHashData, Uri>()
+
+        val resultFlow
+            get() = resultSender.eventState
 
         val count: Int
             get() = openTasks.size
@@ -140,11 +134,11 @@ class AddComicBookPresenterImpl(
                 return false
             }
 
-            launch {
+            scope.launch {
                 //I decided to split file data receiving and file hash calculation to show notifications as soon as possible
                 val fileData = fileDataUseCase.getFileData(path)
 
-                openTasks[path] = OpenTask(requireNotNull(coroutineContext[Job]), fileData, taskId)
+                openTasks[path] = OpenTask(checkNotNull(coroutineContext[Job]), fileData, taskId)
 
                 //notify view about new task to show notifications
                 //and don't wait while file's hash will be calculated
@@ -169,8 +163,13 @@ class AddComicBookPresenterImpl(
                     //we already has that file in the adding tasks
                     clearCacheNotify()
                 } else {
+
                     //it is fully new adding
-                    processAdding(fileData, fileHashData, addMode)
+                    processAdding(
+                        fileData,
+                        fileHashData,
+                        addMode,
+                    )
                 }
             }
 
@@ -199,7 +198,7 @@ class AddComicBookPresenterImpl(
         private suspend fun processAdding(
             fileData: FileData,
             fileHashData: FileHashData,
-            addMode: AddComicBookMode
+            addMode: AddComicBookMode,
         ) {
             hashes[fileHashData] = fileData.path
 
@@ -211,19 +210,15 @@ class AddComicBookPresenterImpl(
                     fileHashData.hash
                 )
 
-                library.add(fullFileData, addMode).also { resultBroadcast.send(it) }
+                library.add(fullFileData, addMode).also { resultSender.send(it) }
             } finally {
                 //Any case we should clear cache and notify view about error/cancellation
-
-                val task =
-                    requireNotNull(hashes.remove(fileHashData)?.let { openTasks.remove(it) }) {
-                        "Can't find task by provided path: ${fileData.path}"
-                    }
+                val task = remove(fileHashData)
 
                 view.onAddingFinished(task.id, fileData)
             }
 
-            ensureActive()
+            currentCoroutineContext().ensureActive()
 
             view.onAddingResult(fileData, result)
         }

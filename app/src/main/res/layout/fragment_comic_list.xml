@@ -21,7 +21,7 @@
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
                 android:padding="12dp"
-                tools:listitem="@layout/vh_comics_grid" />
+                tools:listitem="@layout/vh_comic_grid" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     </com.almadevelop.comixreader.widget.ContentMessageView>
 
@@ -32,9 +32,7 @@
         android:background="#A0000000"
         android:clipToPadding="false"
         android:minHeight="46dp"
-        android:paddingLeft="8dp"
         android:paddingTop="6dp"
-        android:paddingRight="8dp"
         android:paddingBottom="6dp"
         android:visibility="invisible"
         tools:listitem="@layout/vh_comic_filter" />

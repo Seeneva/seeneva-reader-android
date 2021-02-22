@@ -29,6 +29,7 @@ internal class SyncUseCaseImpl(
     private val queryParamsResolver: QueryParamsResolver,
     private val comicBookSource: ComicBookSource,
     private val tagSource: ComicTagSource,
+    private val deleteByIdUseCase: DeleteBookByIdUseCase,
     override val dispatchers: Dispatchers
 ) : SyncUseCase, Dispatched {
     private val context = context.applicationContext
@@ -38,7 +39,7 @@ internal class SyncUseCaseImpl(
 
         deleteRemoved()
 
-        val persisitedPaths = fileManager.getValidPersistedPaths().toHashSet()
+        val persisitedPaths = fileManager.getValidPersistedPaths()
 
         queryParamsResolver.resolve(QueryParams.build()) { addDefaultFilters() }
             .let { comicBookSource.querySimpleWithTags(it) }
@@ -82,17 +83,9 @@ internal class SyncUseCaseImpl(
         val removeTagId = tagSource.getHardcodedTagId(TagType.TYPE_REMOVED)
 
         if (removeTagId != null) {
-            val clearBy = setOf(removeTagId)
+            deleteByIdUseCase.delete(comicBookSource.idByTag(setOf(removeTagId)).toHashSet())
 
-            val toRemovePaths = comicBookSource.pathByTag(clearBy)
-
-            if (toRemovePaths.isNotEmpty()) {
-                comicBookSource.deleteByTag(clearBy)
-
-                fileManager.remove(toRemovePaths)
-
-                Logger.debug("${toRemovePaths.size} comics with removed state was deleted")
-            }
+            Logger.debug("Comic books with removed tag was deleted permanently")
         }
     }
 }

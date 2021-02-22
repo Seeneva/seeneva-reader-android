@@ -14,22 +14,25 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.almadevelop.comixreader.AppNotification
 import com.almadevelop.comixreader.R
+import com.almadevelop.comixreader.di.autoInit
+import com.almadevelop.comixreader.di.getValue
+import com.almadevelop.comixreader.di.koinLifecycleScope
 import com.almadevelop.comixreader.extension.humanDescription
 import com.almadevelop.comixreader.extension.success
 import com.almadevelop.comixreader.logic.comic.AddComicBookMode
 import com.almadevelop.comixreader.logic.entity.ComicAddResult
 import com.almadevelop.comixreader.logic.entity.FileData
 import com.almadevelop.comixreader.service.BaseForegroundService
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-import org.koin.androidx.scope.currentScope
-import org.koin.core.parameter.parametersOf
+import kotlinx.coroutines.flow.*
+import org.koin.core.scope.KoinScopeComponent
 import java.util.*
 
-class AddComicBookService : BaseForegroundService(), AddComicBookView {
-    override val presenter by currentScope.inject<AddComicBookPresenter> { parametersOf(this as AddComicBookView) }
+class AddComicBookService : BaseForegroundService(), AddComicBookView, KoinScopeComponent {
+    private val lifecycleScope = koinLifecycleScope()
+
+    override val scope by lifecycleScope
+
+    private val presenter by lifecycleScope.autoInit<AddComicBookPresenter>()
 
     override val rootNotificationId: Int
         get() = AppNotification.Id.OPEN_COMIC_BOOK_METADATA
@@ -183,19 +186,16 @@ class AddComicBookService : BaseForegroundService(), AddComicBookView {
         private val context: Context,
         val presenter: AddComicBookPresenter
     ) : Binder(), AddComicBookServiceBinder {
-
-        override fun subscribe() =
-            presenter.subscribe()
-
-        override suspend fun add(
+        override fun add(
             paths: List<Uri>,
             addComicBookMode: AddComicBookMode,
             openFlags: Int
-        ): List<ComicAddResult> {
+        ): Flow<ComicAddResult> {
             if (paths.isEmpty()) {
-                return emptyList()
+                return emptyFlow()
             }
 
+            //send comic books to the Service by one
             paths.forEach { path ->
                 ContextCompat.startForegroundService(
                     context,
@@ -205,10 +205,10 @@ class AddComicBookService : BaseForegroundService(), AddComicBookView {
 
             val pathsSet = paths.toHashSet()
 
-            return presenter.subscribe()
+            // Take results only for currently added comic books
+            return presenter.resultsFlow
                 .filter { pathsSet.remove(it.data.path) }
                 .take(pathsSet.size)
-                .toList()
         }
 
         override fun cancel(comicBookPath: Uri) =
@@ -289,12 +289,6 @@ class AddComicBookService : BaseForegroundService(), AddComicBookView {
 
 interface AddComicBookServiceBinder {
     /**
-     * Subscribe to all open comic book results
-     * @return open comic book results flow
-     */
-    fun subscribe(): Flow<ComicAddResult>
-
-    /**
      * Add comic book into user library by provided [path]
      *
      * @param path describes path to the comic book content
@@ -314,11 +308,11 @@ interface AddComicBookServiceBinder {
      * @param paths describes paths to the comic books content
      * @return result of opening operation. Size of the output is equal to the input size
      */
-    suspend fun add(
+    fun add(
         paths: List<Uri>,
         addComicBookMode: AddComicBookMode,
         openFlags: Int
-    ): List<ComicAddResult>
+    ): Flow<ComicAddResult>
 
     /**
      * Cancel opening process

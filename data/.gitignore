@@ -1,4 +1,4 @@
 /build
-/src/**/jniLibs
+/.cxx
 
-!/objectbox-models/*
+!/schemas/*

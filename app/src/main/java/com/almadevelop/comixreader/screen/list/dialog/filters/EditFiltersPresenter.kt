@@ -2,25 +2,29 @@ package com.almadevelop.comixreader.screen.list.dialog.filters
 
 import android.os.Bundle
 import com.almadevelop.comixreader.common.coroutines.Dispatchers
+import com.almadevelop.comixreader.extension.observe
 import com.almadevelop.comixreader.logic.entity.query.filter.Filter
 import com.almadevelop.comixreader.logic.entity.query.filter.FilterGroup
 import com.almadevelop.comixreader.presenter.BaseStatefulPresenter
-import com.almadevelop.comixreader.presenter.ComponentPresenter
+import com.almadevelop.comixreader.presenter.Presenter
 
-interface EditFiltersPresenter : ComponentPresenter {
+interface EditFiltersPresenter : Presenter {
     fun onFilterSelected(groupId: FilterGroup.ID, filter: Filter?)
 }
 
 class EditFiltersPresenterImpl(
     view: EditFiltersView,
     dispatchers: Dispatchers,
-    lazyInitSelectedFilters: Lazy<Map<FilterGroup.ID, String>>,
-    lazyViewModel: Lazy<EditFiltersViewModel>
+    private val initSelectedFilters: Map<FilterGroup.ID, String>,
+    private val viewModel: EditFiltersViewModel
 ) : BaseStatefulPresenter<EditFiltersView>(view, dispatchers), EditFiltersPresenter {
-    private val viewModel by lazyViewModel
-    private val initSelectedFilters by lazyInitSelectedFilters
-
     private val selectedFilters = hashMapOf<FilterGroup.ID, String>()
+
+    init {
+        viewModel.filterGroups.observe(view) {
+            view.showFilters(it, selectedFilters)
+        }
+    }
 
     override fun onCreate(state: Bundle?) {
         if (state == null) {
@@ -35,14 +39,6 @@ class EditFiltersPresenterImpl(
     override fun saveState(): Bundle {
         return Bundle().apply {
             putSerializable(STATE_SELECTED_FILTERS, selectedFilters)
-        }
-    }
-
-    override fun onViewCreated() {
-        super.onViewCreated()
-
-        viewModel.filterGroups.observe {
-            view.showFilters(it, selectedFilters)
         }
     }
 

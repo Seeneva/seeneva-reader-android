@@ -1,147 +1,173 @@
 use std::env;
+use std::path::PathBuf;
 
-use cc;
+use bindgen;
+use build_deps;
+use cmake;
+use pkg_config;
+
+use build_helper::*;
 
 fn main() {
-    env::set_current_dir("vendor/libarchive").unwrap();
+    let links_lib_name = env::var("CARGO_MANIFEST_LINKS").unwrap();
+    let target = env::var("CARGO_CFG_TARGET_OS").unwrap();
 
-    let mut cc_build = cc::Build::new();
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    //check ./vendor/Makefile.am
-    cc_build.files(vec![
-        "libarchive/archive_acl.c",
-        "libarchive/archive_check_magic.c",
-        "libarchive/archive_cmdline.c",
-        "libarchive/archive_cryptor.c",
-        "libarchive/archive_digest.c",
-        "libarchive/archive_entry.c",
-        "libarchive/archive_entry_copy_stat.c",
-        "libarchive/archive_entry_link_resolver.c",
-        "libarchive/archive_entry_sparse.c",
-        "libarchive/archive_entry_stat.c",
-        "libarchive/archive_entry_strmode.c",
-        "libarchive/archive_entry_xattr.c",
-        "libarchive/archive_getdate.c",
-        "libarchive/archive_hmac.c",
-        "libarchive/archive_match.c",
-        "libarchive/archive_options.c",
-        "libarchive/archive_pack_dev.c",
-        "libarchive/archive_pathmatch.c",
-        "libarchive/archive_ppmd7.c",
-        "libarchive/archive_ppmd8.c",
-        "libarchive/archive_random.c",
-        "libarchive/archive_rb.c",
-        "libarchive/archive_read.c",
-        "libarchive/archive_read_add_passphrase.c",
-        "libarchive/archive_read_append_filter.c",
-        "libarchive/archive_read_data_into_fd.c",
-        "libarchive/archive_read_disk_entry_from_file.c",
-        "libarchive/archive_read_disk_posix.c",
-        "libarchive/archive_read_disk_set_standard_lookup.c",
-        "libarchive/archive_read_extract.c",
-        "libarchive/archive_read_extract2.c",
-        "libarchive/archive_read_open_fd.c",
-        "libarchive/archive_read_open_file.c",
-        "libarchive/archive_read_open_filename.c",
-        "libarchive/archive_read_open_memory.c",
-        "libarchive/archive_read_set_format.c",
-        "libarchive/archive_read_set_options.c",
-        "libarchive/archive_read_support_filter_all.c",
-        "libarchive/archive_read_support_filter_bzip2.c",
-        "libarchive/archive_read_support_filter_compress.c",
-        "libarchive/archive_read_support_filter_grzip.c",
-        "libarchive/archive_read_support_filter_gzip.c",
-        "libarchive/archive_read_support_filter_lrzip.c",
-        "libarchive/archive_read_support_filter_lz4.c",
-        "libarchive/archive_read_support_filter_lzop.c",
-        "libarchive/archive_read_support_filter_none.c",
-        "libarchive/archive_read_support_filter_program.c",
-        "libarchive/archive_read_support_filter_rpm.c",
-        "libarchive/archive_read_support_filter_uu.c",
-        "libarchive/archive_read_support_filter_xz.c",
-        "libarchive/archive_read_support_filter_zstd.c",
-        "libarchive/archive_read_support_format_7zip.c",
-        "libarchive/archive_read_support_format_all.c",
-        "libarchive/archive_read_support_format_ar.c",
-        "libarchive/archive_read_support_format_by_code.c",
-        "libarchive/archive_read_support_format_cab.c",
-        "libarchive/archive_read_support_format_cpio.c",
-        "libarchive/archive_read_support_format_empty.c",
-        "libarchive/archive_read_support_format_iso9660.c",
-        "libarchive/archive_read_support_format_lha.c",
-        "libarchive/archive_read_support_format_mtree.c",
-        "libarchive/archive_read_support_format_rar.c",
-        "libarchive/archive_read_support_format_rar5.c",
-        "libarchive/archive_read_support_format_raw.c",
-        "libarchive/archive_read_support_format_tar.c",
-        "libarchive/archive_read_support_format_warc.c",
-        "libarchive/archive_read_support_format_xar.c",
-        "libarchive/archive_read_support_format_zip.c",
-        "libarchive/archive_string.c",
-        "libarchive/archive_string_sprintf.c",
-        "libarchive/archive_util.c",
-        "libarchive/archive_version_details.c",
-        "libarchive/archive_virtual.c",
-        "libarchive/archive_write.c",
-        "libarchive/archive_write_disk_posix.c",
-        "libarchive/archive_write_disk_set_standard_lookup.c",
-        "libarchive/archive_write_open_fd.c",
-        "libarchive/archive_write_open_file.c",
-        "libarchive/archive_write_open_filename.c",
-        "libarchive/archive_write_open_memory.c",
-        "libarchive/archive_write_add_filter.c",
-        "libarchive/archive_write_add_filter_b64encode.c",
-        "libarchive/archive_write_add_filter_by_name.c",
-        "libarchive/archive_write_add_filter_bzip2.c",
-        "libarchive/archive_write_add_filter_compress.c",
-        "libarchive/archive_write_add_filter_grzip.c",
-        "libarchive/archive_write_add_filter_gzip.c",
-        "libarchive/archive_write_add_filter_lrzip.c",
-        "libarchive/archive_write_add_filter_lz4.c",
-        "libarchive/archive_write_add_filter_lzop.c",
-        "libarchive/archive_write_add_filter_none.c",
-        "libarchive/archive_write_add_filter_program.c",
-        "libarchive/archive_write_add_filter_uuencode.c",
-        "libarchive/archive_write_add_filter_xz.c",
-        "libarchive/archive_write_add_filter_zstd.c",
-        "libarchive/archive_write_set_format.c",
-        "libarchive/archive_write_set_format_7zip.c",
-        "libarchive/archive_write_set_format_ar.c",
-        "libarchive/archive_write_set_format_by_name.c",
-        "libarchive/archive_write_set_format_cpio.c",
-        "libarchive/archive_write_set_format_cpio_newc.c",
-        "libarchive/archive_write_set_format_iso9660.c",
-        "libarchive/archive_write_set_format_mtree.c",
-        "libarchive/archive_write_set_format_pax.c",
-        "libarchive/archive_write_set_format_raw.c",
-        "libarchive/archive_write_set_format_shar.c",
-        "libarchive/archive_write_set_format_ustar.c",
-        "libarchive/archive_write_set_format_v7tar.c",
-        "libarchive/archive_write_set_format_gnutar.c",
-        "libarchive/archive_write_set_format_warc.c",
-        "libarchive/archive_write_set_format_xar.c",
-        "libarchive/archive_write_set_format_zip.c",
-        "libarchive/archive_write_set_options.c",
-        "libarchive/archive_write_set_passphrase.c",
-        "libarchive/filter_fork_posix.c",
-        "libarchive/xxhash.c",
-        //libarchive_la_SOURCES
-        "libarchive/archive_blake2s_ref.c",
-        "libarchive/archive_blake2sp_ref.c",
-    ]);
+    let archive_path = env::current_dir().unwrap().join("vendor/libarchive");
 
-    //cc_build.flag("-lz");
-    //cc_build.flag("-llz4");
+    // Additional headers for different platforms
+    let archive_headers = {
+        let mut archive_headers = vec![];
 
-    if env::var("TARGET").unwrap().contains("android") {
-        cc_build
-            .define("PLATFORM_CONFIG_H", "\"android.h\"")
-            .include("contrib/android/include/")
-            .include("contrib/android/config/")
-            .include(env::var_os("DEP_XZ_INCLUDE").unwrap()) //https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key
-            .define("HAVE_LZMA_H", "1")
-            .define("LZMA_API_STATIC", None);
+        if target == ANDROID {
+            archive_headers.push(archive_path.join("contrib/android/include/"));
+            archive_headers.push(archive_path.join("contrib/android/config/"));
+        }
+
+        archive_headers
+    };
+
+    let opt_build_path = if let Ok(_) = pkg_config::Config::new()
+        .atleast_version(&env::var("CARGO_PKG_VERSION").unwrap())
+        .probe(&format!("lib{}", &links_lib_name))
+    {
+        println!("Target already has archive library");
+
+        println!("cargo:rustc-link-lib={}", &links_lib_name);
+
+        None
+    } else {
+        println!("Build archive library");
+
+        let archive_path = env::current_dir().unwrap().join("vendor/libarchive");
+
+        let build_path = {
+            let mut achive_cmake = cmake::Config::new(archive_path.as_path());
+
+            achive_cmake
+                .define("ENABLE_MBEDTLS", "OFF")
+                .define("ENABLE_NETTLE", "OFF")
+                .define("ENABLE_OPENSSL", "OFF")
+                .define("ENABLE_LIBB2", "OFF")
+                .define("ENABLE_LZ4", "OFF")
+                .define("ENABLE_LZO", "OFF")
+                .define("ENABLE_LZMA", "ON")
+                .define("ENABLE_ZSTD", "OFF")
+                .define("ENABLE_ZLIB", "ON")
+                .define("ENABLE_BZip2", "OFF")
+                .define("ENABLE_LIBXML2", "OFF")
+                .define("ENABLE_EXPAT", "OFF")
+                .define("ENABLE_PCREPOSIX", "OFF")
+                .define("ENABLE_LibGCC", "OFF")
+                .define("ENABLE_CNG", "OFF")
+                .define("ENABLE_TAR", "OFF")
+                .define("ENABLE_TAR_SHARED", "OFF")
+                .define("ENABLE_CAT", "OFF")
+                .define("ENABLE_CAT_SHARED", "OFF")
+                .define("ENABLE_CPIO", "OFF")
+                .define("ENABLE_CPIO_SHARED", "OFF")
+                .define("ENABLE_XATTR", "OFF")
+                .define("ENABLE_ACL", "OFF")
+                .define("ENABLE_ICONV", "OFF")
+                .define("ENABLE_TEST", "OFF")
+                .define("ENABLE_COVERAGE", "OFF")
+                .custom_target_define();
+
+            // Add paths to the lzma library if we build it locally
+            if let Ok(lzma_root) = env::var("DEP_LZMA_ROOT") {
+                //So...lzma library doesn't provide cmake files to set as dependency
+                //It is a workaround
+
+                let lzma_root = PathBuf::from(lzma_root);
+
+                achive_cmake
+                    .define("LIBLZMA_LIBRARY", lzma_root.join("lib/liblzma.a"))
+                    .define("LIBLZMA_INCLUDE_DIR", lzma_root.join("include"));
+            }
+
+            // Apply additional headers
+            for header_dir in &archive_headers {
+                achive_cmake.cflag(format!("-I{}", header_dir.display()));
+            }
+
+            achive_cmake.build()
+        };
+
+        println!(
+            "cargo:rustc-link-search=native={}",
+            build_path.join("lib").display()
+        );
+
+        //libarchive builds shared and static libraries together. We need only static
+        println!("cargo:rustc-link-lib=static={}", &links_lib_name);
+
+        build_deps::rerun_if_changed_paths("vendor/libarchive/libarchive/*.c")
+            .and(build_deps::rerun_if_changed_paths(
+                "vendor/libarchive/libarchive/*.h",
+            ))
+            .and(build_deps::rerun_if_changed_paths(
+                "vendor/libarchive/libarchive/*.h.in",
+            ))
+            .and(build_deps::rerun_if_changed_paths(
+                "vendor/libarchive/**/*.ac",
+            ))
+            .and(build_deps::rerun_if_changed_paths(
+                "vendor/libarchive/**/*.am",
+            ))
+            .and(build_deps::rerun_if_changed_paths(
+                "vendor/libarchive/**/*.cmake",
+            ))
+            .and(build_deps::rerun_if_changed_paths(
+                "vendor/libarchive/**/CMakeLists.txt",
+            ))
+            .expect("Can't set return_if_changed globs");
+
+        println!("cargo:rerun-if-env-changed=CC");
+        println!("cargo:rerun-if-env-changed=CFLAGS");
+
+        Some(build_path)
+    };
+
+    // for zip
+    println!("cargo:rustc-link-lib=z");
+    // for 7z archives
+    println!("cargo:rustc-link-lib=lzma");
+
+    println!("cargo:rerun-if-changed=wrapper.h");
+
+    // Generate C bindings
+    let mut bindgen_builder = bindgen::builder()
+        .whitelist_recursively(false)
+        .whitelist_function(r"^archive_.+")
+        .whitelist_type(r"^archive[_\w]*")
+        .whitelist_var(r"^ARCHIVE_\w+")
+        .whitelist_var(r"^AE[_\w]+")
+        .whitelist_type(r"^la_.+")
+        .blacklist_item(r"^ARCHIVE_VERSION_\w+")
+        // use enum in the wrapper.h
+        .blacklist_item("ARCHIVE_EOF")
+        .blacklist_item("ARCHIVE_OK")
+        .blacklist_item("ARCHIVE_RETRY")
+        .blacklist_item("ARCHIVE_WARN")
+        .blacklist_item("ARCHIVE_FAILED")
+        .blacklist_item("ARCHIVE_FATAL")
+        .header("wrapper.h")
+        .rustfmt_bindings(true);
+
+    if let Some(archive_path) = opt_build_path.as_ref() {
+        bindgen_builder =
+            bindgen_builder.clang_arg(format!("-I{}", archive_path.join("include").display()));
     }
 
-    cc_build.compile("archive");
+    // Apply additional headers
+    for header_dir in &archive_headers {
+        bindgen_builder = bindgen_builder.clang_arg(format!("-I{}", header_dir.display()));
+    }
+
+    bindgen_builder
+        .generate()
+        .expect("Can't generate Archive bindings")
+        .write_to_file(out_dir.join("bindings.rs"))
+        .expect("Can't write Archive bindings");
 }

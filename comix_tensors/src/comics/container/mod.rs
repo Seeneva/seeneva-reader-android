@@ -1,110 +1,74 @@
-use std::io::{Seek, SeekFrom};
-use std::ops::Deref;
+use enum_dispatch::enum_dispatch;
 
-use blake2::{Blake2b, Digest};
-use tokio::prelude::*;
-
-use crate::FileRawFd;
+use file_descriptor::FileRawFd;
 
 use super::magic::MagicType;
 
-pub use self::error::{CalcArchiveHashError, ComicContainerError, InitComicContainerError};
+pub use self::error::*;
 
 mod archive;
 mod error;
 mod pdf;
 
-//TODO ArchiveFile can be present as enum
-
-/// Comic container file
+/// Comic book page
 /// Files usually not sorted by name in a container. So use [pos] to get real file position
-/// If [is_dir] than [content] is [Option::None]
 #[derive(Debug, Clone)]
-pub struct ArchiveFile {
+pub struct ComicContainerFile {
     ///position in the archive. 0 based
     pub pos: usize,
+    ///file name
     pub name: String,
-    pub is_dir: bool,
-    pub content: Option<Vec<u8>>,
+    /// File content
+    pub content: Vec<u8>,
 }
 
-type ComicFilesStream =
-    Box<dyn Stream<Item = ArchiveFile, Error = Box<dyn ComicContainerError>> + Send>;
+type FilesIter<'a> =
+    Box<dyn Iterator<Item = Result<ComicContainerFile, Box<dyn ComicContainerError>>> + Send + 'a>;
 
-type FindFileFuture =
-    Box<dyn Future<Item = Option<ArchiveFile>, Error = Box<dyn ComicContainerError>> + Send>;
+type FindFileResult = Result<Option<ComicContainerFile>, Box<dyn ComicContainerError>>;
 
 ///Base trait for all supported comics container
-pub trait ComicContainer {
-    ///Stream all files in the comic container
-    fn files(&self) -> ComicFilesStream;
+#[enum_dispatch]
+pub trait ComicContainerVariant {
+    ///Iterate all files in the comic container
+    fn files(&mut self) -> FilesIter;
 
-    ///Find file by it position [pos]. Position is 0 based.
-    fn file_by_position(&self, pos: usize) -> FindFileFuture;
+    /// Get single comic container file by provided [pos]. Position is 0 based.
+    fn file_at(&mut self, pos: usize) -> FindFileResult;
 }
 
-///Calculate hash value of the provided [source]. Return tuple (file_size, file_hash)
-pub fn hash_metadata(
-    source: &mut (impl Read + Seek),
-) -> Result<(u64, impl AsRef<[u8]>), CalcArchiveHashError> {
-    let mut hasher = Blake2b::new();
-
-    let size = source
-        .seek(SeekFrom::Start(0))
-        .and(std::io::copy(source, &mut hasher))?;
-
-    let hash = hasher.result();
-
-    Ok((size, hash))
-}
-
-///Variants of supported comics containers
+///Comic book container
+#[enum_dispatch(ComicContainerVariant)]
 #[derive(Debug)]
-pub enum ComicContainerVariant {
-    Archive(archive::Archive),
-    PDF(pdf::PdfArchive),
+pub enum ComicContainer {
+    /// Archive comic book container
+    Archive(archive::ArchiveComicContainer),
+    /// PDF comic book container
+    PDF(pdf::PDFComicContainer),
 }
 
-impl ComicContainerVariant {
-    pub fn init<T>(input: T) -> Result<Self, InitComicContainerError>
-    where
-        T: Into<FileRawFd>,
-    {
-        let mut input = input.into();
+impl ComicContainer {
+    /// Trying to open provided file descriptor as comic book container
+    #[cfg(target_family = "unix")]
+    pub fn open_fd(fd: impl Into<FileRawFd>) -> Result<Self, InitComicContainerError> {
+        let mut fd = fd.into();
 
-        MagicType::guess_reader_type(&mut input)
+        MagicType::guess_reader_type(&mut fd)
             .map_err(Into::into)
-            .and_then(|file_magic| {
-                use self::ComicContainerVariant::*;
-
-                match file_magic {
-                    Some(MagicType::PDF) => {
-                        debug!("It is PDF");
-                        Ok(PDF(pdf::PdfArchive::new(input)))
-                    }
-                    Some(file_magic) => {
-                        error!("Unsupported comic book container: '{:?}'", file_magic);
-                        Err(InitComicContainerError::Unsupported)
-                    }
-                    None => {
-                        debug!("Trying to use libarchive");
-                        Ok(Archive(archive::Archive::new(input)))
-                    }
+            .and_then(|file_magic| match file_magic {
+                Some(MagicType::PDF) => {
+                    debug!("Trying to open {:?} as PDF", fd);
+                    Ok(pdf::PDFComicContainer::open(fd)?.into())
+                }
+                Some(file_magic) => {
+                    error!("Unsupported comic book container: '{:?}'", file_magic);
+                    Err(InitComicContainerError::Unsupported)
+                }
+                None => {
+                    debug!("Trying to open {:?} as archive", fd);
+                    Ok(archive::ArchiveComicContainer::open(fd.dup()?)?.into())
                 }
             })
-    }
-}
-
-impl Deref for ComicContainerVariant {
-    type Target = dyn ComicContainer;
-
-    fn deref(&self) -> &Self::Target {
-        use self::ComicContainerVariant::*;
-
-        match self {
-            Archive(archive) => archive,
-            PDF(archive) => archive,
-        }
     }
 }
 
@@ -113,20 +77,19 @@ pub mod tests {
     use std::env;
     use std::fs::File;
     use std::os::unix::io::IntoRawFd;
-    use std::path::PathBuf;
+
+    pub use crate::tests::base_test_path;
 
     use super::*;
 
-    //pub use crate::tests::base_test_path;
+    #[cfg(target_family = "unix")]
+    pub fn open_archive_fd(archive_path: &[&str]) -> FileRawFd {
+        let mut path = base_test_path();
+        path.push("archive");
+        path.extend(archive_path);
 
-    //    #[cfg(target_family = "unix")]
-    //    pub fn open_archive_fd(archive_path: &[&str]) -> RawFd {
-    //        let mut path = base_test_path();
-    //        path.push("archive");
-    //        path.extend(archive_path);
-    //
-    //        println!("Trying to open file {:?}", path);
-    //
-    //        File::open(path).unwrap().into_raw_fd()
-    //    }
+        println!("Trying to open file {:?}", path);
+
+        File::open(path).unwrap().into()
+    }
 }

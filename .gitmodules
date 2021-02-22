@@ -1,6 +1,22 @@
 [submodule "comix_tensors/libarchive-sys/vendor/libarchive"]
 	path = comix_tensors/libarchive-sys/vendor/libarchive
 	url = https://github.com/libarchive/libarchive.git
+[submodule "comix_tensors/tflite-sys/vendor/tensorflow"]
+	path = comix_tensors/tflite-sys/vendor/tensorflow
+	url = https://github.com/tensorflow/tensorflow.git
+	branch = master
+[submodule "comix_tensors/leptonica-sys/vendor/leptonica"]
+	path = comix_tensors/leptonica-sys/vendor/leptonica
+	url = https://github.com/DanBloomberg/leptonica.git
+[submodule "comix_tensors/tesseract-sys/vendor/tesseract"]
+	path = comix_tensors/tesseract-sys/vendor/tesseract
+	url = https://github.com/tesseract-ocr/tesseract.git
+	branch = master
 [submodule "comix_tensors/xz-sys/vendor/xz"]
 	path = comix_tensors/xz-sys/vendor/xz
 	url = https://git.tukaani.org/xz.git
+	branch = master
+[submodule "ml/tesstrain"]
+	path = ml/tesstrain
+	url = https://github.com/tesseract-ocr/tesstrain.git
+	branch = master

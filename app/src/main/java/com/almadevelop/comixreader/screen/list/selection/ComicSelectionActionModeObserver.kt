@@ -2,143 +2,24 @@ package com.almadevelop.comixreader.screen.list.selection
 
 import android.view.Menu
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.recyclerview.selection.SelectionTracker
-import androidx.recyclerview.widget.RecyclerView
 import com.almadevelop.comixreader.R
-import com.almadevelop.comixreader.logic.entity.ComicListItem
 import com.almadevelop.comixreader.screen.list.adapter.ComicListObserver
 import com.almadevelop.comixreader.screen.list.adapter.ComicsAdapter
-import java.lang.ref.WeakReference
 import java.util.*
 
 /**
  * Start action mode if any comic book were selected
  */
 class ComicSelectionActionModeObserver(
-    activity: AppCompatActivity,
     private val adapter: ComicsAdapter,
     private val selectionTracker: SelectionTracker<Long>,
     private val actionModeCallback: ActionModeCallback
 ) : SelectionTracker.SelectionObserver<Long>() {
-    //used as workaround of removing selection if item was removed from a RecyclerView
-    //[androidx.recyclerview.selection.SelectionTracker.SelectionObserver] not called when you call [notifyItemRemoved]
-    //Or maybe I miss something :(
-    private var onComicListChanged: ((List<ComicListItem>?) -> Unit)? = null
-
-    private val activityWeak = WeakReference(activity)
-
     private var actionMode: ActionMode? = null
 
-    private val observer: ComicListObserver = { previousList, currentList ->
-        onComicListChanged?.invoke(previousList)
-        onComicListChanged = null
-
-        if (selectionTracker.hasSelection()) {
-            actionMode.also { actionMode ->
-                requireNotNull(actionMode) { "ActionMode cannot be null" }
-
-                actionMode.tag = ComicActionModeTag(
-                    currentList?.associateByTo(hashMapOf(), { it.id }, { it.completed })
-                        ?: Collections.emptyMap()
-                )
-
-                actionMode.invalidate()
-            }
-        }
-    }
-
-    init {
-        adapter.registerAdapterDataObserver(ComicDataObserver())
-    }
-
-    override fun onSelectionRefresh() {
-        super.onSelectionRefresh()
-        if (!selectionTracker.hasSelection()) {
-            finishActionMode()
-        }
-    }
-
-    override fun onSelectionRestored() {
-        super.onSelectionRestored()
-        if (selectionTracker.hasSelection()) {
-            startActionMode()
-        }
-    }
-
-    override fun onItemStateChanged(key: Long, selected: Boolean) {
-        super.onItemStateChanged(key, selected)
-        when {
-            selected && actionMode == null -> startActionMode()
-            !selected && !selectionTracker.hasSelection() -> finishActionMode()
-            else -> {
-                actionMode?.also {
-                    //clear to recalculate later
-                    it.comicsTag!!.allCompleted = null
-                    it.invalidate()
-                }
-            }
-        }
-    }
-
-    private fun startActionMode() {
-        if (actionMode == null) {
-            val activity = activityWeak.get()
-
-            requireNotNull(activity) { "Activity is null" }
-
-            actionMode = activity.startSupportActionMode(ComicActionModeCallback())
-
-            observer(null, adapter.currentList)
-            adapter.addWeakCurrentListObserver(observer)
-        }
-    }
-
-    private fun finishActionMode() {
-        if (actionMode != null) {
-            actionMode?.finish()
-            actionMode = null
-            adapter.removeWeakCurrentListObserver(observer)
-
-            selectionTracker.clearSelection()
-        }
-    }
-
-    private fun ActionMode.setSelectedCount() {
-        title = selectionTracker.selection.size().toString()
-    }
-
-
-    private fun ComicActionModeTag?.isAllCompleted(): Boolean {
-        return if (this != null) {
-            allCompleted
-                ?: (!idToCompleted.filter { selectionTracker.isSelected(it.key) }
-                    .containsValue(false))
-                    .also { allCompleted = it }
-        } else {
-            false
-        }
-    }
-
-    private data class ComicActionModeTag(val idToCompleted: Map<Long, Boolean>, var allCompleted: Boolean? = null)
-
-    private inner class ComicDataObserver : RecyclerView.AdapterDataObserver() {
-        override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
-            super.onItemRangeRemoved(positionStart, itemCount)
-
-            onComicListChanged = { comics ->
-                if (!comics.isNullOrEmpty()) {
-                    //deselect any removed comic book
-                    (positionStart until positionStart + itemCount).map { comics[it] }.forEach {
-                        selectionTracker.deselect(it.id)
-                    }
-                }
-            }
-        }
-    }
-
-    private inner class ComicActionModeCallback : ActionMode.Callback {
+    private val actionModeCallbackInner = object : ActionMode.Callback {
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             return when (item.itemId) {
                 R.id.remove -> {
@@ -183,7 +64,96 @@ class ComicSelectionActionModeObserver(
         }
     }
 
+    private val observer: ComicListObserver = { _, currentList ->
+        if (selectionTracker.hasSelection()) {
+            actionMode.also { actionMode ->
+                requireNotNull(actionMode) { "ActionMode cannot be null" }
+
+                actionMode.tag = ComicActionModeTag(
+                    currentList?.filterNotNull()
+                        ?.associateByTo(hashMapOf(), { it.id }, { it.completed })
+                        ?: Collections.emptyMap()
+                )
+
+                actionMode.invalidate()
+            }
+        }
+    }
+
+    override fun onSelectionRefresh() {
+        super.onSelectionRefresh()
+        if (!selectionTracker.hasSelection()) {
+            finishActionMode()
+        }
+    }
+
+    override fun onSelectionRestored() {
+        super.onSelectionRestored()
+        if (selectionTracker.hasSelection()) {
+            startActionMode()
+        }
+    }
+
+    override fun onItemStateChanged(key: Long, selected: Boolean) {
+        super.onItemStateChanged(key, selected)
+        when {
+            selected && actionMode == null -> startActionMode()
+            !selected && !selectionTracker.hasSelection() -> finishActionMode()
+            else -> {
+                actionMode?.also {
+                    //clear to recalculate later
+                    it.comicsTag!!.allCompleted = null
+                    it.invalidate()
+                }
+            }
+        }
+    }
+
+    private fun startActionMode() {
+        if (actionMode == null) {
+            actionMode = actionModeCallback.start(actionModeCallbackInner)
+
+            observer(null, adapter.currentList)
+            adapter.addWeakCurrentListObserver(observer)
+        }
+    }
+
+    private fun finishActionMode() {
+        if (actionMode != null) {
+            actionMode?.finish()
+            actionMode = null
+            adapter.removeWeakCurrentListObserver(observer)
+
+            selectionTracker.clearSelection()
+        }
+    }
+
+    private fun ComicActionModeTag?.isAllCompleted(): Boolean {
+        return if (this == null) {
+            false
+        } else {
+            allCompleted
+                ?: (!idToCompleted.filter { selectionTracker.isSelected(it.key) }
+                    .containsValue(false))
+                    .also { allCompleted = it }
+        }
+    }
+
+    private fun ActionMode.setSelectedCount() {
+        title = selectionTracker.selection.size().toString()
+    }
+
+    private data class ComicActionModeTag(
+        val idToCompleted: Map<Long, Boolean>,
+        var allCompleted: Boolean? = null
+    )
+
     interface ActionModeCallback {
+        /**
+         * Start [ActionMode]
+         */
+        fun start(callback: ActionMode.Callback): ActionMode?
+
         /**
          * On mark as removed all selected comics click
          */

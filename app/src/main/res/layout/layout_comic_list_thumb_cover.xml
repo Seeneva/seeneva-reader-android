@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.almadevelop.comixreader.widget.ComicCoverView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cover"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:scaleType="fitXY"
+    app:shapeAppearanceOverlay="@style/AppShapeOverlay.ComicListItemCover"
+    tools:src="@tools:sample/avatars" />

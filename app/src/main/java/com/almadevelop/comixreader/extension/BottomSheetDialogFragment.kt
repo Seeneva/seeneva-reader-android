@@ -1,96 +1,69 @@
 package com.almadevelop.comixreader.extension
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Shader
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.shapes.RoundRectShape
+import android.os.Build
 import android.view.Gravity
-import android.view.ViewGroup
+import android.view.View
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.applyCanvas
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.view.doOnLayout
-import androidx.core.view.forEach
+import androidx.core.view.ViewCompat
 import androidx.core.view.updatePadding
 import com.almadevelop.comixreader.R
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 /**
- * Set rounded draggable background
+ * Create and set draggable background for a
+ * [com.google.android.material.bottomsheet.BottomSheetDialogFragment] View
  *
- * Should be set after the onCreateView method call
- */
-fun BottomSheetDialogFragment.setDraggableBackground() {
-    requireNotNull(dialog).findViewById<ViewGroup>(R.id.design_bottom_sheet).doOnLayout { bottomSheetView ->
-        require(bottomSheetView is ViewGroup)
-
-        val background = newDraggableBackground(bottomSheetView.context, bottomSheetView.width)
-
-        bottomSheetView.background = background
-
-        bottomSheetView.forEach {
-            it.updatePadding(top = background.intrinsicHeight)
-        }
-    }
-}
-
-/**
- * Create rounded draggable background
- *
- * @param context context
- * @param width width of the generated background drawable
  * @return draggable rounded background
  */
-private fun newDraggableBackground(context: Context, width: Int): Drawable {
-    val resources = context.resources
+fun View.setDraggableBackground() {
+    // [com.google.android.material.bottomsheet.BottomSheetBehavior] now responsible for round corners
+    // I only need to draw 'draggable' indicator.
+    // There is no purpose...I think it is more clearly that we can drag this View
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        val resources = context.resources
 
-    val cornerRadius = resources.getDimension(R.dimen.bottom_sheet_drag_corner_radius)
+        val lineStrokeWidth = resources.getDimension(R.dimen.bottom_sheet_drag_line_stroke_width)
+        val lineWidth = resources.getDimension(R.dimen.bottom_sheet_drag_line_width)
+        val lineYOffset = resources.getDimension(R.dimen.bottom_sheet_drag_line_y_offset)
 
-    val lineWidth = resources.getDimension(R.dimen.bottom_sheet_drag_line_width)
-    val lineHeight = resources.getDimension(R.dimen.bottom_sheet_drag_line_height)
-    val lineYOffset = resources.getDimension(R.dimen.bottom_sheet_drag_line_y_offset)
+        val lineEdgeWidth = lineStrokeWidth * 0.5f
 
-    //line x center position
-    val lineCx = width * 0.5f
-    val lineCy = lineWidth * 0.5f + lineYOffset
+        val lineCy = lineStrokeWidth * 0.5f + lineYOffset
 
-    val bitmap = Bitmap.createBitmap(width, lineCy.toInt() * 2, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            strokeWidth = lineStrokeWidth
+            strokeJoin = Paint.Join.ROUND
+            strokeCap = Paint.Cap.ROUND
+            color = ContextCompat.getColor(context, R.color.black_alpha_20)
+        }
 
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    paint.color = ContextCompat.getColor(context, R.color.grey_50)
+        val background =
+            createBitmap(lineWidth.toInt(), lineCy.toInt() * 2)
+                .applyCanvas {
+                    drawLine(
+                        lineEdgeWidth,
+                        lineCy,
+                        lineWidth - lineEdgeWidth,
+                        lineCy,
+                        paint
+                    )
 
-    //draw rounded corners
-    RoundRectShape(
-        floatArrayOf(cornerRadius, cornerRadius, cornerRadius, cornerRadius, .0f, .0f, .0f, .0f),
-        null,
-        null
-    ).also {
-        it.resize(bitmap.width.toFloat(), bitmap.height.toFloat())
-    }.draw(canvas, paint)
+                    setBitmap(null)
+                }.toDrawable(resources).apply {
+                    gravity = Gravity.CENTER_VERTICAL or Gravity.TOP
+                }
 
-    //draw 'draggable' line
-    paint.also {
-        it.strokeWidth = lineWidth
-        it.strokeJoin = Paint.Join.ROUND
-        it.strokeCap = Paint.Cap.ROUND
-        it.color = ContextCompat.getColor(context, R.color.black_alpha_20)
-    }
+        updatePadding(top = background.intrinsicHeight)
 
-    canvas.drawLine(
-        lineCx - lineHeight * 0.5f,
-        lineCy,
-        lineCx + lineHeight * 0.5f,
-        lineCy,
-        paint
-    )
-
-    canvas.setBitmap(null)
-
-    return bitmap.toDrawable(resources).also {
-        it.gravity = Gravity.TOP
-        it.setTileModeXY(Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        ViewCompat.setBackground(this, background)
+    } else {
+        ViewCompat.setBackground(
+            this,
+            AppCompatResources.getDrawable(context, R.drawable.bcg_draggable_bottom_sheet)!!
+        )
     }
 }

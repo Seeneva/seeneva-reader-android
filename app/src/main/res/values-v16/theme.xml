@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="BaseAppTheme.Viewer.V16">
+        <!-- It seems Android ignore colorBackground attribute on Android < 21-->
+        <item name="android:windowBackground">@color/black</item>
+    </style>
+
+    <style name="AppTheme.Viewer" parent="BaseAppTheme.Viewer.V16" />
+</resources>

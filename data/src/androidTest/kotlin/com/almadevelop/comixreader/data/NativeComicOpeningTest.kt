@@ -9,8 +9,8 @@ import com.almadevelop.comixreader.data.source.jni.NativeSource
 import com.almadevelop.comixreader.data.source.jni.NativeSourceImpl
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.*
 import org.junit.runner.RunWith
 import java.io.File
 import kotlin.test.*
@@ -34,7 +34,7 @@ class NativeComicOpeningTest {
             .reader()
             .use { it.readText() }
 
-        Json.plain.parseJson(jsonStr).jsonObject
+        Json.decodeFromString<JsonObject>(jsonStr)
     }
 
     @BeforeTest
@@ -93,12 +93,12 @@ class NativeComicOpeningTest {
     private suspend fun openAndAssertComicBookNative(comicFile: File) {
         val initComicName = comicFile.nameWithoutExtension
 
-        val fileSourceOfTruth = sourceOfTruth.getObject("files")
-            .getObject(initComicName)
+        val fileSourceOfTruth = sourceOfTruth.getValue("files").jsonObject
+            .getValue(initComicName).jsonObject
 
-        if (fileSourceOfTruth.getPrimitive("pages_count").int <= 0) {
+        if (fileSourceOfTruth.getValue("pages_count").jsonPrimitive.int <= 0) {
             val ex = assertFailsWith<NativeException> {
-                nativeSource.getComicsMetadata(comicFile.toUri(), initComicName)
+                nativeSource.getComicsMetadata(comicFile.toUri(), initComicName, 0)
             }
 
             assertEquals(NativeException.CODE_EMPTY_BOOK, ex.code, "Wrong exception code")
@@ -106,7 +106,7 @@ class NativeComicOpeningTest {
             return
         }
 
-        with(nativeSource.getComicsMetadata(comicFile.toUri(), initComicName)) {
+        with(nativeSource.getComicsMetadata(comicFile.toUri(), initComicName, 0)) {
             println("Comic book was opened! Path: '$comicFile'")
 
             fileSourceOfTruth.assertEquals(pages.size, "pages_count")
@@ -121,8 +121,8 @@ class NativeComicOpeningTest {
             assertEquals(comicFile.toUri(), filePath, "Wrong path")
 
             val comicRackSourceOfTruth = if (fileSourceOfTruth.containsKey("comic_rack")) {
-                sourceOfTruth.getObject("comic_rack")
-                    .getObject(fileSourceOfTruth.getPrimitive("comic_rack").content)
+                sourceOfTruth.getValue("comic_rack").jsonObject
+                    .getValue(fileSourceOfTruth.getValue("comic_rack").jsonPrimitive.content).jsonObject
             } else {
                 null
             }
@@ -199,13 +199,13 @@ class NativeComicOpeningTest {
 
                     comicRackSourceOfTruth.assertEquals(languageIso, "language_iso")
 
-                    val pagesSourceOfTruth = comicRackSourceOfTruth.getArrayOrNull("pages")
+                    val pagesSourceOfTruth = comicRackSourceOfTruth["pages"]?.jsonArray
 
                     assertEquals(pagesSourceOfTruth != null, pages != null)
 
                     if (pagesSourceOfTruth != null) {
                         requireNotNull(pages).forEachIndexed { i, v ->
-                            val pageSourceOfTrue = pagesSourceOfTruth.getObject(i)
+                            val pageSourceOfTrue = pagesSourceOfTruth[i].jsonObject
 
                             pageSourceOfTrue.assertEquals(v.position, "position")
                             pageSourceOfTrue.assertEquals(v.type, "type")
@@ -221,7 +221,7 @@ class NativeComicOpeningTest {
 
     private inline fun <reified T> JsonObject.assertEquals(realValue: T?, name: String) {
         @Suppress("IMPLICIT_CAST_TO_ANY")
-        val expected = (getPrimitiveOrNull(name)?.let {
+        val expected = (this[name]?.jsonPrimitive?.let {
             when (T::class) {
                 String::class -> it.contentOrNull
                 Int::class -> it.intOrNull

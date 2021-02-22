@@ -9,11 +9,11 @@ import kotlinx.coroutines.cancel
 abstract class CoroutineViewModel(
     protected val dispatchers: Dispatchers,
     job: Job = Job()
-) : ViewModel(), CoroutineScope {
-    override val coroutineContext = job + dispatchers.main
+) : ViewModel() {
+    protected val vmScope = CoroutineScope(job + dispatchers.main)
 
     override fun onCleared() {
         super.onCleared()
-        cancel()
+        vmScope.cancel()
     }
 }

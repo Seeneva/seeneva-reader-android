@@ -1,75 +1,177 @@
+use std::io::Cursor;
+
 use image;
-use tokio::prelude::*;
+use image::imageops::FilterType as ImageFilterType;
+use image::GenericImageView;
+use rayon::prelude::*;
 
-use crate::comics::container::ArchiveFile;
+use crate::comics::container::{ComicContainer, ComicContainerFile, ComicContainerVariant};
+use crate::task::{CancelledError, Task};
 
-pub use self::error::GetComicImageError;
+pub use self::error::*;
 
-mod error;
+pub mod error;
 
-///RGBA, width, height
+///data, width, height
 pub type OpenedImage = (Vec<u8>, u32, u32);
-type ResizeParams = (u32, u32);
+///width, height, fast_resizing
+pub type ResizeParams = Option<(u32, u32, bool)>;
+/// (x_start, y_start, width, height)
+pub type CropParams = Option<(u32, u32, u32, u32)>;
 
-///Future which returns comic RGBA content
-pub struct GetComicImageFuture<F> {
-    state: State<F>,
-    resize: Option<ResizeParams>,
+/// Supported color models
+#[derive(Debug, Copy, Clone)]
+pub enum ColorModel {
+    /// 32 bit color
+    RGBA8888,
+    /// 16 bit color
+    RGB565,
 }
 
-impl<F> GetComicImageFuture<F> {
-    ///[future] - [Future] of [ArchiveFile].
-    pub fn new(future: F, resize: Option<ResizeParams>) -> Self {
-        GetComicImageFuture {
-            state: State::FindImage(future),
-            resize,
+/// Get raw page image at [pos] without decode it
+pub fn get_comic_book_raw_page(
+    task: &Task,
+    container: &mut ComicContainer,
+    pos: usize,
+) -> Result<Option<OpenedImage>, GetComicRawImageError> {
+    match container.file_at(pos)? {
+        Some(ComicContainerFile {
+            content: page_buf, ..
+        }) => {
+            task.check()?;
+
+            // Get proper page img dimensions
+            let (w, h) = image::io::Reader::new(Cursor::new(&page_buf))
+                .with_guessed_format()
+                .map_err(image::error::ImageError::from)
+                .and_then(image::io::Reader::into_dimensions)?;
+
+            task.check()?;
+
+            Ok(Some((page_buf, w, h)))
         }
+        None => Ok(None),
     }
 }
 
-enum State<F> {
-    FindImage(F),
-    ExtractImage(Vec<u8>),
-}
+/// * Crop and resize src image
+pub fn resize_comic_book_page(
+    task: &Task,
+    img: &image::DynamicImage,
+    color_model: ColorModel,
+    resize: ResizeParams,
+    crop: CropParams,
+) -> Result<Vec<u8>, ResizeComicImageError> {
+    let mut modified_img: Option<image::DynamicImage> = None;
 
-impl<F, E> Future for GetComicImageFuture<F>
-where
-    F: Future<Item = Option<ArchiveFile>, Error = E>,
-    E: From<GetComicImageError>,
-{
-    type Item = OpenedImage;
-    type Error = F::Error;
+    // apply crop params
+    if let Some((x, y, width, height)) =
+        crop.filter(|(_, _, width, height)| *width != img.width() || *height != img.height())
+    {
+        debug!(
+            "Crop image. Source: ({} {}). Crop: (x: {} y: {} w: {} h: {})",
+            img.width(),
+            img.height(),
+            x,
+            y,
+            width,
+            height
+        );
 
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        match self.state {
-            State::FindImage(ref mut future) => match try_ready!(future.poll()) {
-                Some(archive_file) => match archive_file.content {
-                    Some(img_content) => {
-                        self.state = State::ExtractImage(img_content);
-                        task::current().notify();
-                        Ok(Async::NotReady)
-                    }
-                    None => Err(GetComicImageError::EmptyFile.into()),
-                },
-                None => Err(GetComicImageError::CantFind.into()),
-            },
-            State::ExtractImage(ref image_buf) => image::load_from_memory(image_buf)
-                .map(|img| {
-                    let img = resize_image(img, &self.resize).to_rgba();
-                    let w = img.width();
-                    let h = img.height();
-                    let rgba_buf = img.into_raw();
-                    Async::Ready((rgba_buf, w, h))
+        modified_img = img.crop_imm(x, y, width, height).into();
+    }
+
+    task.check()?;
+
+    //apply resize params
+    if let Some((img, width, height, filter_type)) =
+        modified_img.as_ref().or(Some(img)).and_then(|img| {
+            resize
+                .filter(|(width, height, _)| *width != img.width() || *height != img.height())
+                .map(|(w, h, resize_fast)| {
+                    (
+                        img,
+                        w,
+                        h,
+                        if resize_fast {
+                            ImageFilterType::Nearest
+                        } else {
+                            ImageFilterType::Triangle
+                        },
+                    )
                 })
-                .map_err(|e| GetComicImageError::OpenError(e).into()),
-        }
+        })
+    {
+        debug!(
+            "Resize image. From: ({} {}). To: ({} {}). Filter type {:?}",
+            img.width(),
+            img.height(),
+            width,
+            height,
+            filter_type
+        );
+
+        modified_img = img.resize_exact(width, height, filter_type).into();
     }
+
+    task.check()?;
+
+    let buf = match color_model {
+        ColorModel::RGBA8888 => modified_img
+            .map_or_else(|| img.to_rgba8(), |img| img.into_rgba8())
+            .into_raw(),
+        ColorModel::RGB565 => {
+            let mut img = modified_img.map_or_else(|| img.to_rgb8(), |img| img.into_rgb8());
+
+            image::imageops::dither(&mut img, &Rgb565ColorMap);
+
+            img.into_raw()
+                .into_par_iter()
+                .chunks(3)
+                .map(|pixel_buf| {
+                    if let Err(self::CancelledError) = task.check() {
+                        None
+                    } else {
+                        Some(pixel_buf)
+                    }
+                })
+                .while_some()
+                .flat_map_iter(|mut pixel_buf| {
+                    // Convert RGB888 pixels into RGB565
+                    // How it works: http://www.barth-dev.de/online/rgb565-color-picker/
+                    let rgb565 = (u16::from(pixel_buf[0] & 0b11111000) << 8
+                        | u16::from(pixel_buf[1] & 0b11111100) << 3
+                        | u16::from(pixel_buf[2] >> 3))
+                    .to_ne_bytes();
+
+                    pixel_buf.clear();
+
+                    pixel_buf.extend_from_slice(&rgb565);
+
+                    pixel_buf
+                })
+                .collect::<Vec<_>>()
+        }
+    };
+
+    task.check()?;
+
+    Ok(buf)
 }
 
-///resize image if needed
-fn resize_image(img: image::DynamicImage, resize: &Option<ResizeParams>) -> image::DynamicImage {
-    match resize {
-        Some((width, height)) => img.thumbnail(*width, *height),
-        None => img,
+/// Map RGB to RGB565 colors for the Floyd-Steinberg dithering
+struct Rgb565ColorMap;
+
+impl image::imageops::colorops::ColorMap for Rgb565ColorMap {
+    type Color = image::Rgb<u8>;
+
+    fn index_of(&self, _: &Self::Color) -> usize {
+        unreachable!()
+    }
+
+    fn map_color(&self, color: &mut Self::Color) {
+        color[0] = color[0] & 0b11110000;
+        color[1] = color[1] & 0b11110000;
+        color[2] = color[2] & 0b11110000;
     }
 }

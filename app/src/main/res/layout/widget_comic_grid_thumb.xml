@@ -2,15 +2,12 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:parentTag="com.almadevelop.comixreader.widget.ComicThumbView">
+    tools:parentTag="com.almadevelop.comixreader.widget.ComicItemView">
 
-    <com.almadevelop.comixreader.widget.ComicThumbCoverView
-        android:id="@+id/cover"
+    <include
+        layout="@layout/layout_comic_grid_thumb_cover"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scaleType="fitXY"
-        tools:src="@tools:sample/avatars" />
-
+        android:layout_height="wrap_content" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/nameRoot"
@@ -22,7 +19,6 @@
             android:id="@+id/menu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:theme="@style/AppTheme.WhiteControl"
             app:layout_constraintBottom_toBottomOf="@id/name"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@id/name" />

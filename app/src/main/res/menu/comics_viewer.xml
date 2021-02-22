@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/settings"
+        android:icon="@drawable/ic_settings_24dp"
+        android:title="@string/settings"
+        app:iconTint="@color/white"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/set_cover"
+        android:icon="@drawable/ic_image_24dp"
+        android:title="@string/viewer_set_cover"
+        app:iconTint="@color/white"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/swap_horizontally"
+        android:icon="@drawable/ic_swap_horiz_24dp"
+        android:title="@string/viewer_swap_read_direction"
+        app:iconTint="@color/white"
+        app:showAsAction="ifRoom" />
+</menu>

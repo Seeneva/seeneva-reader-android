@@ -16,28 +16,38 @@ import androidx.core.text.util.LinkifyCompat
 import androidx.core.view.get
 import androidx.core.view.updateLayoutParams
 import com.almadevelop.comixreader.R
+import com.almadevelop.comixreader.binding.getValue
+import com.almadevelop.comixreader.binding.viewBinding
+import com.almadevelop.comixreader.databinding.FragmentComicInfoBinding
+import com.almadevelop.comixreader.di.autoInit
+import com.almadevelop.comixreader.di.getValue
+import com.almadevelop.comixreader.di.koinLifecycleScope
 import com.almadevelop.comixreader.extension.inflate
+import com.almadevelop.comixreader.extension.observe
 import com.almadevelop.comixreader.logic.entity.ComicInfo
-import com.almadevelop.comixreader.presenter.BasePresenterBottomSheetDialog
 import com.almadevelop.comixreader.presenter.PresenterView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import kotlinx.android.synthetic.main.fragment_comic_info.*
-import org.koin.androidx.scope.currentScope
-import org.threeten.bp.format.DateTimeFormatter
-import org.threeten.bp.format.FormatStyle
-import org.threeten.bp.temporal.ChronoField
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import org.koin.core.scope.KoinScopeComponent
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.time.temporal.ChronoField
 import java.util.*
 
-interface ComicInfoView : PresenterView {
-    fun showComicInfoState(state: ComicInfoState)
-}
+interface ComicInfoView : PresenterView
 
-class ComicInfoFragment : BasePresenterBottomSheetDialog(), ComicInfoView {
+class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeComponent {
     init {
-        setStyle(STYLE_NORMAL, R.style.AppBottomSheetTheme_FullScreen)
+        setStyle(STYLE_NORMAL, R.style.AppTheme_BottomSheetDialog_FullScreen)
     }
 
-    override val presenter = currentScope.get<ComicInfoPresenter>()
+    private val viewBinding by viewBinding(FragmentComicInfoBinding::bind)
+
+    private val lifecycleScope = koinLifecycleScope()
+
+    override val scope by lifecycleScope
+
+    private val presenter by lifecycleScope.autoInit<ComicInfoPresenter>()
 
     private val bottomSheetBehavior by lazy {
         requireNotNull(dialog).findViewById<View>(R.id.design_bottom_sheet)
@@ -54,6 +64,33 @@ class ComicInfoFragment : BasePresenterBottomSheetDialog(), ComicInfoView {
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        presenter.comicInfoState
+            .observe(this) {
+                when (it) {
+                    is ComicInfoState.Loading, ComicInfoState.Idle -> viewBinding.contentMessageView.showLoading()
+                    ComicInfoState.NotFound -> viewBinding.contentMessageView.showMessage(
+                        R.string.comic_info_err_cant_find,
+                        0
+                    )
+                    is ComicInfoState.Success -> {
+                        viewBinding.contentMessageView.showContent()
+
+                        inflateInfo(it.comicInfo)
+                    }
+                    is ComicInfoState.Error -> {
+                        viewBinding.contentMessageView
+                            .showMessage(
+                                R.string.comic_info_err,
+                                0
+                            )
+                    }
+                }
+            }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -65,29 +102,10 @@ class ComicInfoFragment : BasePresenterBottomSheetDialog(), ComicInfoView {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val args = requireNotNull(arguments) { "Use newInstance!" }
-
-        toolbar.also {
+        viewBinding.toolbar.also {
             it.setNavigationOnClickListener { dismiss() }
 
-            it.subtitle = args.getComicBookName()
-        }
-
-        presenter.loadComicBookInfo(args.getComicBookId())
-    }
-
-    override fun showComicInfoState(state: ComicInfoState) {
-        when (state) {
-            is ComicInfoState.Loading -> contentMessageView.showLoading()
-            is ComicInfoState.NotFound -> contentMessageView.showMessage(
-                R.string.comic_info_err_cant_find,
-                0
-            )
-            is ComicInfoState.Success -> {
-                contentMessageView.showContent()
-
-                inflateInfo(state.comicInfo)
-            }
+            it.subtitle = bookName
         }
     }
 
@@ -96,12 +114,17 @@ class ComicInfoFragment : BasePresenterBottomSheetDialog(), ComicInfoView {
     }
 
     private fun inflateGeneralInfo(comicInfo: ComicInfo) {
-        InfoBuilder(comicInfoLayout)
+        InfoBuilder(viewBinding.comicInfoLayout)
             .group(R.string.comic_info_general_information) {
 
                 comicInfo.series?.also { row(R.string.comic_info_general_info_series, it) }
                 comicInfo.title?.also { row(R.string.comic_info_general_info_title, it) }
-                comicInfo.volume?.also { row(R.string.comic_info_general_info_volume, it.toString()) }
+                comicInfo.volume?.also {
+                    row(
+                        R.string.comic_info_general_info_volume,
+                        it.toString()
+                    )
+                }
 
                 if (comicInfo.issue != null && comicInfo.issuesCount != null) {
                     row(
@@ -115,7 +138,7 @@ class ComicInfoFragment : BasePresenterBottomSheetDialog(), ComicInfoView {
                 } else if (comicInfo.issue != null) {
                     row(R.string.comic_info_general_info_issue, comicInfo.issue.toString())
                 } else if (comicInfo.issuesCount != null) {
-                    row(R.string.comic_info_general_info_issue, comicInfo.issuesCount.toString())
+                    row(R.string.comic_info_general_info_issues_count, comicInfo.issuesCount.toString())
                 }
 
                 row(R.string.comic_info_general_info_pages, comicInfo.pagesCount.toString())
@@ -252,7 +275,10 @@ class ComicInfoFragment : BasePresenterBottomSheetDialog(), ComicInfoView {
             }
         }
 
-        private fun inflateGroupView(@StringRes infoTitleResId: Int, isLast: Boolean = false): ViewGroup {
+        private fun inflateGroupView(
+            @StringRes infoTitleResId: Int,
+            isLast: Boolean = false
+        ): ViewGroup {
             parent.inflate<View>(R.layout.layout_comic_info_group, true, inflater)
 
             val titleView = parent[parent.childCount - 2] as TextView
@@ -350,13 +376,14 @@ class ComicInfoFragment : BasePresenterBottomSheetDialog(), ComicInfoView {
                 }
             }
 
-        fun Bundle.getComicBookId(): Long = getLong(ARG_COMIC_ID, NO_COMIC_ID).also {
-            if (it == NO_COMIC_ID) {
-                throw IllegalArgumentException("No comic book id provided")
+        val ComicInfoFragment.bookId: Long
+            get() = when (val bookId = requireArguments().getLong(ARG_COMIC_ID, NO_COMIC_ID)) {
+                NO_COMIC_ID -> throw IllegalArgumentException("No comic book id provided")
+                else -> bookId
             }
-        }
 
-        fun Bundle.getComicBookName(): String =
-            requireNotNull(getString(ARG_COMIC_NAME)) { "No comic book name provided" }
+        val ComicInfoFragment.bookName: String
+            get() = requireArguments().getString(ARG_COMIC_NAME)
+                ?: throw IllegalArgumentException("No comic book name provided")
     }
 }

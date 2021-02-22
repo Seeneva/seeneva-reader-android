@@ -5,11 +5,11 @@ import android.app.Service
 import android.content.Intent
 import androidx.annotation.CallSuper
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.LifecycleService
 import com.almadevelop.comixreader.AppNotification
 import com.almadevelop.comixreader.R
-import com.almadevelop.comixreader.presenter.BasePresenterService
 
-abstract class BaseForegroundService : BasePresenterService() {
+abstract class BaseForegroundService : LifecycleService() {
     protected abstract val rootNotificationId: Int
 
     @CallSuper

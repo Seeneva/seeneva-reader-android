@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.almadevelop.comixreader">
 
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+
+        <!--Will allow check is market available or not-->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data
+                android:host="search"
+                android:scheme="market" />
+        </intent>
+    </queries>
 
     <application
         android:name=".ComicsApplication"
@@ -22,6 +37,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -34,6 +50,7 @@
 
                 <!--<data android:scheme="file"  android:host="*" android:pathPattern=".*\\.7z" android:mimeType="*/*"  />-->
             </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -48,10 +65,21 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".screen.viewer.BookViewerActivity"
+            android:parentActivityName=".screen.MainActivity"
+            android:theme="@style/AppTheme.Viewer" />
+
         <service
             android:name=".service.add.AddComicBookService"
             android:description="@string/open_comic_service_descr"
             android:exported="false" />
+
+        <!-- Needed to set Koin WorkManager https://developer.android.com/topic/libraries/architecture/workmanager/advanced/custom-configuration -->
+        <provider
+            android:name="androidx.work.impl.WorkManagerInitializer"
+            android:authorities="${applicationId}.workmanager-init"
+            tools:node="remove" />
     </application>
 
 </manifest>

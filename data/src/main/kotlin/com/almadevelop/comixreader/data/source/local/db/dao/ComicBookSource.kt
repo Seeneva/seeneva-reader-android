@@ -15,6 +15,8 @@ import com.almadevelop.comixreader.data.source.local.db.query.intoCountSQLiteQue
 import com.almadevelop.comixreader.data.source.local.db.query.intoSQLiteQuery
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.Instant
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.coroutines.coroutineContext
@@ -46,9 +48,9 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
                         .insertOrReplace(it.copy(bookId = comicBookId))
                 }
 
-                if (!comicBook.pages.isNullOrEmpty()) {
+                if (comicBook.pages.isNotEmpty()) {
                     database.comicBookPageSource()
-                        .insert(comicBook.pages.map { it.copy(bookId = comicBookId) })
+                        .insertOrReplace(comicBook.pages.map { it.copy(bookId = comicBookId) })
                 }
             }
         }
@@ -73,13 +75,13 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
     }
 
     /**
-     * Try to get comic book by it [path] AND/OR [hashData]
+     * Try to get comic book by it [hashData] OR [path]
      * @param path comic book path
      * @param hashData comic book file data (size, hash, etc...)
      * @return comic book if it can be found. It can has different path or file description. So check it.
      */
-    suspend fun findByPathOrContent(path: Uri, hashData: FileHashData): FindResult? =
-        findByPathOrContent(path, hashData.hash, hashData.size)
+    suspend fun findByContentOrPath(path: Uri, hashData: FileHashData): FindResult? =
+        findByContentOrPath(path, hashData.hash, hashData.size)
 
     /**
      * @param queryParams params to use for count calculation
@@ -202,16 +204,77 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
     }
 
     /**
+     * Subscribe to comic book updates by it [id]
+     * @param id comic book id
+     */
+    fun subscribeFullById(id: Long): Flow<FullComicBookWithTags?> =
+        subscribeFullByIdInner(id).map { it.intoPublic() }
+
+    /**
+     * Get comic book paths which have any of provided [tagIds]
+     * @param tagIds requested comic book tag ids
+     */
+    suspend fun pathByTag(tagIds: Set<Long>): MutableSet<Uri> =
+        pathByTagInner(tagIds).toHashSet()
+
+    /**
+     * Get comic book ids which have any of provided [tagIds]
+     * @param tagIds requested comic book tag ids
+     */
+    suspend fun idByTag(tagIds: Set<Long>): MutableSet<Long> =
+        idByTagInner(tagIds).toHashSet()
+
+    /**
      * Update comic book path
      */
-    @Update(entity = ComicBook::class, onConflict = OnConflictStrategy.IGNORE)
-    abstract suspend fun updatePath(newPath: NewBookPath)
+    suspend fun updatePath(bookId: Long, newPath: Uri) {
+        updatePathInner(NewBookPath(bookId, newPath))
+    }
 
     /**
      * Update comic book title
      */
-    @Update(entity = ComicBook::class, onConflict = OnConflictStrategy.IGNORE)
-    abstract suspend fun updateTitle(newTitle: NewBookTitle)
+    suspend fun updateTitle(bookId: Long, newTitle: String) {
+        updateTitleInner(NewBookTitle(bookId, newTitle))
+    }
+
+    /**
+     * Update comic book action time
+     */
+    suspend fun updateActionTime(bookId: Long, newActionTime: Instant = Instant.now()) {
+        updateActionTimeInner(NewBookActionTime(bookId, newActionTime))
+    }
+
+    /**
+     * Update comic book cover position
+     */
+    suspend fun updateCoverPosition(bookId: Long, newCoverPosition: Long) {
+        updateCoverPositionInner(NewBookCoverPosition(bookId, newCoverPosition))
+    }
+
+    /**
+     * Update comic book read position
+     */
+    suspend fun updateReadPosition(bookId: Long, newReadPosition: Long) {
+        updateReadPositionInner(NewBookReadPosition(bookId, newReadPosition))
+    }
+
+    /**
+     * Update comic book read direction
+     */
+    suspend fun updateDirection(bookId: Long, newDirection: Int) {
+        updateDirectionInner(NewBookDirection(bookId, newDirection))
+    }
+
+    /**
+     * Subscribe on comic book read direction changes
+     * @param bookId target book id
+     */
+    @Query("""
+        SELECT ${ComicBook.COLUMN_DIRECTION} FROM ${ComicBook.TABLE_NAME}
+        WHERE ${ComicBook.COLUMN_ID} == (:bookId)
+    """)
+    abstract fun subscribeOnDirection(bookId: Long): Flow<Int>
 
     /**
      * Get comic book paths by it ids
@@ -226,16 +289,6 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
     """
     )
     abstract suspend fun pathById(bookIds: Set<Long>): List<Uri>
-
-    @Query(
-        """
-        SELECT DISTINCT ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_FILE_PATH}
-        FROM ${ComicBook.TABLE_NAME}
-            LEFT JOIN ${TaggedComicBook.TABLE_NAME} ON ${TaggedComicBook.COLUMN_BOOK_ID} = ${ComicBook.COLUMN_ID}
-        WHERE ${TaggedComicBook.TABLE_NAME}.${TaggedComicBook.COLUMN_TAG_ID} IN (:tagIds)
-    """
-    )
-    abstract suspend fun pathByTag(tagIds: Set<Long>): List<Uri>
 
     /**
      * Delete comic books by it ids
@@ -264,6 +317,65 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
     """
     )
     abstract suspend fun deleteByTag(tagIds: Set<Long>): Int
+
+    /**
+     * Update comic book path
+     */
+    @Update(entity = ComicBook::class, onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun updatePathInner(newPath: NewBookPath)
+
+    /**
+     * Update comic book title
+     */
+    @Update(entity = ComicBook::class, onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun updateTitleInner(newTitle: NewBookTitle)
+
+    /**
+     * Update comic book action time
+     */
+    @Update(entity = ComicBook::class, onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun updateActionTimeInner(newTime: NewBookActionTime)
+
+    /**
+     * Update comic book cover position
+     */
+    @Update(entity = ComicBook::class, onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun updateCoverPositionInner(newCoverPosition: NewBookCoverPosition)
+
+    /**
+     * Update comic book read position
+     */
+    @Update(entity = ComicBook::class, onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun updateReadPositionInner(newReadPosition: NewBookReadPosition)
+
+    /**
+     * Update comic book read direction
+     */
+    @Update(entity = ComicBook::class, onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun updateDirectionInner(newDirection: NewBookDirection)
+
+    @Query(
+        """
+        SELECT DISTINCT ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_FILE_PATH}
+        FROM ${ComicBook.TABLE_NAME}
+            LEFT JOIN ${TaggedComicBook.TABLE_NAME} ON ${TaggedComicBook.COLUMN_BOOK_ID} = ${ComicBook.COLUMN_ID}
+        WHERE ${TaggedComicBook.TABLE_NAME}.${TaggedComicBook.COLUMN_TAG_ID} IN (:tagIds)
+    """
+    )
+    protected abstract suspend fun pathByTagInner(tagIds: Set<Long>): List<Uri>
+
+    /**
+     * Get comic book ids by provided tags
+     */
+    @Query(
+        """
+        SELECT DISTINCT ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_ID}
+        FROM ${ComicBook.TABLE_NAME}
+            LEFT JOIN ${TaggedComicBook.TABLE_NAME} ON ${TaggedComicBook.COLUMN_BOOK_ID} = ${ComicBook.COLUMN_ID}
+        WHERE ${TaggedComicBook.TABLE_NAME}.${TaggedComicBook.COLUMN_TAG_ID} IN (:tagIds)
+    """
+    )
+    protected abstract suspend fun idByTagInner(tagIds: Set<Long>): List<Long>
 
     /**
      * Check is provided [bookIds] has tag with specific [tagId]. Result can be empty if there is no such comic books!
@@ -299,6 +411,10 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
     @Query("SELECT * FROM ${ComicBook.TABLE_NAME} WHERE ${ComicBook.COLUMN_ID} = :id LIMIT 1")
     protected abstract suspend fun getFullByIdInner(id: Long): FullComicBookWithTagsInner?
 
+    @Transaction
+    @Query("SELECT * FROM ${ComicBook.TABLE_NAME} WHERE ${ComicBook.COLUMN_ID} = :id LIMIT 1")
+    protected abstract fun subscribeFullByIdInner(id: Long): Flow<FullComicBookWithTagsInner?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertInner(comicBook: ComicBook): Long
 
@@ -306,17 +422,17 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
         """
         SELECT $SIMPLE_BOOK_COLUMNS,
         CASE
-            WHEN ${ComicBook.COLUMN_FILE_PATH} = :path THEN ${FindResult.SQL_BY_PATH}
-            ELSE ${FindResult.SQL_BY_CONTENT}
+            WHEN ${ComicBook.COLUMN_FILE_HASH} = :fileHash AND ${ComicBook.COLUMN_FILE_SIZE} = :fileSize THEN ${FindResult.SQL_BY_CONTENT}
+            ELSE ${FindResult.SQL_BY_PATH}
             END ${FindResult.COLUMN_FOUND_TYPE}
         FROM ${ComicBook.TABLE_NAME}
-        WHERE ${ComicBook.COLUMN_FILE_PATH} = :path OR 
-        (${ComicBook.COLUMN_FILE_HASH} = :fileHash AND ${ComicBook.COLUMN_FILE_SIZE} = :fileSize)
+        WHERE (${ComicBook.COLUMN_FILE_HASH} = :fileHash AND ${ComicBook.COLUMN_FILE_SIZE} = :fileSize) OR 
+        ${ComicBook.COLUMN_FILE_PATH} = :path
         LIMIT 1
     """
     )
     @Transaction
-    protected abstract suspend fun findByPathOrContent(
+    protected abstract suspend fun findByContentOrPath(
         path: Uri,
         fileHash: ByteArray,
         fileSize: Long
@@ -370,7 +486,8 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
             ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_FILE_PATH},
             ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_DISPLAY_NAME},
             ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_COVER_POSITION},
-            ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_ACTION_TIME}
+            ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_ACTION_TIME},
+            ${ComicBook.TABLE_NAME}.${ComicBook.COLUMN_DIRECTION}
         """
     }
 }

@@ -9,8 +9,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.almadevelop.comixreader.common.entity.FileHashData
 import com.almadevelop.comixreader.data.entity.*
 import com.almadevelop.comixreader.data.source.local.db.ComicDatabase
-import com.almadevelop.comixreader.data.source.local.db.entity.NewBookPath
-import com.almadevelop.comixreader.data.source.local.db.entity.NewBookTitle
 import com.almadevelop.comixreader.data.source.local.db.entity.TaggedComicBook
 import com.almadevelop.comixreader.data.source.local.db.query.QueryParams
 import com.almadevelop.comixreader.data.source.local.db.query.QuerySort
@@ -135,7 +133,7 @@ class DatabaseTest {
             //check comic book path update
             Uri.parse("file://test/new_path.cbz").also {
                 val id = idToBook.keys.random()
-                database.comicBookSource().updatePath(NewBookPath(id, it))
+                database.comicBookSource().updatePath(id, it)
 
                 val fullComicBook = database.comicBookSource().getFullById(id)
                 assertNotNull(fullComicBook)
@@ -145,7 +143,7 @@ class DatabaseTest {
             //check comic book name update
             "Comic book new title".also {
                 val id = idToBook.keys.random()
-                database.comicBookSource().updateTitle(NewBookTitle(id, it))
+                database.comicBookSource().updateTitle(id, it)
 
                 val fullComicBook = database.comicBookSource().getFullById(id)
                 assertNotNull(fullComicBook)
@@ -238,20 +236,23 @@ class DatabaseTest {
                     tags.keys
                         .random()
                         .also { tagId ->
-                            database.comicBookSource()
-                                .pathByTag(setOf(tagId))[0]
-                                .also {
-                                    assertEquals(idToBook.getValue(bookId).filePath, it)
-                                }
 
-                            database.comicBookSource().removeTags(bookId, setOf(tagId))
+                            with(database.comicBookSource()) {
+                                pathByTag(setOf(tagId)).first()
+                                    .also {
+                                        assertEquals(idToBook.getValue(bookId).filePath, it)
+                                    }
 
-                            database.comicBookSource()
-                                .hasTag(bookId, tagId)
-                                .also {
-                                    assertNotNull(it)
-                                    assertFalse(it)
-                                }
+                                idByTag(setOf(tagId)).first().also { assertEquals(bookId, it) }
+
+                                removeTags(bookId, setOf(tagId))
+
+                                hasTag(bookId, tagId)
+                                    .also {
+                                        assertNotNull(it)
+                                        assertFalse(it)
+                                    }
+                            }
                         }
 
                     //remove all tags
@@ -284,7 +285,7 @@ class DatabaseTest {
 
             //find by path
             database.comicBookSource()
-                .findByPathOrContent(book.filePath, FileHashData(byteArrayOf(), 100))
+                .findByContentOrPath(book.filePath, FileHashData(byteArrayOf(), 100))
                 .also {
                     assertNotNull(it)
                     assertEquals(FindResult.Type.Path, it.type)
@@ -293,7 +294,7 @@ class DatabaseTest {
 
             //find by content
             database.comicBookSource()
-                .findByPathOrContent(Uri.EMPTY, FileHashData(book.fileHash, book.fileSize))
+                .findByContentOrPath(Uri.EMPTY, FileHashData(book.fileHash, book.fileSize))
                 .also {
                     assertNotNull(it)
                     assertEquals(FindResult.Type.Content, it.type)
@@ -302,19 +303,19 @@ class DatabaseTest {
 
             //find by path and content
             database.comicBookSource()
-                .findByPathOrContent(book.filePath, FileHashData(book.fileHash, book.fileSize))
+                .findByContentOrPath(book.filePath, FileHashData(book.fileHash, book.fileSize))
                 .also {
                     assertNotNull(it)
-                    assertEquals(FindResult.Type.Path, it.type)
+                    assertEquals(FindResult.Type.Content, it.type)
                     assertEquals(id, it.comicBookWithTags.id)
                 }
 
             database.comicBookSource()
-                .findByPathOrContent(Uri.EMPTY, FileHashData(book.fileHash, 0))
+                .findByContentOrPath(Uri.EMPTY, FileHashData(book.fileHash, 0))
                 .also { assertNull(it) }
 
             database.comicBookSource()
-                .findByPathOrContent(Uri.EMPTY, FileHashData(byteArrayOf(), book.fileSize))
+                .findByContentOrPath(Uri.EMPTY, FileHashData(byteArrayOf(), book.fileSize))
                 .also { assertNull(it) }
         }
     }
@@ -501,6 +502,7 @@ class DatabaseTest {
             } else {
                 Random.nextLong(0, pages.size.toLong() - 1)
             },
+            0,
             if (hasMetadata) {
                 ComicRackMetadata(
                     optional { "title" },

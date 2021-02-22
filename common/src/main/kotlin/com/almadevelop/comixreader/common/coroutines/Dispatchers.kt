@@ -39,7 +39,6 @@ suspend fun <T> Dispatched.main(
 ): T = withDispatcher(dispatchers.main, context, block)
 
 suspend fun <T> Dispatched.immediate(
-    dispatchers: Dispatchers,
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend CoroutineScope.() -> T
 ): T = withDispatcher(dispatchers.mainImmediate, context, block)

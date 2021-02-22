@@ -3,8 +3,21 @@
     <dimen name="comic_thumb_grid_margin">4dp</dimen>
     <dimen name="comic_thumb_corner_radius">8dp</dimen>
 
+    <dimen name="comic_filter_list_margin">8dp</dimen>
+
+    <dimen name="comic_list_item_height">120dp</dimen>
+
     <dimen name="bottom_sheet_drag_corner_radius">16dp</dimen>
-    <dimen name="bottom_sheet_drag_line_width">6dp</dimen>
-    <dimen name="bottom_sheet_drag_line_height">32dp</dimen>
+    <dimen name="bottom_sheet_drag_line_stroke_width">6dp</dimen>
+    <dimen name="bottom_sheet_drag_line_width">32dp</dimen>
     <dimen name="bottom_sheet_drag_line_y_offset">8dp</dimen>
+
+    <dimen name="preview_pages_padding">8dp</dimen>
+
+    <dimen name="viewer_fling_velocity">450dp</dimen>
+
+    <dimen name="viewer_balloon_elevation">8dp</dimen>
+    <dimen name="viewer_balloon_scale_xy">0.5dp</dimen>
+
+    <dimen name="viewer_help_padding">8dp</dimen>
 </resources>

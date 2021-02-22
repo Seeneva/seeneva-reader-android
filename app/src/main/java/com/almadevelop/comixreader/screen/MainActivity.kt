@@ -11,17 +11,22 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
 import com.almadevelop.comixreader.R
+import com.almadevelop.comixreader.binding.getValue
+import com.almadevelop.comixreader.binding.viewBinding
+import com.almadevelop.comixreader.databinding.ActivityMainBinding
 import com.almadevelop.comixreader.screen.list.ComicsListFragment
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
+    private val viewBinding by viewBinding(ActivityMainBinding::bind)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setSupportActionBar(toolbar)
+        setSupportActionBar(viewBinding.toolbar)
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
+                setReorderingAllowed(true)
+
                 add(R.id.container, ComicsListFragment())
             }
         }
@@ -31,12 +36,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onSupportActionModeStarted(mode: ActionMode) {
         super.onSupportActionModeStarted(mode)
-        toolbar.visibility = View.INVISIBLE
+        viewBinding.toolbar.visibility = View.INVISIBLE
     }
 
     override fun onSupportActionModeFinished(mode: ActionMode) {
         super.onSupportActionModeFinished(mode)
-        toolbar.visibility = View.VISIBLE
+        viewBinding.toolbar.visibility = View.VISIBLE
     }
 
     override fun onAttachFragment(fragment: Fragment) {
@@ -46,17 +51,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
 
         val addToolbarContent = {
-            val toolbarContentView = fragment.activityActionBarContent(toolbar)
+            val toolbarContentView = fragment.activityActionBarContent(viewBinding.toolbar)
 
             if (toolbarContentView != null) {
-                toolbar += toolbarContentView
+                viewBinding.toolbar += toolbarContentView
 
                 //detach view if fragment detached
-                fragment.viewLifecycleOwnerLiveData.observe(this, Observer {
+                fragment.viewLifecycleOwnerLiveData.observe(this) {
                     if (it == null) {
-                        toolbar -= toolbarContentView
+                        viewBinding.toolbar -= toolbarContentView
                     }
-                })
+                }
             }
         }
 

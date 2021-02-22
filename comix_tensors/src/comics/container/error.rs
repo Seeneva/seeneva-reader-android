@@ -1,65 +1,25 @@
-use std::error::Error;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::io::Error as IoError;
-
-pub trait ComicContainerError: Error + Send + Sync {}
+use thiserror::Error as DeriveError;
 
 ///Errors returned while trying to init ComicContainer
-#[derive(Debug)]
+#[derive(DeriveError, Debug)]
 pub enum InitComicContainerError {
     /// Returned in case of unsupported file
+    #[error("Cannot be opened as comic book container")]
     Unsupported,
-    IO(IoError),
+    #[error("Can't open file as comic book container. IO error: '{0}'")]
+    IO(#[from] std::io::Error),
+    #[error("Can't open file as comic book container. Container error: '{0}'")]
+    ContainerError(#[from] Box<dyn ComicContainerError>),
 }
 
-impl From<IoError> for InitComicContainerError {
-    fn from(err: IoError) -> Self {
-        InitComicContainerError::IO(err)
+impl<E: ComicContainerError + 'static> From<E> for InitComicContainerError {
+    fn from(container_error: E) -> Self {
+        Self::ContainerError(Box::new(container_error))
     }
 }
 
-impl Display for InitComicContainerError {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        use self::InitComicContainerError::*;
-
-        match self {
-            IO(e) => writeln!(
-                f,
-                "Can't open file as comic book container. IO error: '{}'",
-                e
-            ),
-            Unsupported => writeln!(f, "Cannot be opened as comic book container"),
-        }
-    }
-}
-
-impl Error for InitComicContainerError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            InitComicContainerError::IO(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-///Calculate comic book archive hash error
-#[derive(Debug)]
-pub struct CalcArchiveHashError(IoError);
-
-impl From<IoError> for CalcArchiveHashError {
-    fn from(inner: IoError) -> Self {
-        CalcArchiveHashError(inner)
-    }
-}
-
-impl Display for CalcArchiveHashError {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        writeln!(f, "Can't calculate comic book archive hash")
-    }
-}
-
-impl Error for CalcArchiveHashError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        Some(&self.0)
-    }
+///Base trait for comic book containers errors
+pub trait ComicContainerError:
+    std::error::Error + thiserror::private::AsDynError + Send + Sync
+{
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingTop="14dp">
+    <item
+        android:gravity="top|center_horizontal"
+        android:top="@dimen/preview_pages_padding">
+        <shape>
+            <solid android:color="@color/black_alpha_20" />
+            <corners android:radius="10dp" />
+            <size
+                android:width="@dimen/bottom_sheet_drag_line_width"
+                android:height="@dimen/bottom_sheet_drag_line_stroke_width" />
+        </shape>
+    </item>
+</layer-list>

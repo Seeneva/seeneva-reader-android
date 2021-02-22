@@ -22,7 +22,10 @@ internal fun QueryParams.serialize(): String = JSONObject().also { jsonObject ->
 
     jsonObject.put(Keys.FILTERS, JSONArray().also { jsonArray ->
         filters.forEach { (filterGroupKey, filter) ->
-            jsonArray.put(JSONObject().put(Keys.FILTER_ID, filter.id).put(Keys.FILTER_GROUP_ID, filterGroupKey.name))
+            jsonArray.put(
+                JSONObject().put(Keys.FILTER_ID, filter.id)
+                    .put(Keys.FILTER_GROUP_ID, filterGroupKey.name)
+            )
         }
     })
 }.toString()
@@ -32,7 +35,10 @@ internal fun QueryParams.serialize(): String = JSONObject().also { jsonObject ->
  * @param query source
  * @return comic query params or default value if [query] is null
  */
-internal fun deserializeQueryParams(query: String?, filtersProvider: () -> List<FilterGroup>): QueryParams {
+internal fun deserializeQueryParams(
+    query: String?,
+    filtersProvider: () -> List<FilterGroup>
+): QueryParams {
     return QueryParams.build {
         if (!query.isNullOrEmpty()) {
             try {
@@ -42,7 +48,7 @@ internal fun deserializeQueryParams(query: String?, filtersProvider: () -> List<
 
                 addFilters(rootJson.getJSONArray(Keys.FILTERS), filtersProvider)
             } catch (t: Throwable) {
-                Logger.error(t)
+                Logger.error(t, "Can't deserialize ${QueryParams::class.java}")
             }
         }
     }

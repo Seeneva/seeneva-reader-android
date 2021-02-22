@@ -1,61 +1,10 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/cerulean</item>
-        <item name="colorPrimaryDark">@color/light_blue_800</item>
-        <item name="colorAccent">@color/deep_purple_400</item>
-        <item name="colorControlHighlight">@color/light_blue_800</item>
-
-        <item name="toolbarNavigationButtonStyle">@style/AppWidget.ToolbarNavigation</item>
-        <item name="toolbarStyle">@style/AppWidget.Toolbar</item>
-        <item name="bottomSheetDialogTheme">@style/AppBottomSheetTheme</item>
-
-        <item name="windowActionModeOverlay">true</item>
-        <item name="android:windowBackground">@color/grey_50</item>
-    </style>
-
-    <style name="AppTheme.WhiteControl">
-        <item name="colorControlNormal">@color/white</item>
-    </style>
-
-    <style name="AppBottomSheetTheme" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
-        <item name="colorPrimary">@color/cerulean</item>
-        <item name="colorPrimaryDark">@color/light_blue_800</item>
-        <item name="colorAccent">@color/deep_purple_400</item>
-        <item name="colorControlHighlight">@color/light_blue_800</item>
-
-        <item name="toolbarNavigationButtonStyle">@style/AppWidget.ToolbarNavigation</item>
-        <item name="toolbarStyle">@style/AppWidget.Toolbar</item>
-    </style>
-
-    <style name="AppBottomSheetTheme.NonCollapsed">
-        <item name="bottomSheetStyle">@style/AppWidget.BottomSheet.NonCollapsed</item>
-    </style>
-
-    <style name="AppBottomSheetTheme.FullScreen">
-        <item name="bottomSheetStyle">@style/AppWidget.BottomSheet.NonCollapsed.FullScreen</item>
-    </style>
-
-    <style name="AppWidget.Toolbar" parent="Widget.MaterialComponents.Toolbar">
-        <item name="titleTextColor">@color/white</item>
-        <item name="subtitleTextColor">#D9FFFFFF</item>
-    </style>
-
-    <style name="AppWidget.ToolbarNavigation" parent="Widget.AppCompat.Toolbar.Button.Navigation">
-        <item name="tint">@color/white</item>
-    </style>
-
-    <style name="AppWidget.BottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
-        <item name="android:background">@color/grey_50</item>
-    </style>
-
-    <style name="AppWidget.BottomSheet.NonCollapsed">
-        <item name="behavior_skipCollapsed">true</item>
-    </style>
-
-    <style name="AppWidget.BottomSheet.NonCollapsed.FullScreen">
-        <item name="behavior_fitToContents">false</item>
+    <style name="ComicListItem">
+        <item name="cardForegroundColor">@color/comic_list_foreground</item>
+        <item name="cardElevation">10dp</item>
+        <item name="cardPreventCornerOverlap">false</item>
+        <item name="shapeAppearanceOverlay">@style/AppShapeOverlay.ComicListItem</item>
     </style>
 
     <style name="ScreenTextMessage">
@@ -63,5 +12,15 @@
         <item name="android:textAppearance">?textAppearanceSubtitle2</item>
     </style>
 
+    <style name="TextTitle">
+        <item name="android:ellipsize">end</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:minHeight">32dp</item>
+        <item name="android:textAppearance">?textAppearanceSubtitle2</item>
+    </style>
 
+    <style name="AppTextAppearance.ViewerHelper" parent="">
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

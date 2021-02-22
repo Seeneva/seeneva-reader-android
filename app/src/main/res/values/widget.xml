@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppWidget.Toolbar.Primary" parent="Widget.MaterialComponents.Toolbar.Primary">
+        <!-- It will help to set navigation icon tint color -->
+        <item name="materialThemeOverlay">@style/AppOverlay.Toolbar.Primary</item>
+    </style>
+
+    <style name="AppOverlay.Toolbar.Primary" parent="ThemeOverlay.MaterialComponents.Toolbar.Primary">
+        <item name="toolbarNavigationButtonStyle">@style/AppWidget.ToolbarNavigation</item>
+    </style>
+
+    <style name="AppWidget.ToolbarNavigation" parent="Widget.AppCompat.Toolbar.Button.Navigation">
+        <item name="tint">?attr/colorControlNormal</item>
+    </style>
+
+    <style name="AppWidget.Slider" parent="Widget.MaterialComponents.Slider">
+        <item name="materialThemeOverlay">@style/AppOverlay.Slider</item>
+    </style>
+
+    <style name="AppOverlay.Slider" parent="">
+        <item name="colorPrimary">@color/deep_purple_400</item>
+    </style>
+
+    <style name="AppWidget.BottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal"/>
+
+    <style name="AppWidget.BottomSheet.NonCollapsed">
+        <item name="shapeAppearanceOverlay">@style/AppShapeOverlay.DraggableBottomSheet</item>
+        <item name="behavior_skipCollapsed">true</item>
+    </style>
+
+    <style name="AppWidget.BottomSheet.NonCollapsed.FullScreen">
+        <item name="behavior_fitToContents">false</item>
+    </style>
+</resources>

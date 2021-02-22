@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="ComicThumbView">
-        <attr name="comic_view_type" format="enum">
+    <declare-styleable name="ComicItemView">
+        <attr name="type" format="enum">
             <enum name="grid" value="0" />
             <enum name="list" value="1" />
         </attr>

@@ -1,35 +1,24 @@
 use jni::errors::Result as JniResult;
-use jni::objects::{JClass, JObject, JValue};
+use jni::objects::{JObject, JValue};
 use jni::JNIEnv;
-use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 
-use super::{constants::*, try_cache_class_descr, CacheClassDescr};
+use super::{constants, JniClassConstructorCache};
 
-static CLASS_DESCR: OnceCell<CacheClassDescr> = OnceCell::new();
+static CONSTRUCTOR: Lazy<JniClassConstructorCache<&str, &str>> =
+    Lazy::new(|| (constants::FILE_HASH_TYPE, "([BJ)V").into());
 
 pub type FileHash<'a> = JObject<'a>;
 
-fn class_descr(env: &JNIEnv) -> &'static CacheClassDescr {
-    return CLASS_DESCR.get_or_init(|| try_cache_class_descr(env, FILE_HASH_TYPE, "([BJ)V"));
-}
-
 ///Create new [FileHash] from provided comic book file size [file_size]
 /// and hash [file_hash]
-pub fn new<'a>(
-    env: &'a JNIEnv,
-    file_size: u64,
-    file_hash: &(impl AsRef<[u8]>),
-) -> JniResult<FileHash<'a>> {
-    let CacheClassDescr(class, constructor) = class_descr(env);
+pub fn new<'a>(env: &'a JNIEnv, file_size: u64, file_hash: &[u8]) -> JniResult<FileHash<'a>> {
+    let file_hash = env.auto_local(env.byte_array_from_slice(file_hash)?);
 
-    let file_hash = env.byte_array_from_slice(file_hash.as_ref())?;
-
-    env.new_object_unchecked(
-        JClass::from(class.as_obj()),
-        *constructor,
-        &[
-            JObject::from(file_hash).into(),
+    CONSTRUCTOR.init(env).and_then(|constructor| {
+        constructor.create(&[
+            file_hash.as_obj().into(),
             JValue::Long(file_size as _),
-        ],
-    )
+        ])
+    })
 }

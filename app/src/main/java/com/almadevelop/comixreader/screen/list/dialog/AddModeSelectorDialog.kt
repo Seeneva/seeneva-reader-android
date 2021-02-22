@@ -7,26 +7,14 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.plusAssign
 import com.almadevelop.comixreader.R
+import com.almadevelop.comixreader.di.parentFragmentScope
 import com.almadevelop.comixreader.extension.inflate
-import com.almadevelop.comixreader.extension.parentKoinScope
-import com.almadevelop.comixreader.extension.setDraggableBackground
 import com.almadevelop.comixreader.logic.comic.AddComicBookMode
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class AddModeSelectorDialog : BottomSheetDialogFragment() {
+class AddModeSelectorDialog : BaseDraggableDialog() {
     private val addModes = AddComicBookMode.values()
 
-    private val bottomSheetBehavior by lazy {
-        requireNotNull(dialog).findViewById<View>(R.id.design_bottom_sheet)
-            .let { BottomSheetBehavior.from(it) }
-    }
-
-    private val callback by lazy<Callback?> { parentKoinScope.getOrNull() }
-
-    init {
-        setStyle(STYLE_NORMAL, R.style.AppBottomSheetTheme_NonCollapsed)
-    }
+    private val callback by lazy { parentFragmentScope?.getOrNull<Callback>() }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,21 +24,13 @@ class AddModeSelectorDialog : BottomSheetDialogFragment() {
         return inflater.inflate(R.layout.dialog_add_mode_selector, container, false)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        setDraggableBackground()
-
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val containerView = view.findViewById<ViewGroup>(R.id.container)
 
         val onModeClickListener = View.OnClickListener {
-            callback?.onAddModeSelecetd(it.tag as AddComicBookMode)
+            callback?.onAddModeSelected(it.tag as AddComicBookMode)
 
             dismiss()
         }
@@ -71,7 +51,7 @@ class AddModeSelectorDialog : BottomSheetDialogFragment() {
     }
 
     interface Callback {
-        fun onAddModeSelecetd(selectedMode: AddComicBookMode)
+        fun onAddModeSelected(selectedMode: AddComicBookMode)
     }
 
     private data class AddModeData(val title: CharSequence, val description: CharSequence)

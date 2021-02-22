@@ -7,7 +7,6 @@ import androidx.multidex.MultiDex
 import com.almadevelop.comixreader.AppNotification.createComicNotificationChannels
 import com.almadevelop.comixreader.di.setup
 import com.almadevelop.comixreader.work.SyncManager
-import com.jakewharton.threetenabp.AndroidThreeTen
 import org.koin.android.ext.android.get
 import org.koin.core.context.startKoin
 import java.util.concurrent.TimeUnit
@@ -17,8 +16,6 @@ class ComicsApplication : Application() {
         super.onCreate()
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-
-        AndroidThreeTen.init(this)
 
         createComicNotificationChannels()
 

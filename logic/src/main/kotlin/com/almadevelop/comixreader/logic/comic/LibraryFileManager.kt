@@ -13,6 +13,7 @@ import com.almadevelop.comixreader.common.coroutines.Dispatchers
 import com.almadevelop.comixreader.common.coroutines.io
 import com.almadevelop.comixreader.logic.entity.SimpleFileData
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.tinylog.kotlin.Logger
@@ -26,7 +27,7 @@ internal interface LibraryFileManager {
      * @param path path to comic book which should be removed
      */
     suspend fun remove(path: Uri) {
-        remove(Collections.singletonList(path))
+        remove(listOf(path))
     }
 
     /**
@@ -52,7 +53,17 @@ internal interface LibraryFileManager {
      */
     suspend fun replace(oldPath: Uri, newFileData: SimpleFileData, addMode: AddComicBookMode): Uri
 
-    suspend fun getValidPersistedPaths(): Set<Uri>
+    /**
+     * Return all valid comic book path
+     */
+    suspend fun getValidPersistedPaths(): MutableSet<Uri>
+
+    /**
+     * Check is provided comic book path valid or not
+     * @param path comic book path to check
+     * @return true if comic book valid
+     */
+    suspend fun isPathPersisted(path: Uri): Boolean
 }
 
 /**
@@ -92,43 +103,66 @@ internal class LibraryFileManagerImpl(
             addInner(newFileData, addMode)
         }
 
-    override suspend fun getValidPersistedPaths(): Set<Uri> {
+    override suspend fun getValidPersistedPaths(): MutableSet<Uri> {
         val paths = hashSetOf<Uri>()
 
-        @SuppressLint("NewApi")
-        if (canPersistContentUri) {
-            io {
-                context.contentResolver
-                    .persistedUriPermissions
-                    .filter {
-                        val isDocumentUri = requireNotNull(
-                            DocumentFile.fromSingleUri(context, it.uri)
-                        ).exists()
-
-                        isDocumentUri && it.isReadPermission
-                    }
-                    .forEach {
-                        ensureActive()
-                        paths += it.uri
-                    }
-            }
-        }
-
         io {
+
+            allLinkedComicBooks().collect {
+                ensureActive()
+                paths += it
+            }
+
             //get all files inside user library folder and convert them into Uri
-            ComicHelper.innerComicBookLibraryDir(context)
-                .walkTopDown()
-                .maxDepth(1)
-                .filterNot { it.isDirectory }
-                .forEach {
-                    ensureActive()
-                    paths += it.toUri()
-                }
+            allAddedComicBooks().forEach {
+                ensureActive()
+                paths += it
+            }
         }
 
         return paths
     }
 
+    override suspend fun isPathPersisted(path: Uri) =
+        when (val scheme = path.scheme) {
+            ContentResolver.SCHEME_CONTENT -> allLinkedComicBooks()
+            ContentResolver.SCHEME_FILE -> allAddedComicBooks().asFlow()
+            else -> throw IllegalArgumentException("Unsupported comic book path scheme: $scheme")
+        }.firstOrNull { it == path }?.let { true } ?: false
+
+    /**
+     * @return all current linked comic books (using [android.provider.DocumentsContract.Document])
+     */
+    @SuppressLint("NewApi")
+    private fun allLinkedComicBooks(): Flow<Uri> =
+        if (canPersistContentUri) {
+            context.contentResolver
+                .persistedUriPermissions
+                .asFlow()
+                .filter {
+                    val isDocumentExists =
+                        requireNotNull(DocumentFile.fromSingleUri(context, it.uri)).exists()
+
+                    if (!isDocumentExists) {
+                        //remove invalid persisted document
+                        changePersistPermissions(false, it.uri)
+                    }
+
+                    isDocumentExists && it.isReadPermission
+                }.map { it.uri }
+        } else {
+            emptyFlow()
+        }
+
+    /**
+     * @return all currently added comic books (using file system)
+     */
+    private fun allAddedComicBooks(): Sequence<Uri> =
+        ComicHelper.innerComicBookLibraryDir(context)
+            .walkTopDown()
+            .maxDepth(1)
+            .filterNot { it.isDirectory }
+            .map { it.toUri() }
 
     private suspend fun removeInner(paths: Collection<Uri>) {
         if (paths.isEmpty()) {

@@ -1,0 +1,43 @@
+[package]
+name = "tflite-sys"
+version = "2.2.0"
+authors = ["Sergey Solodovnikov"]
+edition = "2018"
+links = "tensorflow-lite"
+build = "build.rs"
+
+[profile.release]
+opt-level = "z"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+cmake = "0.1.44"
+lazy_static = "1.4"
+bindgen = "0.55"
+sysinfo = "0.15"
+build-helper = { path = "../build-helper" }
+
+[features]
+default = ["build_lib", "clean"]
+
+with_all = ["with_nnapi", "with_mmap", "with_ruy", "with_gpu"]
+# Enable Android's "Neural Networks API"
+# Build with NNAPI delegate
+with_nnapi = []
+with_mmap = []
+# https://github.com/google/ruy/
+with_ruy = []
+# Build with GPU delegate
+with_gpu = []
+
+# Different Tensorflow Lite build variants
+build_all = []
+build_micro = []
+build_lib = []
+build_minimal = []
+build_benchmark_lib = []
+build_benchmark = []
+
+clean = []
+

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="comic_list_item_height">80dp</dimen>
+
+    <dimen name="viewer_help_padding">16dp</dimen>
+</resources>

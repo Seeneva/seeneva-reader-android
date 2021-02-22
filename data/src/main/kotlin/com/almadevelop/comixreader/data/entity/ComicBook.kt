@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.annotation.Keep
 import androidx.room.*
 import com.almadevelop.comixreader.data.source.local.db.entity.SimpleComicBookWithTags
-import org.threeten.bp.Instant
+import java.time.Instant
 
 /**
  * @param filePath path of the comic book of the device
@@ -12,7 +12,9 @@ import org.threeten.bp.Instant
  * @param fileHash calculated comic book hash
  * @param displayName displayName of the comic book
  * @param coverPosition position of comics' cover image
+ * @param direction comic book pages read direction
  * @param actionTime time in millis when comic book was read
+ * @param readPosition last read page position
  */
 @Entity(
     tableName = ComicBook.TABLE_NAME,
@@ -43,8 +45,12 @@ data class ComicBook @JvmOverloads constructor(
     val displayName: String,
     @ColumnInfo(name = COLUMN_COVER_POSITION)
     val coverPosition: Long,
+    @ColumnInfo(name = COLUMN_DIRECTION)
+    val direction: Int,
     @ColumnInfo(name = COLUMN_ACTION_TIME, defaultValue = "(strftime('%s', 'now'))") //UTC seconds
     val actionTime: Instant,
+    @ColumnInfo(name = COLUMN_READ_POSITION)
+    val readPosition: Long,
     @Ignore
     val metadata: ComicRackMetadata? = null,
     @Ignore
@@ -62,6 +68,7 @@ data class ComicBook @JvmOverloads constructor(
         fileHash: ByteArray,
         displayName: String,
         coverPosition: Long,
+        direction: Int,
         metadata: ComicRackMetadata?,
         pages: Array<ComicBookPage>
     ) : this(
@@ -71,7 +78,9 @@ data class ComicBook @JvmOverloads constructor(
         fileHash,
         displayName,
         coverPosition,
+        direction,
         Instant.now(),
+        coverPosition, //start position on the first page
         metadata,
         pages.asList()
     )
@@ -88,7 +97,9 @@ data class ComicBook @JvmOverloads constructor(
         if (!fileHash.contentEquals(other.fileHash)) return false
         if (displayName != other.displayName) return false
         if (coverPosition != other.coverPosition) return false
+        if (direction != other.direction) return false
         if (actionTime != other.actionTime) return false
+        if (readPosition != other.readPosition) return false
         if (metadata != other.metadata) return false
         if (pages != other.pages) return false
 
@@ -102,7 +113,9 @@ data class ComicBook @JvmOverloads constructor(
         result = 31 * result + fileHash.contentHashCode()
         result = 31 * result + displayName.hashCode()
         result = 31 * result + coverPosition.hashCode()
+        result = 31 * result + direction
         result = 31 * result + actionTime.hashCode()
+        result = 31 * result + readPosition.hashCode()
         result = 31 * result + (metadata?.hashCode() ?: 0)
         result = 31 * result + pages.hashCode()
         return result
@@ -117,7 +130,9 @@ data class ComicBook @JvmOverloads constructor(
         internal const val COLUMN_FILE_HASH = "file_hash"
         internal const val COLUMN_DISPLAY_NAME = "display_name"
         internal const val COLUMN_COVER_POSITION = "cover_position"
+        internal const val COLUMN_DIRECTION = "direction"
         internal const val COLUMN_ACTION_TIME = "action_time"
+        internal const val COLUMN_READ_POSITION = "read_position"
 
         internal const val INDEX_FILE = "idx_file"
         internal const val INDEX_FILE_PATH = "idx_file_path"
@@ -130,20 +145,22 @@ data class FindResult(
     @Embedded
     val comicBookWithTags: SimpleComicBookWithTags
 ) {
-    enum class Type {
+    enum class Type(internal val id: Int) {
         /**
          * Was found using file path
          */
-        Path,
+        Path(SQL_BY_PATH),
+
         /**
          * Was found using file content
          */
-        Content
+        Content(SQL_BY_CONTENT)
     }
 
     companion object {
         internal const val COLUMN_FOUND_TYPE = "found_type"
 
+        //I need these constants to use it in Room annotations
         internal const val SQL_BY_PATH = 0
         internal const val SQL_BY_CONTENT = 1
     }

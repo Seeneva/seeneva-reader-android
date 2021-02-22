@@ -1,103 +1,90 @@
 use jni::errors::Result as JniResult;
-use jni::objects::{JClass, JObject, JString};
-use jni::sys::{jbyteArray, jlong};
+use jni::objects::{JObject, JString};
+use jni::sys::{jint, jlong};
 use jni::JNIEnv;
-use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 
-use crate::{ComicInfo, ComicPageMetadata};
+pub use success::new as new_success;
 
-use super::{
-    comic_book_page, comic_rack_metadata, constants::*, try_cache_class_descr, CacheClassDescr,
-};
+use crate::comics::content::ComicInfo;
 
-///Init success Java variant
-pub fn new_success<'a>(
-    env: &'a JNIEnv,
-    comics_path: JString,
-    comics_name: JString,
-    comic_size: u64,
-    comic_hash: &[u8],
-    comic_cover_position: usize,
-    pages_metadata: &[ComicPageMetadata],
-    comic_info: &Option<ComicInfo>,
-) -> JniResult<JObject<'a>> {
-    let comic_hash = env.byte_array_from_slice(comic_hash)?;
-
-    success::new(
-        env,
-        comics_path,
-        comics_name,
-        comic_size as _,
-        comic_hash,
-        comic_cover_position as _,
-        pages_metadata,
-        comic_info,
-    )
-}
+use super::{comic_book_page, comic_rack, constants, JniClassConstructorCache};
 
 mod success {
+    use std::convert::TryInto;
+
+    use crate::comics::content::ComicPage;
+
     use super::*;
 
-    static CLASS_DESCR: OnceCell<CacheClassDescr> = OnceCell::new();
+    static CONSTRUCTOR: Lazy<JniClassConstructorCache<&str, String>> = Lazy::new(|| {
+        (
+            constants::Results::COMIC_BOOK_TYPE,
+            format!(
+                "(\
+                Ljava/lang/String;\
+                J[B\
+                Ljava/lang/String;\
+                JI\
+                L{};\
+                [L{};\
+                )V",
+                constants::COMIC_RACK_METADATA_TYPE,
+                constants::COMIC_BOOK_PAGE_TYPE
+            ),
+        )
+            .into()
+    });
 
     pub type ComicBookSuccess<'a> = JObject<'a>;
-
-    fn class_descr(env: &JNIEnv) -> &'static CacheClassDescr {
-        return CLASS_DESCR.get_or_init(|| {
-            try_cache_class_descr(
-                env,
-                Results::COMIC_BOOK_TYPE,
-                format!(
-                    "(Ljava/lang/String;J[BLjava/lang/String;JL{};[L{};)V",
-                    COMIC_RACK_METADATA_TYPE, COMIC_BOOK_PAGE_TYPE
-                )
-                .as_str(),
-            )
-        });
-    }
 
     ///Init success Java variant
     pub fn new<'a>(
         env: &'a JNIEnv,
-        comic_path: JString,
-        comic_name: JString,
-        comic_size: jlong,
-        comic_hash: jbyteArray,
-        comic_cover_position: jlong,
-        pages_metadata: &[ComicPageMetadata],
-        comic_info: &Option<ComicInfo>,
+        path: JString,
+        name: JString,
+        comic_direction: jint,
+        container_size: u64,
+        container_hash: &[u8],
+        comic_cover_position: usize,
+        pages: &[ComicPage],
+        info: Option<&ComicInfo>,
     ) -> JniResult<ComicBookSuccess<'a>> {
-        let comic_hash = JObject::from(comic_hash);
+        env.with_local_frame(5, || {
+            let comic_size: jlong = container_size.try_into().expect("Can't convert comic_size");
 
-        let CacheClassDescr(class, constructor) = class_descr(env);
+            let comic_hash = env.byte_array_from_slice(container_hash)?;
 
-        let comic_title = create_comic_title(env, comic_info, comic_name)?;
-        let comic_rack_metadata = comic_rack_metadata::new(env, comic_info)?;
-        let comic_book_pages = comic_book_page::new_array(env, pages_metadata)?;
+            let comic_cover_position: jlong = comic_cover_position
+                .try_into()
+                .expect("Can't convert cover_position");
 
-        env.new_object_unchecked(
-            JClass::from(class.as_obj()),
-            *constructor,
-            &[
-                JObject::from(comic_path).into(),
-                comic_size.into(),
-                comic_hash.into(),
-                JObject::from(comic_title).into(),
-                comic_cover_position.into(),
-                comic_rack_metadata.into(),
-                comic_book_pages.into(),
-            ],
-        )
+            let comic_title = create_comic_title(env, info, name)?;
+            let comic_rack_metadata = comic_rack::metadata::new(env, info)?;
+            let comic_book_pages = comic_book_page::new_array(env, pages)?;
+
+            CONSTRUCTOR.init(env).and_then(|constructor| {
+                constructor.create(&[
+                    JObject::from(path).into(),
+                    comic_size.into(),
+                    comic_hash.into(),
+                    JObject::from(comic_title).into(),
+                    comic_cover_position.into(),
+                    comic_direction.into(),
+                    comic_rack_metadata.into(),
+                    comic_book_pages.into(),
+                ])
+            })
+        })
     }
 
     ///Create comic book title fom [ComicInfo] if provided. Or return [default_title]
     fn create_comic_title<'a>(
         env: &'a JNIEnv,
-        comic_info: &Option<ComicInfo>,
+        comic_info: Option<&ComicInfo>,
         default_title: JString<'a>,
     ) -> JniResult<JString<'a>> {
         comic_info
-            .as_ref()
             .and_then(|comic_info| match &comic_info.series {
                 Some(title) => Some(match &comic_info.number {
                     Some(number) => format!("{} #{}", title, number),

@@ -1,91 +1,102 @@
 use jni::objects::{JObject, JString};
+use jni::sys::jint;
 use jni::JNIEnv;
-use tokio::prelude::*;
 
-use crate::android::jni_app::prelude::*;
-use crate::comics::prelude::*;
-use crate::FileRawFd;
+use file_descriptor::FileRawFd;
 
-use super::{error::TaskError, execute_task, InitTaskResult};
+use crate::android::jni_app::*;
+use crate::comics::container::ComicContainer;
+use crate::comics::content::{get_comic_book_content, GetComicBookContentError};
+use crate::utils::blake_hash;
 
-mod error;
+use super::{spawn_task, SpawnTaskResult};
 
-///Start Tokio task which open comic container by it [fd], extract files from it, filter,
+///Start task which open comic container by it [fd], extract files from it, filter,
 /// and returns supported files data
-/// Return error if any goes wrong or task was cancelled using [cancel_receiver]
 pub fn comic_book_metadata<'a>(
     env: &'a JNIEnv,
-    mut fd: FileRawFd,
+    fd: FileRawFd,
     comics_path: JString,
     comics_name: JString,
+    comics_direction: jint,
+    ml_interpreter: JObject<'a>,
     task_callback: JObject<'a>,
-) -> InitTaskResult<'a> {
-    let comics_path = env.new_global_ref(comics_path.into())?;
-    let comics_name = env.new_global_ref(comics_name.into())?;
+) -> SpawnTaskResult<'a> {
+    let comics_path = env.new_global_ref(comics_path)?;
+    let comics_name = env.new_global_ref(comics_name)?;
 
-    let init_fd = fd.dup()?;
+    let ml_interpreter = env.new_global_ref(ml_interpreter)?;
 
-    let task_future = future::lazy(move || ComicContainerVariant::init(init_fd))
-        .from_err::<TaskError>()
-        .map(|container| container.files().from_err())
-        .flatten_stream()
-        .get_comic_file_metadata()
-        .fold((vec![], None), |mut acc, comic_book_metadata| {
-            //collect all pages and comicInfo if present
-            let (pages, comic_info) = &mut acc;
-
-            use ComicBookMetadataType::*;
-
-            match comic_book_metadata {
-                ComicPage(comic_page_metadata) => {
-                    pages.push(comic_page_metadata);
-                }
-                ComicInfo(new_info) => {
-                    comic_info.replace(new_info);
-                }
-            }
-
-            future::ok::<_, Box<dyn AsJThrowable + Send>>(acc)
-        })
-        .and_then(move |(pages, comic_info)| {
-            //calculate comic book hash and size in bytes
-            archive_hash_metadata(&mut fd)
-                .map(|(archive_size, archive_hash)| (archive_size, archive_hash, pages, comic_info))
-                .map_err(|e| CalcArchiveHashError::from(e).into())
-        });
-
-    execute_task(
+    spawn_task(
+        "comic_book_metadata",
         env,
         task_callback,
-        task_future,
-        move |env, (archive_size, archive_hash, mut pages, comic_info)| {
+        move |task, env| {
             let comics_path = comics_path;
             let comics_name = comics_name;
 
-            //sort all pages by it position in the comic book container
-            pages.sort_by(|page_1, page_2| page_1.name.cmp(&page_2.name));
+            let ml_interpreter = ml_interpreter;
 
-            //determine position of cover in the comic container
-            let cover_position = comic_info
-                .as_ref()
-                .and_then(|comic_info| comic_info.pages.as_ref())
-                .and_then(|info_pages| info_pages.into_iter().find(|p| p.is_cover()))
-                .and_then(|cover_info_page| cover_info_page.image)
-                .and_then(|cover_position| pages.get(cover_position as usize))
-                .map(|page| page.pos)
-                .unwrap_or(pages.first().expect("Should contain at least one page").pos);
+            let mut fd = fd;
+
+            let (pages, info, cover_position) = {
+                info!("Trying to open comic book container by file descriptor");
+
+                let mut container = fd
+                    .dup()
+                    .err_into_jni_throwable(Throwable::NativeFatalError, env)
+                    .and_then(|fd| {
+                        super::container_result_into_throwable(ComicContainer::open_fd(fd), env)
+                    })?;
+
+                task.check()?;
+
+                info!("Trying receive ML interpreter from JNI object");
+
+                //get tensorflow interpreter from jni object
+                let mut interpreter = unwrap_task_result!(
+                    app_objects::ml::Interpreter::get_inner(env, ml_interpreter.as_obj()),
+                    env
+                );
+
+                info!("Process comic book container files");
+
+                get_comic_book_content(&task, &mut container, &mut interpreter).map_err(|err| {
+                    match err {
+                        GetComicBookContentError::Empty => err
+                            .try_as_jni_throwable(
+                                Throwable::NativeException(NativeExceptionCode::EmptyBook),
+                                env,
+                            )
+                            .into(),
+                        GetComicBookContentError::Cancelled(err) => super::TaskError::from(err),
+                    }
+                })?
+            };
+
+            task.check()?;
+
+            info!("Calculate comic book container hash");
+
+            let (size, hash) = unwrap_task_result!(blake_hash(&mut fd), env);
+
+            task.check()?;
+
+            info!("Map comic book container into JNI object");
 
             app_objects::comic_book_result::new_success(
-                &env,
+                env,
                 comics_path.as_obj().into(),
                 comics_name.as_obj().into(),
-                archive_size,
-                archive_hash.as_ref(),
+                comics_direction,
+                size,
+                &hash,
                 cover_position,
                 &pages,
-                &comic_info,
+                info.as_ref(),
             )
-            .map(|result| result.into_inner())
+            .err_into_jni_throwable(Throwable::NativeFatalError, env)
+            .map_err(Into::into)
         },
     )
 }

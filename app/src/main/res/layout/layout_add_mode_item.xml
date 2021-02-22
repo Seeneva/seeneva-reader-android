@@ -15,11 +15,7 @@
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:gravity="center_vertical"
-        android:maxLines="1"
-        android:minHeight="32dp"
-        android:textAppearance="?textAppearanceSubtitle2"
+        style="@style/TextTitle"
         tools:text="@tools:sample/full_names" />
 
     <TextView

@@ -1,7 +1,7 @@
 [package]
 name = "libarchive-sys"
-version = "3.4.2"
-authors = ["Sergey Solodovnikov <elementa.ru@gmail.com>"]
+version = "3.4.3"
+authors = ["Sergey Solodovnikov"]
 edition = "2018"
 links = "archive"
 build = "build.rs"
@@ -13,9 +13,11 @@ crate-type = ["lib"]
 
 [dependencies]
 libc = "0.2"
-
-[target.'cfg(target_os="android")'.dependencies]
 xz-sys = {path = "../xz-sys"}
 
 [build-dependencies]
-cc = "1.0"
+pkg-config = "0.3"
+build-deps = "0.1"
+bindgen = "0.55"
+cmake = "0.1"
+build-helper = { path = "../build-helper" }

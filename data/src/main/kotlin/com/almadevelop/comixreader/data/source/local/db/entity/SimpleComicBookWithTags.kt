@@ -6,8 +6,7 @@ import androidx.room.Junction
 import androidx.room.Relation
 import com.almadevelop.comixreader.data.entity.ComicBook
 import com.almadevelop.comixreader.data.entity.ComicTag
-import com.almadevelop.comixreader.data.source.local.db.entity.TaggedComicBook
-import org.threeten.bp.Instant
+import java.time.Instant
 
 data class SimpleComicBookWithTags(
     @ColumnInfo(name = ComicBook.COLUMN_ID)

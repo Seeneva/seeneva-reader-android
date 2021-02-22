@@ -6,9 +6,6 @@ import com.almadevelop.comixreader.data.entity.FindResult
 internal class FindResultTypeIntConverter {
     @TypeConverter
     fun intToType(value: Int): FindResult.Type =
-        when (value) {
-            FindResult.SQL_BY_PATH -> FindResult.Type.Path
-            FindResult.SQL_BY_CONTENT -> FindResult.Type.Content
-            else -> throw IllegalArgumentException("Unknown find result type: '$value'")
-        }
+        FindResult.Type.values().firstOrNull { it.id == value }
+            ?: throw IllegalArgumentException("Unknown find result type: '$value'")
 }

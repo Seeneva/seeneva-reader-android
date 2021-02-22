@@ -7,5 +7,5 @@ repositories {
 }
 
 dependencies{
-    implementation("com.google.gradle:osdetector-gradle-plugin:1.6.2")
+    //implementation("com.google.gradle:osdetector-gradle-plugin:1.6.2")
 }

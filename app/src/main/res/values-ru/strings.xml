@@ -4,6 +4,9 @@
     <string name="all_cancel">Отмена</string>
 
     <string name="search">Найти</string>
+    <string name="settings">Настройки</string>
+    <string name="copy">Копировать</string>
+    <string name="install">Установить</string>
 
     <string name="comic_list_as_list">Списком</string>
     <string name="comic_list_as_grid">Таблицей</string>
@@ -18,10 +21,12 @@
     <string name="comic_list_remove">Убрать</string>
     <string name="comic_list_undo_delete">Отменить</string>
 
-    <string name="comic_list_message_empty">Ваша библиотека комиксов пуста :(</string>
-    <string name="comic_list_message_not_found">Ни один комикс не найден</string>
+    <string name="comic_list_message_empty">Ваша библиотека комиксов пуста ☹️</string>
+    <string name="comic_list_message_not_found">Ни один комикс не найден ☹</string>
 
     <string name="comic_list_error_no_file_manager">Необходим файловый менеджер</string>
+    <string name="comic_list_error_view_corrupted">Упс. Файл комикса повреждён 😨</string>
+    <string name="comic_list_error_view_non_existed">Упс. Комикс не найден 😨</string>
 
     <string name="comic_list_search_hint">Заголовок</string>
 
@@ -76,7 +81,7 @@
     <string name="comic_info_plot_teams">Команды</string>
     <string name="comic_info_plot_locations">Места</string>
 
-    <string name="comic_info_err_cant_find">Комикс не найден на устройстве :(</string>
+    <string name="comic_info_err">Упс. Произошла ошибка 😨</string>
 
     <string name="rename_err_empty_title">Не может быть пустым</string>
 
@@ -102,13 +107,28 @@
     <string name="notification_open_metatada_error_title">Ошибка открытия</string>
     <string name="notification_open_metatada_error_read_container">Не удалось прочитать файл комикса</string>
     <string name="notification_open_metatada_error_read_container_short">\'%1$s\': не удалось прочитать файл</string>
-    <string name="notification_open_metatada_error_open_container_magic">Не удалось распознать расширение файла комикса</string>
-    <string name="notification_open_metatada_error_open_container_magic_short">\'%1$s\': не удалось распознать расширение файла</string>
     <string name="notification_open_metatada_error_open_container_unsupported">Данный файл не поддерживается</string>
     <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': не поддерживается</string>
     <string name="notification_open_metatada_error_no_pages">Файл комикса не содержит страниц</string>
     <string name="notification_open_metatada_error_no_pages_short">\'%1$s\': не содержит страниц</string>
-    <string name="notification_open_metatada_error_image">Не удалось прочитать данные из страницы комикса</string>
-    <string name="notification_open_metatada_error_image_short">\'%1$s\': не удалось прочитать данные</string>
+
+    <string name="viewer_preview_page_counter">Страница: %1$d из %2$d</string>
+    <string name="viewer_set_cover">Сделать обложкой</string>
+    <string name="viewer_swap_read_direction">Поменять направление чтения</string>
+    <string name="viewer_cover_changed">Обложка заменена</string>
+    <string name="viewer_txt_recognize_empty">Текст не распознан 😨</string>
+    <string name="viewer_txt_recognize_process">В процессе распознавания текста 👀</string>
+
+    <string name="viewer_settings_keep_screen_on">Не выключать экран</string>
+    <string name="viewer_settings_system_brightness">Системная яркость</string>
+    <string name="viewer_settings_tts">Синтез речи (только английский)</string>
+
+    <string name="viewer_tts_error_title">TTS не доступен</string>
+    <string name="viewer_tts_error_not_installed">Для продолжения установите на устройство любой доступный синтезатор речи (TTS) и настройте \'%1$s\' язык.</string>
+    <string name="viewer_tts_error_language">Для продолжения установите \'%1$s\' язык для выбранного TTS.</string>
+
+    <string name="viewer_help_title">Подсказка</string>
+    <string name="viewer_help_tap">Нажмите</string>
+    <string name="viewer_help_hold">Подержите</string>
 
 </resources>
