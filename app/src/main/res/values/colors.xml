@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Seeneva Android Reader
+  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
 <resources>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="white">#FFFFFF</color>
+
+    <color name="light_blue_50">#EAF9FF</color>
+    <color name="cerulean">#03A9F4</color>
+    <color name="light_blue_800">#0073A7</color>
+    <color name="deep_purple_400">#865DDD</color>
+
+    <color name="grey_50">#FAFAFA</color>
+    <color name="white_alpha_50">#80FFFFFF</color>
+    <color name="black_alpha_20">#33000000</color>
+    <color name="black_alpha_50">#B3000000</color>
+    <color name="black">#FF000000</color>
+
+    <color name="red_800">#C03221</color>
 </resources>

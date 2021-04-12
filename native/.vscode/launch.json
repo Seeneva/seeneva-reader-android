@@ -1,0 +1,53 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Cargo debug test",
+            "sourceLanguages": [
+                "rust"
+            ],
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                ]
+            },
+            "program": "${cargo:program}",
+            "args": []
+        },
+
+        // TODO  this shoyuld be refactored to use proper NDK bins anc C/CXX flags. Maybe start VSCode from Gradle task?
+
+        // {
+        //     "type": "lldb",
+        //     "request": "launch",
+        //     "name": "Cargo Android x86 debug",
+        //     "sourceLanguages": [
+        //         "rust"
+        //     ],
+        //     "cargo": {
+        //         "args": [
+        //             "test",
+        //             "--no-run",
+        //             "--lib",
+        //             "--target=armv7-linux-androideabi"
+        //             //    "-vv"
+        //         ],
+        //     },
+        //     "program": "${cargo:program}", // Local path.
+        //     "preLaunchTask": "Enable Android LLDB server",
+        //     "initCommands": [
+        //         "platform shell adb shell ${dbgconfig:lldb_path}/lldb-server p --listen localhost:1235 &",
+        //         "platform select remote-android",
+        //         "platform connect connect://localhost:1235",
+        //         "platform settings -w ${dbgconfig:lldb_path}",
+        //     ],
+        // }
+    ]
+}

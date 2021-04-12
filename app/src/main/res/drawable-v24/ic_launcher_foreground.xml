@@ -1,34 +1,59 @@
+<!--
+  ~ This file is part of Seeneva Android Reader
+  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:aapt="http://schemas.android.com/aapt"
-        android:width="108dp"
-        android:height="108dp"
-        android:viewportHeight="108"
-        android:viewportWidth="108">
-    <path
-            android:fillType="evenOdd"
-            android:pathData="M32,64C32,64 38.39,52.99 44.13,50.95C51.37,48.37 70.14,49.57 70.14,49.57L108.26,87.69L108,109.01L75.97,107.97L32,64Z"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.75"
+        android:scaleY="0.75"
+        android:translateX="29.25"
+        android:translateY="29.25">
+        <path
+            android:fillColor="@color/cerulean"
+            android:pathData="m33.2192,4.8652c-10.5386,2.0431 -21.0324,6.5385 -28.4216,14.5313 -6.8036,7.3254 -6.1123,19.5805 0.4383,26.8236 4.7778,5.2218 11.6021,8.9948 18.7803,9.0788 2.6801,-0.7128 -2.2929,-3.566 -2.5726,-5.2665 -1.7043,-2.2931 -1.9732,-6.5292 1.9969,-4.9255 10.4784,1.0957 21.0933,-1.9569 29.8468,-7.6955 4.6177,-2.8308 9.0161,-6.6979 11.2101,-11.6924 0.544,-1.2384 0.9524,-2.5461 1.1951,-3.9245 1.401,-6.1868 -2.1064,-13.0436 -8.0764,-15.3166 -7.5978,-3.7325 -16.3221,-3.0561 -24.397,-1.6128z"
             android:strokeColor="#00000000"
-            android:strokeWidth="1">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                    android:endX="78.5885"
-                    android:endY="90.9159"
-                    android:startX="48.7653"
-                    android:startY="61.0927"
-                    android:type="linear">
-                <item
-                        android:color="#44000000"
-                        android:offset="0.0"/>
-                <item
-                        android:color="#00000000"
-                        android:offset="1.0"/>
-            </gradient>
-        </aapt:attr>
-    </path>
-    <path
-            android:fillColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillAlpha="0.572727"
+            android:fillColor="@color/black"
             android:fillType="nonZero"
-            android:pathData="M66.94,46.02L66.94,46.02C72.44,50.07 76,56.61 76,64L32,64C32,56.61 35.56,50.11 40.98,46.06L36.18,41.19C35.45,40.45 35.45,39.3 36.18,38.56C36.91,37.81 38.05,37.81 38.78,38.56L44.25,44.05C47.18,42.57 50.48,41.71 54,41.71C57.48,41.71 60.78,42.57 63.68,44.05L69.11,38.56C69.84,37.81 70.98,37.81 71.71,38.56C72.44,39.3 72.44,40.45 71.71,41.19L66.94,46.02ZM62.94,56.92C64.08,56.92 65,56.01 65,54.88C65,53.76 64.08,52.85 62.94,52.85C61.8,52.85 60.88,53.76 60.88,54.88C60.88,56.01 61.8,56.92 62.94,56.92ZM45.06,56.92C46.2,56.92 47.13,56.01 47.13,54.88C47.13,53.76 46.2,52.85 45.06,52.85C43.92,52.85 43,53.76 43,54.88C43,56.01 43.92,56.92 45.06,56.92Z"
+            android:pathData="M52.0415,13.0547m-4.1025,0.9208a4.2045,4.2045 122.35,1 1,8.2049 -1.8415a4.2045,4.2045 122.35,1 1,-8.2049 1.8415"
             android:strokeColor="#00000000"
-            android:strokeWidth="1"/>
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="@color/cerulean"
+            android:fillType="evenOdd"
+            android:pathData="m25.2474,54.857c0.7011,0.8299 1.3271,1.7219 1.8366,2.6831 0.8674,1.5576 1.69,3.2884 3.2674,4.2523 1.0107,0.6521 2.4917,0.7121 3.3997,-0.1526 0.7133,-0.6278 0.8539,-1.6981 0.4969,-2.5491 -0.1298,-0.4204 -0.3947,-0.8122 -0.411,-1.2585 0.146,-0.6123 0.8839,-0.7224 1.3069,-1.0924 0.7747,-0.55 1.231,-1.5832 0.9047,-2.5108 -0.3976,-1.2224 -1.6937,-1.9088 -2.9224,-1.9505 -1.8034,-0.1038 -3.464,0.7615 -5.0252,1.5489 -0.9099,0.4395 -1.8515,0.859 -2.8537,1.0296z"
+            android:strokeColor="#00000000"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="@color/white"
+            android:fillType="evenOdd"
+            android:pathData="M51.5577,12.3063a1.9675,1.9409 0,1 0,3.935 0a1.9675,1.9409 0,1 0,-3.935 0z"
+            android:strokeWidth="0.987418"
+            android:strokeColor="#00000000"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+    </group>
 </vector>

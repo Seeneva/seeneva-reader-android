@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Seeneva Android Reader
+  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <item
+        android:id="@+id/add"
+        android:icon="@drawable/ic_round_add_24dp"
+        android:title="@string/comic_list_add"
+        app:iconTint="?colorControlNormal"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/list_view"
+        android:title="@string/comic_list_as_list"
+        app:iconTint="?colorControlNormal"
+        app:showAsAction="ifRoom"
+        tools:icon="@drawable/ic_round_view_list_24dp" />
+    <item
+        android:id="@+id/sort"
+        android:title="@string/comic_list_sort"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/filter"
+        android:title="@string/comic_list_filter"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/sync"
+        android:title="@string/comic_list_sync"
+        app:showAsAction="never" />
+</menu>

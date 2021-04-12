@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Seeneva Android Reader
+  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+
+    <style name="AppShapeOverlay.ComicListItem" parent="">
+        <item name="cornerSize">@dimen/comic_thumb_corner_radius</item>
+    </style>
+
+    <style name="AppShapeOverlay.ComicGridItemCover" parent="AppShapeOverlay.ComicListItem" />
+
+    <style name="AppShapeOverlay.ComicListItemCover" parent="">
+        <item name="cornerSize">0dp</item>
+        <item name="cornerSizeTopLeft">@dimen/comic_thumb_corner_radius</item>
+        <item name="cornerSizeBottomLeft">@dimen/comic_thumb_corner_radius</item>
+    </style>
+
+    <style name="AppShapeOverlay.DraggableBottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">0dp</item>
+        <item name="cornerSizeTopLeft">@dimen/bottom_sheet_drag_corner_radius</item>
+        <item name="cornerSizeTopRight">@dimen/bottom_sheet_drag_corner_radius</item>
+    </style>
+
+    <style name="AppShapeOverlay.AboutAppIcon" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+</resources>

@@ -1,0 +1,33 @@
+#https://github.com/rust-lang/rust/blob/master/config.toml.example
+
+[target.'cfg(target_os="android")']
+runner = ["./scripts/android_runner.sh"]
+rustflags = [
+# Add build-id to help LLDB find debug symbols for result stripped .so file using `$lldb settings append target.exec-search-paths`
+"-C", "link-arg=-Wl,--build-id=sha1", 
+# This will pass `-g` to Rust compiler. This will prevent debug symbols from strip.
+# So you can use output .so as debug symbols source during debug even release builds
+# By default Android Studio strip debug symbols from all libraries before pack them into .apk, so you do not need to think about app size.
+"-C", "debuginfo=2"
+]
+
+[target.armv7-linux-androideabi]
+# android_support should be linked to prevent *locale undefinde symbols
+# needed by Tesseract
+# You do not need it if your Android API level is >= 21
+rustflags = ["-C", "link-arg=-landroid_support"]
+
+[target.i686-linux-android]
+rustflags = ["-C", "link-arg=-landroid_support"]
+
+#[target.i686-linux-android]
+#runner = ["./scripts/android_runner.sh"]
+#
+#[target.x86_64-linux-android]
+#runner = ["./scripts/android_runner.sh"]
+#
+#[target.armv7-linux-androideabi]
+#runner = ["./scripts/android_runner.sh"]
+#
+#[target.aarch64-linux-android]
+#runner = ["./scripts/android_runner.sh"]

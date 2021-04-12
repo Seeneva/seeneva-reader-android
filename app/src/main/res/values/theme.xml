@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Seeneva Android Reader
+  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <!-- Base application theme -->
+    <style name="BaseAppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/cerulean</item>
+        <item name="colorPrimaryVariant">@color/light_blue_800</item>
+        <item name="colorSecondary">@color/deep_purple_400</item>
+
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorError">@color/red_800</item>
+
+        <item name="sliderStyle">@style/AppWidget.Slider</item>
+        <item name="bottomSheetDialogTheme">@style/AppTheme.BottomSheetDialog</item>
+
+        <item name="android:colorBackground">@color/grey_50</item>
+
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="BaseAppTheme.Viewer">
+        <item name="android:colorBackground">@color/black</item>
+    </style>
+
+    <style name="AppTheme" parent="BaseAppTheme" />
+
+    <style name="AppTheme.Viewer" parent="BaseAppTheme.Viewer" />
+
+    <style name="AppTheme.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.Light.BottomSheetDialog" />
+
+    <style name="AppTheme.BottomSheetDialog.NonCollapsed">
+        <item name="bottomSheetStyle">@style/AppWidget.BottomSheet.NonCollapsed</item>
+    </style>
+
+    <style name="AppTheme.BottomSheetDialog.FullScreen">
+        <item name="bottomSheetStyle">@style/AppWidget.BottomSheet.NonCollapsed.FullScreen</item>
+    </style>
+
+</resources>

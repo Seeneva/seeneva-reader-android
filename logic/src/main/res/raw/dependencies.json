@@ -1,0 +1,605 @@
+[
+    {
+        "name": "desugar_jdk_libs",
+        "version": "1.1.1",
+        "authors": "Copyright © Google LLC",
+        "summary": "This project contains a small subset of OpenJDK libraries simplified for use on older runtimes.",
+        "homepage": "https://github.com/google/desugar_jdk_libs",
+        "license": {
+            "type": "GPL-2.0-with-classpath-exception"
+        }
+    },
+    {
+        "name": "Kotlin",
+        "version": "1.4.31",
+        "authors": "Copyright © 2010-2020 JetBrains s.r.o and respective authors and developers",
+        "summary": "It is an open-source, statically typed programming language supported and developed by JetBrains and open-source contributors.",
+        "homepage": "https://github.com/JetBrains/kotlin",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "kotlinx.coroutines",
+        "version": "1.4.2",
+        "authors": "Copyright © 2016-2019 JetBrains s.r.o and respective authors and developers",
+        "summary": "Library support for Kotlin coroutines with multiplatform support.",
+        "homepage": "https://github.com/Kotlin/kotlinx.coroutines",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "kotlinx.serialization",
+        "version": "1.1.0",
+        "authors": "Copyright © 2017-2019 JetBrains s.r.o and respective authors and developers",
+        "summary": "Kotlin multiplatform / multi-format reflectionless serialization",
+        "homepage": "https://github.com/Kotlin/kotlinx.serialization",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "AndroidX appcompat",
+        "version": "1.2.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Allows access to new APIs on older API versions of the platform (many using Material Design).",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "AndroidX core-ktx",
+        "version": "1.3.2",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Target the latest platform features and APIs while also supporting older devices.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "AndroidX fragment-ktx",
+        "version": "1.2.5",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Segment your app into multiple, independent screens that are hosted within an Activity.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx annotation",
+        "version": "1.1.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Expose metadata that helps tools and other developers understand your app's code.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx viewpager2",
+        "version": "1.0.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Display Views or Fragments in a swipeable format.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx recyclerview",
+        "version": "1.1.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Display large sets of data in your UI while minimizing memory usage.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx recyclerview-selection",
+        "version": "1.0.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "A RecyclerView addon library providing support for item selection.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx constraintlayout",
+        "version": "2.0.4",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Position and size widgets in a flexible way with relative positioning.",
+        "homepage": "https://github.com/androidx/constraintlayout",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx lifecycle-service",
+        "version": "2.2.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Lifecycle-aware components perform actions in response to a change in the lifecycle status of another component, such as activities and fragments. These components help you produce better-organized, and often lighter-weight code, that is easier to maintain.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx lifecycle-viewmodel-ktx",
+        "version": "2.2.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Lifecycle-aware components perform actions in response to a change in the lifecycle status of another component, such as activities and fragments. These components help you produce better-organized, and often lighter-weight code, that is easier to maintain.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx lifecycle-livedata-ktx",
+        "version": "2.2.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Lifecycle-aware components perform actions in response to a change in the lifecycle status of another component, such as activities and fragments. These components help you produce better-organized, and often lighter-weight code, that is easier to maintain.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx lifecycle-common-java8",
+        "version": "2.2.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Lifecycle-aware components perform actions in response to a change in the lifecycle status of another component, such as activities and fragments. These components help you produce better-organized, and often lighter-weight code, that is easier to maintain.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx paging-common-ktx",
+        "version": "2.1.2",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "The Paging Library makes it easier for you to load data gradually and gracefully within your app's RecyclerView.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx paging-runtime-ktx",
+        "version": "2.1.2",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "The Paging Library makes it easier for you to load data gradually and gracefully within your app's RecyclerView.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx room-ktx",
+        "version": "2.2.6",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "The Room persistence library provides an abstraction layer over SQLite to allow for more robust database access while harnessing the full power of SQLite.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx room-compiler",
+        "version": "2.2.6",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "The Room persistence library provides an abstraction layer over SQLite to allow for more robust database access while harnessing the full power of SQLite.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx swiperefreshlayout",
+        "version": "1.1.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Implement the swipe-to-refresh UI pattern.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx palette-ktx",
+        "version": "1.0.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Extract representative color palettes from images.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx work-runtime-ktx",
+        "version": "2.4.0",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "The WorkManager API makes it easy to schedule deferrable, asynchronous tasks that must be run reliably. These APIs let you create a task and hand it off to WorkManager to run when the work constraints are met.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Material Components for Android",
+        "version": "1.2.1",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Material Components for Android (MDC-Android) help developers execute Material Design.",
+        "homepage": "https://github.com/material-components/material-components-android",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Koin koin-androidx-scope",
+        "version": "2.2.2",
+        "authors": "Copyright © 2017-2021 Arnaud GIULIANI, Laurent BARESSE",
+        "summary": "A pragmatic lightweight dependency injection framework for Kotlin developers.",
+        "homepage": "https://github.com/InsertKoinIO/koin",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Koin koin-androidx-viewmodel",
+        "version": "2.2.2",
+        "authors": "Copyright © 2017-2021 Arnaud GIULIANI, Laurent BARESSE",
+        "summary": "A pragmatic lightweight dependency injection framework for Kotlin developers.",
+        "homepage": "https://github.com/InsertKoinIO/koin",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Koin koin-androidx-workmanager",
+        "version": "2.2.2",
+        "authors": "Copyright © 2017-2021 Arnaud GIULIANI, Laurent BARESSE",
+        "summary": "A pragmatic lightweight dependency injection framework for Kotlin developers.",
+        "homepage": "https://github.com/InsertKoinIO/koin",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Coil",
+        "version": "1.1.1",
+        "authors": "Copyright © 2021 Coil Contributors",
+        "summary": "An image loading library for Android backed by Kotlin Coroutines.",
+        "homepage": "https://github.com/coil-kt/coil",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "tinylog 2",
+        "version": "2.2.1",
+        "authors": "Copyright © 2016-2020 Martin Winandy",
+        "summary": "Simplify your logging with tinylog. This lightweight logging framework can be used with Java, Kotlin, Scala, and any other JVM language.",
+        "homepage": "https://github.com/pmwmedia/tinylog",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Subsampling Scale Image View",
+        "version": "3.10.0",
+        "authors": "Copyright © 2018 David Morrissey",
+        "summary": "A custom image view for Android, designed for photo galleries and displaying huge images (e.g. maps and building plans) without OutOfMemoryErrors. Includes pinch to zoom, panning, rotation and animation support, and allows easy extension so you can add your own overlays and touch event detection.",
+        "homepage": "https://github.com/davemorrissey/subsampling-scale-image-view",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "rtree2",
+        "version": "0.9-RC1",
+        "authors": "Copyright © Dave Moten",
+        "summary": "Java implementation of an immutable in-memory R-Tree for spatial indexing",
+        "homepage": "https://github.com/davidmoten/rtree2",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Rust",
+        "version": "1.50.0",
+        "authors": "Copyright © Rust contributors",
+        "summary": "The Rust Programming Language",
+        "homepage": "https://github.com/rust-lang/rust",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "jni-rs",
+        "version": "0.18.0",
+        "authors": "Copyright © Josh Chase",
+        "summary": "JNI Bindings for Rust",
+        "homepage": "https://github.com/jni-rs/jni-rs",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "android_logger-rs",
+        "version": "0.9.2",
+        "authors": "Copyright © The android_logger Developers",
+        "summary": "A Rust logging implementation for `log` which hooks to android log output",
+        "homepage": "https://github.com/Nercury/android_logger-rs",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "rust-threadpool",
+        "version": "1.8.1",
+        "authors": "Copyright © The Rust Project Developers, Corey Farwell, Stefan Schindler",
+        "summary": "A very simple thread pool for parallel task execution",
+        "homepage": "https://github.com/rust-threadpool/rust-threadpool",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "crossbeam_channel",
+        "version": "0.5.0",
+        "authors": "Copyright © The Crossbeam Project Developers",
+        "summary": "Multi-producer multi-consumer channels for message passing.",
+        "homepage": "https://github.com/crossbeam-rs/crossbeam",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "parking_lot",
+        "version": "0.11.1",
+        "authors": "Copyright © Amanieu d'Antras",
+        "summary": "More compact and efficient implementations of the standard synchronization primitives.",
+        "homepage": "https://github.com/Amanieu/parking_lot",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "thiserror",
+        "version": "1.0.24",
+        "authors": "Copyright © David Tolnay",
+        "summary": "derive(Error)",
+        "homepage": "https://github.com/dtolnay/thiserror",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "enum_dispatch",
+        "version": "0.3.5",
+        "authors": "Copyright © Anton Lazarev",
+        "summary": "Near drop-in replacement for dynamic-dispatched method calls with up to 10x the speed",
+        "homepage": "https://gitlab.com/antonok/enum_dispatch",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "libc",
+        "version": "0.2.86",
+        "authors": "Copyright © The Rust Project Developers",
+        "summary": "Raw FFI bindings to platform libraries like libc.",
+        "homepage": "https://github.com/rust-lang/libc",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "log",
+        "version": "0.4.14",
+        "authors": "Copyright © The Rust Project Developers",
+        "summary": "A lightweight logging facade for Rust",
+        "homepage": "https://github.com/rust-lang/log",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "num_cpus",
+        "version": "1.13.0",
+        "authors": "Copyright © Sean McArthur",
+        "summary": "Get the number of CPUs on a machine.",
+        "homepage": "https://github.com/seanmonstar/num_cpus",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "rayon",
+        "version": "1.5.0",
+        "authors": "Copyright © Niko Matsakis, Josh Stone",
+        "summary": "Simple work-stealing parallelism for Rust",
+        "homepage": "https://github.com/rayon-rs/rayon",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "ndarray",
+        "version": "0.14.0",
+        "authors": "Copyright © Ulrik Sverdrup \"bluss\", Jim Turner, and ndarray developers",
+        "summary": "An n-dimensional array for general elements and for numerics. Lightweight array views and slicing; views support chunking and splitting.",
+        "homepage": "https://github.com/rust-ndarray/ndarray",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "num-traits",
+        "version": "0.2.14",
+        "authors": "Copyright © The Rust Project Developers",
+        "summary": "Numeric traits for generic mathematics",
+        "homepage": "https://github.com/rust-num/num-traits",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "itertools",
+        "version": "0.9.0",
+        "authors": "Copyright © Ulrik Sverdrup \"bluss\"",
+        "summary": "Extra iterator adaptors, iterator methods, free functions, and macros.",
+        "homepage": "https://github.com/rust-itertools/itertools",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "lopdf",
+        "version": "0.26.0",
+        "authors": "Copyright © 2016 Junfeng Liu",
+        "summary": "A Rust library for PDF document manipulation.",
+        "homepage": "https://github.com/J-F-Liu/lopdf",
+        "license": {
+            "type": "MIT"
+        }
+    },
+    {
+        "name": "image",
+        "version": "0.23.13",
+        "authors": "Copyright © 2014 PistonDevelopers",
+        "summary": "Imaging library written in Rust. Provides basic filters and decoders for the most common image formats.",
+        "homepage": "https://github.com/image-rs/image",
+        "license": {
+            "type": "MIT"
+        }
+    },
+    {
+        "name": "quick-xml",
+        "version": "0.20.0",
+        "authors": "Copyright © 2016 Johann Tuffe",
+        "summary": "High performance xml reader and writer",
+        "homepage": "https://github.com/tafia/quick-xml",
+        "license": {
+            "type": "MIT"
+        }
+    },
+    {
+        "name": "once_cell",
+        "version": "1.6.0",
+        "authors": "Copyright © Aleksey Kladov",
+        "summary": "Single assignment cells and lazy values.",
+        "homepage": "https://github.com/matklad/once_cell",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "blake",
+        "version": "0.9.1",
+        "authors": "Copyright © RustCrypto Developers",
+        "summary": "BLAKE2 hash functions",
+        "homepage": "https://github.com/RustCrypto/hashes",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Leptonica",
+        "version": "1.80.0",
+        "authors": "Copyright © 2001-2020 Leptonica. All rights reserved.",
+        "summary": "Leptonica is broadly useful for image processing and image analysis applications.",
+        "homepage": "https://github.com/DanBloomberg/leptonica",
+        "license": {
+            "type": "BSD-2-Clause"
+        }
+    },
+    {
+        "name": "Tesseract",
+        "version": "4.1.1",
+        "authors": "Copyright © Tesseract developers",
+        "summary": "Tesseract Open Source OCR Engine.",
+        "homepage": "https://github.com/tesseract-ocr/tesseract",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "liblzma",
+        "version": "5.2.5",
+        "authors": "XZ Utils",
+        "summary": "liblzma is a compression library with an API similar to that of zlib.",
+        "homepage": "https://tukaani.org/xz/",
+        "license": {
+            "type": "public_domain",
+            "custom_file": "public_xz"
+        }
+    },
+    {
+        "name": "libarchive",
+        "version": "3.4.3",
+        "authors": "Copyright © 2003-2018 <author(s)>. All rights reserved.",
+        "summary": "Multi-format archive and compression library.",
+        "homepage": "https://www.libarchive.org/",
+        "license": {
+            "type": "BSD-2-Clause",
+            "custom_file": "bsd2_libarchive"
+        }
+    },
+    {
+        "name": "TensorFlow Lite",
+        "version": "2.2.0",
+        "authors": "Copyright © The TensorFlow Authors",
+        "summary": "TensorFlow Lite is TensorFlow's lightweight solution for mobile and embedded devices.",
+        "homepage": "https://github.com/tensorflow/tensorflow",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Gagalin font",
+        "version": "",
+        "authors": "Iordanis Passas",
+        "summary": "A 100% free comic font.",
+        "homepage": "https://www.behance.net/gallery/21358665/Gagalin-Free-Font",
+        "license": {
+            "type": "free",
+            "custom_file": "gagalin"
+        }
+    },
+    {
+        "name": "Material design icons",
+        "version": "",
+        "authors": "Copyright © Google LLC",
+        "summary": "Material Design icons by Google",
+        "homepage": "https://github.com/google/material-design-icons",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Font Awesome Free (icons)",
+        "version": "5.15.3",
+        "authors": "Font Awesome Team",
+        "summary": "Font Awesome is a font and icon toolkit based on CSS and Less",
+        "homepage": "https://github.com/FortAwesome/Font-Awesome",
+        "license": {
+            "type": "CC-BY-4.0"
+        }
+    },
+    {
+        "name": "Android NDK",
+        "version": "21.3.6528147",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "The Android Native Development Kit",
+        "homepage": "https://github.com/android/ndk",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    }
+]
