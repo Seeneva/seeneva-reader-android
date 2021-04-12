@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<ComicInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Title>Title</Title>
+  <Series>Series</Series>
+  <Summary>Summary</Summary>
+  <Number>1</Number>
+  <Count>100</Count>
+  <Volume>1</Volume>
+  <PageCount>3</PageCount>
+  <Year>1999</Year>
+  <Month>4</Month>
+  <Day>26</Day>
+  <Publisher>Publisher</Publisher>
+  <Writer>Writer</Writer>
+  <Penciller>Penciller</Penciller>
+  <Inker>Inker</Inker>
+  <Colorist>Colorist</Colorist>
+  <Letterer>Letterer</Letterer>
+  <CoverArtist>CoverArtist</CoverArtist>
+  <Editor>Editor</Editor>
+  <Imprint>Imprint</Imprint>
+  <Genre>Genre</Genre>
+  <Format>Format</Format>
+  <AgeRating>AgeRating</AgeRating>
+  <Teams>Teams</Teams>
+  <Locations>Locations</Locations>
+  <StoryArc>StoryArc</StoryArc>
+  <SeriesGroup>SeriesGroup</SeriesGroup>
+  <BlackAndWhite>Yes</BlackAndWhite>
+  <Manga>Yes</Manga>
+  <Characters>Characters</Characters>
+  <Web>Web</Web>
+  <Notes>Notes</Notes>
+  <LanguageISO>LanguageISO</LanguageISO>
+  <Pages>
+    <Page Image="0" Type="FrontCover" ImageSize="1531539" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="1" ImageSize="1077833" ImageHeight="3056" ImageWidth="1988" />
+    <Page Image="2" ImageSize="2016925" ImageHeight="3056" ImageWidth="1988" />
+  </Pages>
+</ComicInfo>

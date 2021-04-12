@@ -1,9 +1,27 @@
+/*
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021 Sergei Solodovnikov
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 object Version {
     const val ANDROID_JAVA8_DESUGAR = "1.1.1"
 
-    const val KOTLIN = "1.4.30"
+    const val KOTLIN = "1.4.31"
     const val KOTLINX_COROUTINES = "1.4.2"
-    const val KOTLINX_SERIALIZATION_JSON = "1.0.1"
+    const val KOTLINX_SERIALIZATION_JSON = "1.1.0"
 
     const val ANDROIDX_APPCOMPAT = "1.2.0"
     const val ANDROIDX_ANNOTATIONS = "1.1.0"
@@ -21,6 +39,7 @@ object Version {
     const val ANDROIDX_WORK_RUNTIME = "2.4.0"
     const val ANDROIDX_ROOM = "2.2.6"
     const val ANDROIDX_SWIPE_REFRESH_LAYOUT = "1.1.0"
+    const val ANDROIDX_TEST_RUNNER = "1.3.0"
 
     const val MATERIAL = "1.2.1"
 
@@ -28,11 +47,11 @@ object Version {
 
     const val KOIN = "2.2.2"
 
-    const val MOCKK = "1.10.5"
+    const val MOCKK = "1.10.6"
 
-    //const val ROBOLECTRIC = "4.3.1"
+    const val KOTLIN_FAKER = "1.6.0"
 
-    const val KLUENT = "1.63"
+    const val KLUENT = "1.65"
 
     const val TINYLOG = "2.2.1"
 
@@ -89,17 +108,11 @@ object Deps {
     const val ANDROIDX_WORK_RUNTIME =
         "androidx.work:work-runtime-ktx:${Version.ANDROIDX_WORK_RUNTIME}"
 
-    const val ANDROIDX_TEST_CORE_KTX =
-        "androidx.test:core-ktx:${Version.ANDROIDX_TEST_CORE_KTX}"
-    const val ANDROIDX_TEST_JUNIT_KTX =
-        "androidx.test.ext:junit-ktx:${Version.ANDROIDX_TEST_JUNIT_KTX}"
-
-    const val MATERIAL = "com.google.android.material:material:${Version.MATERIAL}"
+    const val MATERIAL =
+        "com.google.android.material:material:${Version.MATERIAL}"
 
     const val KOTLINX_COROUTINES_ANDROID =
         "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.KOTLINX_COROUTINES}"
-    const val KOTLINX_COROUTINES_TEST =
-        "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Version.KOTLINX_COROUTINES}"
     const val KOTLINX_COROUTINES_CORE =
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.KOTLINX_COROUTINES}"
 
@@ -113,22 +126,39 @@ object Deps {
         "org.koin:koin-androidx-viewmodel:${Version.KOIN}"
     const val KOIN_ANDROIDX_WORKMANAGER =
         "org.koin:koin-androidx-workmanager:${Version.KOIN}"
-    const val KOIN_TEST =
-        "org.koin:koin-test:${Version.KOIN}"
 
-    const val COIL = "io.coil-kt:coil-base:${Version.COIL}"
 
-    const val MOCKK = "io.mockk:mockk:${Version.MOCKK}"
+    const val COIL =
+        "io.coil-kt:coil-base:${Version.COIL}"
 
-    //const val ROBOLECTRIC = "org.robolectric:robolectric:${Version.ROBOLECTRIC}"
-
-    const val KLUENT = "org.amshove.kluent:kluent-android:${Version.KLUENT}"
-
-    const val TINYLOG_API = "org.tinylog:tinylog-api-kotlin:${Version.TINYLOG}"
-    const val TINYLOG_IMPL = "org.tinylog:tinylog-impl:${Version.TINYLOG}"
+    const val TINYLOG_API =
+        "org.tinylog:tinylog-api-kotlin:${Version.TINYLOG}"
+    const val TINYLOG_IMPL =
+        "org.tinylog:tinylog-impl:${Version.TINYLOG}"
 
     const val SCALE_IMAGE_VIEW =
         "com.davemorrissey.labs:subsampling-scale-image-view-androidx:${Version.SCALE_IMAGE_VIEW}"
 
-    const val R_TREE = "com.github.davidmoten:rtree2:${Version.R_TREE}"
+    const val R_TREE =
+        "com.github.davidmoten:rtree2:${Version.R_TREE}"
+}
+
+object TestDeps {
+    const val ANDROIDX_TEST_RUNNER =
+        "androidx.test:runner:${Version.ANDROIDX_TEST_RUNNER}"
+    const val ANDROIDX_TEST_CORE_KTX =
+        "androidx.test:core-ktx:${Version.ANDROIDX_TEST_CORE_KTX}"
+    const val ANDROIDX_TEST_JUNIT_KTX =
+        "androidx.test.ext:junit-ktx:${Version.ANDROIDX_TEST_JUNIT_KTX}"
+
+    const val KOTLINX_COROUTINES_TEST =
+        "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Version.KOTLINX_COROUTINES}"
+
+    const val KOIN_TEST = "org.koin:koin-test:${Version.KOIN}"
+
+    const val MOCKK = "io.mockk:mockk:${Version.MOCKK}"
+
+    const val KOTLIN_FAKER = "io.github.serpro69:kotlin-faker:${Version.KOTLIN_FAKER}"
+
+    const val KLUENT = "org.amshove.kluent:kluent-android:${Version.KLUENT}"
 }

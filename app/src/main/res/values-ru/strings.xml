@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Seeneva Android Reader
+  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
 <resources>
     <string name="all_ok">OK</string>
     <string name="all_cancel">Отмена</string>
@@ -7,6 +25,9 @@
     <string name="settings">Настройки</string>
     <string name="copy">Копировать</string>
     <string name="install">Установить</string>
+
+    <string name="library">Библиотека</string>
+    <string name="about_app">О приложении</string>
 
     <string name="comic_list_as_list">Списком</string>
     <string name="comic_list_as_grid">Таблицей</string>
@@ -131,4 +152,19 @@
     <string name="viewer_help_tap">Нажмите</string>
     <string name="viewer_help_hold">Подержите</string>
 
+    <string name="third_parties_version">Версия</string>
+    <string name="third_parties_authors">Авторы</string>
+    <string name="third_parties_license">Лицензия</string>
+    <string name="third_parties_homepage">Ссылка</string>
+    <string name="third_parties_summary">Описание</string>
+
+    <string name="about_app_copyright">Copyright © 2021 Солодовников Сергей</string>
+    <string name="about_app_description">%1$s - свободная программа: вы можете перераспространять ее и/или изменять ее на условиях Стандартной общественной лицензии GNU в том виде, в каком она была опубликована Фондом свободного программного обеспечения; либо версии 3 лицензии, либо (по вашему выбору) любой более поздней версии.</string>
+    <string name="about_app_web">Веб-сайт</string>
+    <string name="about_app_source_code">Исходный код</string>
+    <string name="about_app_source_code_txt">Посмотреть репозиторий приложения</string>
+    <string name="about_app_libraries">Сторонние библиотеки</string>
+    <string name="about_app_libraries_txt">Давайте поблагодарим их авторов!</string>
+    <string name="about_app_gratitude">Благодарность</string>
+    <string name="about_app_gratitude_txt">Спасибо супруге, родителям, близким и друзьям за их поддержку!</string>
 </resources>

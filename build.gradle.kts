@@ -1,3 +1,21 @@
+/*
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021 Sergei Solodovnikov
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import com.android.build.gradle.BaseExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -10,7 +28,9 @@ plugins {
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
+        mavenCentral()
         google()
+        // will be deprecated soon
         jcenter()
     }
     dependencies {
@@ -24,7 +44,9 @@ buildscript {
 
 allprojects {
     repositories {
+        mavenCentral()
         google()
+        // will be deprecated soon
         jcenter()
     }
 }
@@ -37,6 +59,7 @@ subprojects {
             plugin("com.android.library")
         }
         plugin("org.jetbrains.kotlin.android")
+        plugin("org.jetbrains.kotlin.plugin.serialization")
     }
 
     configure<BaseExtension> {
@@ -49,7 +72,7 @@ subprojects {
             targetSdkVersion(30)
 
             versionCode = 1
-            versionName = "1.0"
+            versionName = "0.1.0"
 
             multiDexEnabled = true
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -66,8 +89,8 @@ subprojects {
             java.srcDir("src/$name/kotlin")
         }
 
+        // needed to build tests
         packagingOptions {
-            pickFirst("META-INF/atomicfu.kotlin_module")
             pickFirst("META-INF/AL2.0")
             pickFirst("META-INF/LGPL2.1")
         }
@@ -88,6 +111,7 @@ subprojects {
         // https://developer.android.com/studio/write/java8-support-table
         "coreLibraryDesugaring"(Deps.ANDROID_JAVA8_DESUGAR)
 
+        implementation(Deps.KOTLINX_SERIALIZATION_JSON)
         implementation(Deps.KOTLINX_COROUTINES_ANDROID)
 
         implementation(Deps.ANDROIDX_ANNOTATIONS)
@@ -105,31 +129,30 @@ subprojects {
             implementation(project(":common"))
         }
 
-        testImplementation(Deps.KOTLINX_COROUTINES_TEST)
+        testImplementation(TestDeps.KOTLINX_COROUTINES_TEST)
         testImplementation(Deps.KOTLINX_COROUTINES_CORE)
         testImplementation(kotlin("test-junit", Version.KOTLIN))
-        testImplementation(Deps.ANDROIDX_TEST_JUNIT_KTX)
+        testImplementation(TestDeps.ANDROIDX_TEST_JUNIT_KTX)
 
-        testImplementation(Deps.MOCKK)
-        testImplementation(Deps.KLUENT) {
+        testImplementation(TestDeps.MOCKK)
+        testImplementation(TestDeps.KLUENT) {
             exclude("com.nhaarman.mockitokotlin2")
         }
-        testImplementation(Deps.KOIN_TEST) {
+        testImplementation(TestDeps.KOIN_TEST) {
             exclude("org.mockito")
         }
 
-        //"androidTestImplementation"(Deps.MOCKK)
-        "androidTestImplementation"(Deps.KLUENT) {
+        "androidTestImplementation"(TestDeps.KOTLIN_FAKER)
+        "androidTestImplementation"(TestDeps.KOIN_TEST)
+        "androidTestImplementation"(TestDeps.KLUENT) {
             exclude("com.nhaarman.mockitokotlin2")
         }
 
-        "androidTestImplementation"("androidx.test:runner:1.3.0")
-        "androidTestImplementation"(Deps.ANDROIDX_TEST_JUNIT_KTX)
-        "androidTestImplementation"("androidx.test.espresso:espresso-core:3.3.0")
+        "androidTestImplementation"(TestDeps.ANDROIDX_TEST_RUNNER)
+        "androidTestImplementation"(TestDeps.ANDROIDX_TEST_JUNIT_KTX)
 
-        "androidTestImplementation"(Deps.KOTLINX_COROUTINES_TEST)
+        "androidTestImplementation"(TestDeps.KOTLINX_COROUTINES_TEST)
         "androidTestImplementation"(kotlin("test-junit", Version.KOTLIN))
-        "androidTestImplementation"(Deps.KOTLINX_SERIALIZATION_JSON)
     }
 }
 

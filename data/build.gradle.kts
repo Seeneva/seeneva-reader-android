@@ -1,3 +1,21 @@
+/*
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021 Sergei Solodovnikov
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.tasks.ExternalNativeBuildJsonTask
 
@@ -6,9 +24,10 @@ plugins {
 }
 
 android {
+    //https://developer.android.com/studio/projects/gradle-external-native-builds
     externalNativeBuild {
         cmake {
-            path = rootDir.resolve("comix_tensors/CMakeLists.txt")
+            path = rootDir.resolve("native/CMakeLists.txt")
         }
     }
 
@@ -74,7 +93,7 @@ fun setCustomCmakeTask(variant: BaseVariant) {
         .single()
         .invoke {
             doLast {
-                // generateJsonModel* task running before externalNativeBuild* tash
+                // generateJsonModel* task running before externalNativeBuild* task
                 val generator =
                     tasks.getByName<ExternalNativeBuildJsonTask>("generateJsonModel${variant.name.capitalize()}")
                         .externalNativeJsonGenerator
