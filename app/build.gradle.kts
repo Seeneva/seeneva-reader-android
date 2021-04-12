@@ -1,3 +1,24 @@
+/*
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021 Sergei Solodovnikov
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import extension.loadProperties
+import com.android.build.api.dsl.SigningConfig
+
 plugins {
     kotlin("kapt")
 }
@@ -19,8 +40,37 @@ android {
         }
     }
 
+    signingConfigs {
+        this.register("release") {
+            // Add `keystore.properties` to provide data needed for app signing process:
+            // storeFile=/path/to/keystore
+            // storePassword=
+            // keyAlias=
+            // keyPassword=
+
+            val keystoreProperties =
+                runCatching { loadProperties("keystore.properties") }.getOrNull()
+
+            /**
+             * Get sign property by name. Try to find it in the `keystore.properties` or in all other place
+             * @param name sign property name
+             * @return sign property value
+             */
+            fun signProperty(name: String) =
+                keystoreProperties?.getProperty(name) ?: property(name) as String
+
+            storeFile = file(signProperty("storeFile"))
+            storePassword = signProperty("storePassword")
+            keyAlias = signProperty("keyAlias")
+            keyPassword = signProperty("keyPassword")
+
+            isV1SigningEnabled = true
+            isV2SigningEnabled = true
+        }
+    }
+
     defaultConfig {
-        applicationId = "com.almadevelop.comixreader"
+        applicationId = "app.seeneva.reader"
 
         resConfigs("en", "ru")
         vectorDrawables.useSupportLibrary = true
@@ -30,13 +80,32 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+            isShrinkResources = true
+
+            ndk {
+                // https://developer.android.com/studio/build/shrink-code.html#native-crash-support
+                debugSymbolLevel = "symbol_table"
+            }
+
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+            signingConfig = signingConfigs["release"]
         }
         getByName("debug") {
             isMinifyEnabled = false
             isDebuggable = true
         }
+    }
+
+    packagingOptions {
+        // https://github.com/Kotlin/kotlinx.coroutines#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
+        exclude("DebugProbesKt.bin")
+        // Not needed right now, but should return if I will use web connections
+        exclude("okhttp3/**/publicsuffixes.gz")
     }
 
 //    testOptions{

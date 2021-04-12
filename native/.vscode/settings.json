@@ -1,0 +1,7 @@
+{
+    "lldb.dbgconfig": {
+        //path to the lldb on the Android device
+        "lldb_path": "/data/local/tmp/lldb",
+    },
+    "editor.formatOnSave": true
+}

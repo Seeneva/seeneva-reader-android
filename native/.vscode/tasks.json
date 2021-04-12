@@ -1,0 +1,51 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        // TODO: I can add inputs like Android device name and app process https://code.visualstudio.com/docs/editor/variables-reference#_input-variables
+        {
+            "label": "Attach Android debugger",
+            "detail": "Start Android application and attach LLDB debugger to it",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/attach_android_debugger.sh",
+            "presentation": {
+                "clear": true,
+            },
+            "args": [
+                {
+                    "value": "app.seeneva.reader",
+                    "quoting": "escape"
+                },
+                {
+                    "value": ".screen.MainActivity",
+                    "quoting": "escape"
+                }
+            ]
+        },
+        // {
+        //     "label": "Enable Android LLDB server",
+        //     "type": "shell",
+        //     "command": "${workspaceFolder}/scripts/adb_push_lldb_server.sh",
+        //     "group": "test",
+        //     "presentation": {
+        //         "echo": true,
+        //         "clear": true,
+        //         "reveal": "silent",
+        //     },
+        //     //Push test data before degug starts
+        //     "dependsOn": ["Android ADB prepare test data"],
+        // },
+        // {
+        //     "label": "Android ADB prepare test data",
+        //     "type": "shell",
+        //     "command": "${workspaceFolder}/scripts/adb_prepare_test_data.sh",
+        //     "group": "test",
+        //     "presentation": {
+        //         "echo": true,
+        //         "clear": true,
+        //         "reveal": "silent",
+        //     },
+        // }
+    ]
+}
