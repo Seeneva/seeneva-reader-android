@@ -163,7 +163,7 @@ rustup target add x86_64-linux-android
         ```
 
     - Поместите свои значения заместо `<...>`.
-    - Запустите `assembleRustReleaseRelease` Gradle таску, чтобы собрать подписанный apk.
+    - Запустите `gradlew :app:assembleRelease` Gradle таску, чтобы собрать подписанный apk.
 
 3. Передать те же значения, как переменные окружения (env variables) и собрать apk.
 

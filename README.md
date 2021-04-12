@@ -163,7 +163,7 @@ You have multiple options how to sign the app:
         ```
 
     - Set your values instead of `<...>`.
-    - Run `assembleRustReleaseRelease` Gradle task to build signed apk.
+    - Run `gradlew :app:assembleRelease` Gradle task to build signed apk.
 
 3. Pass same values as env variables and build apk.
 
