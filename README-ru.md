@@ -100,6 +100,8 @@
 
 ## Разработка
 
+Склонируйте репозиторий, используя команду `git clone --recurse-submodules https://github.com/Seeneva/seeneva-reader-android.git` для инициализации всех git подмодулей, например [seeneva-lib](https://github.com/Seeneva/seeneva-lib).
+
 Используйте Android Studio и Gradle чтобы собрать *Seeneva* apk/bundle.
 
 ### Требования
