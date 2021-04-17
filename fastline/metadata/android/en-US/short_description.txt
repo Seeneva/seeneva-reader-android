@@ -1,0 +1,1 @@
+Fully open source smart comic book reader with the ability to use OCR and TTS.
