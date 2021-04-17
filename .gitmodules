@@ -1,3 +1,4 @@
 [submodule "native"]
 	path = native
 	url = https://github.com/Seeneva/seeneva-lib.git
+	branch = fdroid
