@@ -112,18 +112,20 @@
 - [CMake](https://developer.android.com/ndk/guides/cmake). Может быть установлен с помощью Android Studio.
 - [Autotools](https://www.gnu.org/software/automake/faq/autotools-faq.html).
 - [Kotlin](https://developer.android.com/kotlin). Может быть установлен с помощью Android Studio.
-- [Rust](https://www.rust-lang.org/tools/install). Тестировалось на версии **1.51.0**. Необходимо добавить Android цели:
+- [Rust](https://www.rust-lang.org/tools/install). Rustup сам установит необходимые toolchain и цели для кросс компиляции, используя файл [rust-toolchain](rust-toolchain).
+  
+  - Установка Android целей вручную:
 
-```console
-# Android arm64-v8a
-rustup target add aarch64-linux-android
-# Android armeabi-v7a
-rustup target add armv7-linux-androideabi
-# Android x86
-rustup target add i686-linux-android
-# Android x86_64
-rustup target add x86_64-linux-android
-```
+    ```console
+    # Android arm64-v8a
+    rustup target add aarch64-linux-android
+    # Android armeabi-v7a
+    rustup target add armv7-linux-androideabi
+    # Android x86
+    rustup target add i686-linux-android
+    # Android x86_64
+    rustup target add x86_64-linux-android
+    ```
 
 ### Варианты сборки Gradle
 

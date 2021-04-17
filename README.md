@@ -112,18 +112,20 @@ Use Android Studio and Gradle to build *Seeneva* apk/bundle.
 - [CMake](https://developer.android.com/ndk/guides/cmake). Can be installed using Android Studio.
 - [Autotools](https://www.gnu.org/software/automake/faq/autotools-faq.html).
 - [Kotlin](https://developer.android.com/kotlin). Can be installed using Android Studio.
-- [Rust](https://www.rust-lang.org/tools/install). Tested on **1.51.0**. Also you need to add Android targets:
+- [Rust](https://www.rust-lang.org/tools/install). Rustup will automatically install all required toolchain and targets using [rust-toolchain](rust-toolchain) file.
 
-```console
-# Android arm64-v8a
-rustup target add aarch64-linux-android
-# Android armeabi-v7a
-rustup target add armv7-linux-androideabi
-# Android x86
-rustup target add i686-linux-android
-# Android x86_64
-rustup target add x86_64-linux-android
-```
+  - Android targets manual setup:
+
+    ```console
+    # Android arm64-v8a
+    rustup target add aarch64-linux-android
+    # Android armeabi-v7a
+    rustup target add armv7-linux-androideabi
+    # Android x86
+    rustup target add i686-linux-android
+    # Android x86_64
+    rustup target add x86_64-linux-android
+    ```
 
 ### Gradle build variants
 

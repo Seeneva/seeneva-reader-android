@@ -1,0 +1,11 @@
+# Overrides used Rust toolchain by ./native submodule
+# https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file
+[toolchain]
+channel = "1.51.0"
+components = ["rustfmt", "clippy", "rls", "rust-analysis"]
+targets = [
+    "aarch64-linux-android",
+    "armv7-linux-androideabi",
+    "i686-linux-android",
+    "x86_64-linux-android",
+]
