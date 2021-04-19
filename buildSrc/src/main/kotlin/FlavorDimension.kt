@@ -16,9 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-object RustBuildTypeFlavor{
+object RustBuildTypeFlavor {
     const val NAME = "rust_build_type"
 
     const val RUST_DEBUG = "rustDebug"
     const val RUST_RELEASE = "rustRelease"
+}
+
+object AppStoreFlavor {
+    const val NAME = "app_store"
+
+    const val DEFAULT = "default"
+    const val FDROID = "fdroid"
 }

@@ -65,6 +65,7 @@ subprojects {
     configure<BaseExtension> {
         //TODO update when fixed https://github.com/android/ndk/issues/1391 or build my own libz?
         ndkVersion = "21.3.6528147"
+        buildToolsVersion = "30.0.3"
         compileSdkVersion(30)
 
         defaultConfig {
