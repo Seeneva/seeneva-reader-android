@@ -17,7 +17,6 @@
  */
 
 import extension.loadProperties
-import com.android.build.api.dsl.SigningConfig
 
 plugins {
     kotlin("kapt")
@@ -30,7 +29,7 @@ android {
 
     splits {
         abi {
-            isEnable = true
+            isEnable = !hasProperty("seeneva.disableSplitApk")
 
             reset()
 
@@ -41,7 +40,7 @@ android {
     }
 
     signingConfigs {
-        this.register("release") {
+        register("release") {
             // Add `keystore.properties` to provide data needed for app signing process:
             // storeFile=/path/to/keystore
             // storePassword=
@@ -98,6 +97,19 @@ android {
         getByName("debug") {
             isMinifyEnabled = false
             isDebuggable = true
+        }
+    }
+
+    flavorDimensions(AppStoreFlavor.NAME)
+
+    productFlavors {
+        register(AppStoreFlavor.DEFAULT) {
+            dimension = AppStoreFlavor.NAME
+        }
+
+        register(AppStoreFlavor.FDROID) {
+            dimension = AppStoreFlavor.NAME
+            //TODO This will be used in future releases (e.g show donate button in the application)
         }
     }
 
