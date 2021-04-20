@@ -109,6 +109,8 @@ android {
 
         register(AppStoreFlavor.FDROID) {
             dimension = AppStoreFlavor.NAME
+
+            versionNameSuffix = "-fdroid"
             //TODO This will be used in future releases (e.g show donate button in the application)
         }
     }
