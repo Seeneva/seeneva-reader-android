@@ -78,14 +78,9 @@ android {
     }
 
     buildTypes {
-        getByName("release") {
+        named("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-
-            ndk {
-                // https://developer.android.com/studio/build/shrink-code.html#native-crash-support
-                debugSymbolLevel = "symbol_table"
-            }
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -94,7 +89,7 @@ android {
 
             signingConfig = signingConfigs["release"]
         }
-        getByName("debug") {
+        named("debug") {
             isMinifyEnabled = false
             isDebuggable = true
         }
@@ -103,7 +98,7 @@ android {
     flavorDimensions(AppStoreFlavor.NAME)
 
     productFlavors {
-        register(AppStoreFlavor.DEFAULT) {
+        register(AppStoreFlavor.GOOGLE) {
             dimension = AppStoreFlavor.NAME
         }
 
