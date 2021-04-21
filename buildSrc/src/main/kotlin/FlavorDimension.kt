@@ -26,6 +26,6 @@ object RustBuildTypeFlavor {
 object AppStoreFlavor {
     const val NAME = "app_store"
 
-    const val DEFAULT = "default"
+    const val GOOGLE = "google"
     const val FDROID = "fdroid"
 }

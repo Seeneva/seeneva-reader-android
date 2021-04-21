@@ -136,6 +136,13 @@ Usually you should use `rustRelease` build flavor for better ML performance.
 
 Output shared library will always include debug symbols (`-g` cflag). That's why shared library can have size 200+MB. But do not worry about it, Android Gradle plugin will strip debug symbols before pack the shared library into the output apk. These debug symbols will allow you to [debug](#native-debug) native code.
 
+### Gradle properties
+
+You can set these Gradle properties:
+
+- `seeneva.disableSplitApk`: disable apk splitting. Generate only one universal apk.
+- `seeneva.noDebSymbols`: do not generate native debug symbols.
+
 ### Native debug
 
 Your apk should be debaggable.
