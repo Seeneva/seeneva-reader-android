@@ -26,6 +26,7 @@ object RustBuildTypeFlavor {
 object AppStoreFlavor {
     const val NAME = "app_store"
 
-    const val GOOGLE = "google"
+    const val GOOGLE_PLAY = "gplay"
     const val FDROID = "fdroid"
+    const val GITHUB = "github"
 }

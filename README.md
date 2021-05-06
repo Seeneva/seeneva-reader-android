@@ -14,7 +14,7 @@
 [**•** *Performance*](#performance)
 [**•** *Screenshots*](#screenshots)
 [**•** *What's next?*](#whats-next)
-[**•** *Developing*](#developing)
+[**•** *Developing*](docs/DEVELOPING.md)
 [**•** *Contribution*](#contribution)
 [**•** *Donate*](#donate)
 [**•** *FAQ*](#faq)
@@ -94,98 +94,14 @@ Smart adding new comic book into the library might take a while. It is depends o
 
 More smart features, new supported by [OCR](#ocr-and-tts) languages. Where are a lot of ideas to implement.
 
+Here are some of them:
+
+- [ ] Tools for contributors to improve ML features.
+- [ ] Smart speech balloon text translation to another language.
+
 Stay tuned!
 
 :exclamation: *Seeneva* is a non-profit project, so there is no strong road map.
-
-## Developing
-
-Clone this repository using `git clone --recurse-submodules https://github.com/Seeneva/seeneva-reader-android.git` command to properly init git submodules (e.g. [seeneva-lib](https://github.com/Seeneva/seeneva-lib)).
-
-Use Android Studio and Gradle to build *Seeneva* apk/bundle.
-
-### Requirements
-
-- Linux. It might be possible to use macOS, but it has not been tested. Your environment should be able to run shell scripts.
-- Android [SDK](https://developer.android.com/studio).
-- Android [NDK](https://developer.android.com/ndk). Check project's `ndkVersion` to find out which version to install.
-- [CMake](https://developer.android.com/ndk/guides/cmake). Can be installed using Android Studio.
-- [Autotools](https://www.gnu.org/software/automake/faq/autotools-faq.html).
-- [Kotlin](https://developer.android.com/kotlin). Can be installed using Android Studio.
-- [Rust](https://www.rust-lang.org/tools/install). Rustup will automatically install all required toolchain and targets using [rust-toolchain](rust-toolchain) file.
-
-  - Android targets manual setup:
-
-    ```console
-    # Android arm64-v8a
-    rustup target add aarch64-linux-android
-    # Android armeabi-v7a
-    rustup target add armv7-linux-androideabi
-    # Android x86
-    rustup target add i686-linux-android
-    # Android x86_64
-    rustup target add x86_64-linux-android
-    ```
-
-### Gradle build variants
-
-- `rustDubug`: build debug shared library.
-- `rustRelease`: build release shared library.
-
-Usually you should use `rustRelease` build flavor for better ML performance.
-
-Output shared library will always include debug symbols (`-g` cflag). That's why shared library can have size 200+MB. But do not worry about it, Android Gradle plugin will strip debug symbols before pack the shared library into the output apk. These debug symbols will allow you to [debug](#native-debug) native code.
-
-### Gradle properties
-
-You can set these Gradle properties:
-
-- `seeneva.disableSplitApk`: disable apk splitting. Generate only one universal apk.
-- `seeneva.noDebSymbols`: do not generate native debug symbols.
-
-### Native debug
-
-Your apk should be debaggable.
-
-:exclamation:**Note:** Native part of `Seeneva` was written using Rust language. You can't debug it using Android Studio or Intellij IDEA Community edition GUI.
-
-You can use [Visual Studio Code](https://code.visualstudio.com) with [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) extension to debug Rust code.
-
-You have two options to start debugger:
-
-1. Open `./native` directory in VS Code (`code ./native`) and run `Attach Android debugger` VS Code task.
-2. Run shell script `./native/scripts/attach_android_debugger.sh` which will start VS Code and LLDB. Do not forget to pass required arguments!
-
-### Signing
-
-Any `Release` build type should be signed. [Read](https://developer.android.com/studio/publish/app-signing#sign-apk) how to create your key.
-
-You have multiple options how to sign the app:
-
-1. Using [Android Studio](https://developer.android.com/studio/publish/app-signing#sign_release) GUI
-2. Using Gradle to automatize signing process:
-    - Put `keystore.properties` file into `app` module root:
-
-        ```text
-        storeFile=</path/to/my.jks>
-        storePassword=<mYpAsSWord>
-        keyAlias=<my_key_alias>
-        keyPassword=<mYpAsSWord>
-        ```
-
-    - Set your values instead of `<...>`.
-    - Run `gradlew :app:assembleRelease` Gradle task to build signed apk.
-
-3. Pass same values as env variables and build apk.
-
-### Formatting
-
-This projects ships with predefined code styles:
-
-- `.editorconfig`
-- `rustfmt.toml` to format Rust code using [rustfmt](https://github.com/rust-lang/rustfmt).
-
-Please ensure that they are enabled in your code editor.
 
 ## Contribution
 
@@ -245,7 +161,7 @@ Please remember that donations are totally voluntary. There is no any bonuses ri
 <p align="center">
     <a href="docs/img/donate/bitcoin_qr.png"><img src="docs/img/donate/bitcoin_qr.png" width="170"/></a>
     <br>
-    bc1qka05pst7ls9g8fgdx4wvqr8fsjkwjkmj9jtcp0
+    bc1qka05pst7ls9g<br>8fgdx4wvqr8fsjkwjkmj9jtcp0
 </p>
 </td>
 </tr>
@@ -260,7 +176,7 @@ Please remember that donations are totally voluntary. There is no any bonuses ri
 <p align="center">
     <a href="docs/img/donate/nano_qr.png"><img src="docs/img/donate/nano_qr.png" width="170"/></a>
     <br>
-    nano_1oyofpnaacswu4byr4iiw8uwiqthhq83w4fkhsaujsmrestxnf6mzaby86ig
+    nano_1oyofpnaacs<br>wu4byr4iiw8uwiqt<br>hhq83w4fkhsaujsm<br>restxnf6mzaby86ig
 </p>
 </td>
 </tr>
@@ -275,7 +191,7 @@ Please remember that donations are totally voluntary. There is no any bonuses ri
 <p align="center">
     <a href="docs/img/donate/ethereum_qr.png"><img src="docs/img/donate/ethereum_qr.png" width="170"/></a>
     <br>
-    0xdBa3f438107208837491885351deAB00d66c718B
+    0xdBa3f438107208<br>837491885351deAB<br>00d66c718B
 </p>
 </td>
 </tr>
@@ -295,6 +211,16 @@ Please remember that donations are totally voluntary. There is no any bonuses ri
 **Q**: Why my comic book [speech balloons flow](#speech-balloons-flow) or [OCR](#ocr-and-tts) recognition results so poor?
 
 **A**: Please try to use high resolution images. If it doesn't help then your comic book has unsupported speech balloon's shapes or fonts. This usually can be fixed by adding this comic book into ML training process. Also manga recognition is worse than comic book right now.
+
+**Q**: What is the difference between **Import** and **Link** adding options?
+
+**A**: Current adding process is not very clear and can confuse. It should be improved in future versions.
+
+To clarify the difference:
+
+- **Import** - a comic book will be copied into app's internal folder. If you have a 100MB comic book and import it, you will have two identical files of 100MB each. The imported comic book is always available for the app.
+
+- **Link** - the app will request permanent read link to a comic book using Android's [storage access framework](https://developer.android.com/guide/topics/providers/document-provider). The requested comic book will be read from its source folder without any copy. This will help to save free space on a device. **But**. If you uninstall your file manager app which provided this permanent link, *Seeneva* will lose that link as result. Your comic book file won't be corrupted by *Seeneva*.
 
 **Q**: Where I have to get digital comic books?
 

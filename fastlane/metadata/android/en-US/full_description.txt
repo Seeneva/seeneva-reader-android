@@ -22,4 +22,4 @@ Have you ever wanted to copy text from speech balloons? <b>Seeneva</b> make it p
 • No comic book included.
 • OCR and TTS features are only available for English language right now. 
 
-Please read app <a href="https://github.com/Seeneva/seeneva-reader-android">repository</a> for more information about the app and known issues.
+Please read app <a href="https://github.com/Seeneva/seeneva-reader-android">repository</a> https://github.com/Seeneva/seeneva-reader-android for more information about the app and known issues.

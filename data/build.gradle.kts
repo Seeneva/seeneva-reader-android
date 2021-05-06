@@ -69,23 +69,12 @@ android {
 
     buildTypes {
         named("release") {
-            // do not generate native debug symbols
-            val disableDebugSymbols = hasProperty("seeneva.noDebSymbols")
-
-            ndk {
-                // https://developer.android.com/studio/build/shrink-code.html#native-crash-support
-                debugSymbolLevel = if (disableDebugSymbols) {
-                    "none"
-                } else {
-                    "symbol_table"
-                }
-            }
-
             externalNativeBuild {
                 cmake {
                     arguments("-DRUST_DEBUG_LOGS=OFF")
 
-                    if(disableDebugSymbols){
+                    if (hasProperty(extension.PROP_NO_DEB_SYMBOLS)) {
+                        // do not generate native debug symbols
                         arguments("-DLIB_DEB_SYMBOLS=OFF")
                     }
                 }
