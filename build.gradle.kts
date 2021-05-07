@@ -17,6 +17,8 @@
  */
 
 import com.android.build.gradle.BaseExtension
+import extension.loadProperties
+import extension.requireEnvOrProperty
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -72,8 +74,19 @@ subprojects {
             minSdkVersion(16)
             targetSdkVersion(30)
 
-            versionCode = 1
-            versionName = "0.1.0"
+            loadProperties(rootDir.resolve("seeneva.properties")).also { seenevaProperties ->
+                versionCode = requireEnvOrProperty(
+                    extension.ENV_VERSION_CODE,
+                    extension.PROP_VERSION_CODE,
+                    seenevaProperties
+                ).toInt()
+
+                versionName = requireEnvOrProperty(
+                    extension.ENV_VERSION_NAME,
+                    extension.PROP_VERSION_NAME,
+                    seenevaProperties
+                )
+            }
 
             multiDexEnabled = true
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

@@ -1,0 +1,134 @@
+name: Release application
+
+on:
+  release:
+    types: [published]
+
+env:
+  BUNDLE_WITHOUT: development
+  FASTLANE_SKIP_UPDATE_CHECK: true
+
+jobs:
+  # Filter by branch and tag name. Valid release tags: v0.1.0, v0.1.0-alpha, v0.1.0-something
+  check_release:
+    name: Check release before build
+    runs-on: ubuntu-latest
+    if: |
+      github.event.release.target_commitish == 'master' || 
+      github.event.release.target_commitish == 'dev'
+    outputs:
+      valid: ${{ steps.check_tag.outputs.valid }}
+      build_type: ${{ steps.check_tag.outputs.build_type }}
+      gh_envs: ${{ steps.check_tag.outputs.gh_envs }}
+    steps:
+      - name: Check Tag
+        id: check_tag
+        run: |
+          if [[ ${{ github.event.release.tag_name }} =~ ^v([0-9]+\.?){3}(-.+)?$ ]]; then
+              echo ::set-output name=valid::true
+
+              if ${{ github.event.release.target_commitish == 'master' }}; then
+                echo ::set-output name=build_type::Release
+                echo ::set-output name=gh_envs::${{ toJSON('{"env":["release", "upload"]}') }}
+              else
+                echo ::set-output name=build_type::Debug
+                echo ::set-output name=gh_envs::${{ toJSON('{"env":["nightly"]}') }}
+              fi
+          fi
+
+  # Will be triggered only if the release event has valid branch and tag name
+  # If it is a release on master brtanch: upload to Google Play and attach APKs to GH release
+  # Otherwise just attach APKs
+  build:
+    name: Build release
+    runs-on: ubuntu-latest
+    needs: check_release
+    if: needs.check_release.outputs.valid == 'true'
+    environment:
+      name: ${{ matrix.env }}
+    strategy:
+      matrix: ${{ fromJson(needs.check_release.outputs.gh_envs) }}
+    steps:
+      - name: Install packages
+        run: sudo apt install autopoint
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v2.0.0
+        with:
+          distribution: adopt
+          java-version: 8
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Setup required Ruby
+        uses: ruby/setup-ruby@v1.70.1
+        with:
+          bundler-cache: true
+
+      - name: Cache Rust Cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ./native/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('./native/**/Cargo.lock', '**/rust-toolchain') }}
+
+      - name: Cache Gradle wrapper
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+
+      - uses: gradle/wrapper-validation-action@v1
+
+      # Calculate app's version name and code
+      # We don't need to do it on 'master' branch because all PR's alredy bumped version name and code
+      - name: Calculate versionName and versionCode
+        if: github.event.release.target_commitish != 'master'
+        run: |
+          o=($(bundle exec fastlane run release_version_calc token:"${{ secrets.GITHUB_TOKEN }}" branch:"${{ github.event.release.target_commitish }}"))
+          echo "SEENEVA_VERSION_NAME=${o[-2]}" >> $GITHUB_ENV
+          echo "SEENEVA_VERSION_CODE=${o[-1]}" >> $GITHUB_ENV
+
+      # Assemble the app. Output APK will be signed using environment's KEYSTORE
+      - name: Run assemble task
+        if: matrix.env != 'upload'
+        run: |
+          bundle exec fastlane gh_release_apk build_type:"${{ needs.check_release.outputs.build_type }}" store_data:"${SEENEVA_STORE_DATA}"
+        env:
+          SEENEVA_STORE_FILE: ${{ github.workspace }}/seeneva.keystore
+          SEENEVA_STORE_DATA: ${{ secrets.KEYSTORE }}
+          SEENEVA_STORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          SEENEVA_KEY_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          SEENEVA_KEY_PASS: ${{ secrets.KEY_PASS }}
+          FL_GRADLE_PRINT_COMMAND: false
+
+      - name: Upload apk
+        if: matrix.env != 'upload'
+        uses: alexellis/upload-assets@0.2.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_paths: '["./app/build/outputs/apk/**/*.apk"]'
+
+      - name: Assemble bundle and upload to GP
+        if: matrix.env == 'upload'
+        run: |
+          bundle exec fastlane gplay_publish_internal store_data:"${SEENEVA_STORE_DATA}"
+        env:
+          SEENEVA_STORE_FILE: ${{ github.workspace }}/seeneva.keystore
+          SEENEVA_STORE_DATA: ${{ secrets.KEYSTORE }}
+          SEENEVA_STORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          SEENEVA_KEY_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          SEENEVA_KEY_PASS: ${{ secrets.KEY_PASS }}
+          FL_GRADLE_PRINT_COMMAND: false
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.GP_KEY_DATA }}
+
+      - name: Delete release on failure
+        if: ${{ failure() }}
+        run: |
+          bundle exec fastlane run delete_gh_release token:"${{ secrets.GITHUB_TOKEN }}" tag:"${{ github.event.release.tag_name }}"

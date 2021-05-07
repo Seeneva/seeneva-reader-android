@@ -16,11 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import extension.loadProperties
+import com.android.build.gradle.api.ApkVariantOutput
+import com.android.build.gradle.api.ApplicationVariant
+import com.android.build.gradle.internal.dsl.SigningConfig
+import extension.signProperties
 
 plugins {
     kotlin("kapt")
 }
+
+// True if this build is running in CI
+val buildUsingCI = !System.getenv("CI").isNullOrEmpty()
 
 android {
     buildFeatures {
@@ -41,30 +47,16 @@ android {
 
     signingConfigs {
         register("release") {
-            // Add `keystore.properties` to provide data needed for app signing process:
-            // storeFile=/path/to/keystore
-            // storePassword=
-            // keyAlias=
-            // keyPassword=
-
-            val keystoreProperties =
-                runCatching { loadProperties("keystore.properties") }.getOrNull()
-
-            /**
-             * Get sign property by name. Try to find it in the `keystore.properties` or in all other place
-             * @param name sign property name
-             * @return sign property value
-             */
-            fun signProperty(name: String) =
-                keystoreProperties?.getProperty(name) ?: property(name) as String
-
-            storeFile = file(signProperty("storeFile"))
-            storePassword = signProperty("storePassword")
-            keyAlias = signProperty("keyAlias")
-            keyPassword = signProperty("keyPassword")
+            applyPropertiesSigning()
 
             isV1SigningEnabled = true
             isV2SigningEnabled = true
+        }
+        named("debug") {
+            if (buildUsingCI) {
+                // Allow override signing properties on build started by CI
+                applyPropertiesSigning()
+            }
         }
     }
 
@@ -88,17 +80,28 @@ android {
             )
 
             signingConfig = signingConfigs["release"]
+
+            ndk {
+                // https://developer.android.com/studio/build/shrink-code.html#native-crash-support
+                debugSymbolLevel = if (hasProperty(extension.PROP_NO_DEB_SYMBOLS)) {
+                    "none"
+                } else {
+                    "full"
+                }
+            }
         }
         named("debug") {
             isMinifyEnabled = false
             isDebuggable = true
+
+            applicationIdSuffix = ".debug"
         }
     }
 
     flavorDimensions(AppStoreFlavor.NAME)
 
     productFlavors {
-        register(AppStoreFlavor.GOOGLE) {
+        register(AppStoreFlavor.GOOGLE_PLAY) {
             dimension = AppStoreFlavor.NAME
         }
 
@@ -108,6 +111,11 @@ android {
             versionNameSuffix = "-fdroid"
             //TODO This will be used in future releases (e.g show donate button in the application)
         }
+        register(AppStoreFlavor.GITHUB) {
+            dimension = AppStoreFlavor.NAME
+
+            versionNameSuffix = "-gh"
+        }
     }
 
     packagingOptions {
@@ -115,6 +123,10 @@ android {
         exclude("DebugProbesKt.bin")
         // Not needed right now, but should return if I will use web connections
         exclude("okhttp3/**/publicsuffixes.gz")
+    }
+
+    if (buildUsingCI) {
+        applicationVariants.configureEach(::configureOutputName)
     }
 
 //    testOptions{
@@ -159,4 +171,60 @@ dependencies {
     implementation(Deps.KOIN_ANDROIDX_WORKMANAGER)
 
     implementation(Deps.SCALE_IMAGE_VIEW)
+}
+
+/**
+ * Apply signing params from the Java properties file or Gradle properties if properties file is not provided
+ * @param propertiesFileName Java properties file which should be used
+ */
+fun SigningConfig.applyPropertiesSigning(propertiesFileName: String = "keystore.properties") {
+    // Add `keystore.properties` to provide data needed for app signing process:
+    // seeneva.storeFile=/path/to/keystore
+    // seeneva.storePassword=
+    // seeneva.keyAlias=
+    // seeneva.keyPassword=
+
+    val signProperties = signProperties(propertiesFileName) ?: return
+
+    storeFile = file(signProperties[extension.PROP_STORE_FILE] as String).absoluteFile
+    storePassword = signProperties[extension.PROP_STORE_PASS] as String
+    keyAlias = signProperties[extension.PROP_KEY_ALIAS] as String
+    keyPassword = signProperties[extension.PROP_KEY_PASS] as String
+}
+
+/**
+ * Configure naming of output APKs
+ * @param variant build variant to configure
+ */
+fun configureOutputName(variant: ApplicationVariant) {
+    val abiSplitEnabled = android.splits.abi.isEnable
+
+    variant.outputs
+        .withType<ApkVariantOutput>()
+        .configureEach {
+            val outputFilters = filters
+
+            outputFileName = buildString {
+                append("seeneva-${variant.versionName}")
+
+                if (abiSplitEnabled) {
+                    append('-')
+                    append(if (outputFilters.isEmpty()) {
+                        "universal"
+                    } else {
+                        outputFilters.joinToString("-") { it.identifier }
+                    })
+                }
+
+                if (variant.buildType.isDebuggable) {
+                    append("-debug")
+                }
+
+                if (!variant.isSigningReady) {
+                    append("-unsigned")
+                }
+
+                append(".apk")
+            }
+        }
 }

@@ -1,0 +1,107 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+  def base_build(options, &block)
+    clean
+
+    base_lambda = lambda {
+      block.call
+
+      apk_paths = lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS]
+      aab_paths = lane_context[SharedValues::GRADLE_ALL_AAB_OUTPUT_PATHS]
+
+      check_apk_certificate(apk: if apk_paths && !apk_paths.empty?
+                                   apk_paths
+                                 else
+                                   aab_paths
+                                 end)
+    }
+
+    if ENV['CI']
+      begin
+          store_file_path = ENV['SEENEVA_STORE_FILE']
+
+          # Decode keystore and save it to the file
+          base64_decode_to_file(data: options[:store_data], path: store_file_path)
+
+          base_lambda.call
+      ensure
+        File.delete(store_file_path)
+      end
+    else
+      base_lambda.call
+    end
+  end
+
+  desc 'Call Gradle Clean'
+  lane :clean do
+    gradle(task: 'clean')
+  end
+
+  desc 'Runs lint and test Gradle tasks'
+  lane :tests do |options|
+    build_type = (options[:build_type] || 'Debug')
+
+    gradle(tasks: ["lint#{build_type}", "test#{build_type}UnitTest"])
+  end
+
+  desc 'Build all APK without splitting by ABI and attach them to GitHub PR'
+  lane :pr_build_apk do |options|
+    base_build(options) do
+      gradle(
+        task: ':app:assemble',
+        build_type: (options[:build_type] || 'Debug'),
+        properties: {
+          'seeneva.disableSplitApk': '',
+          'seeneva.noDebSymbols': ''
+        }
+      )
+    end
+  end
+
+  desc 'Build GitHub release APKs splitted by ABI'
+  lane :gh_release_apk do |options|
+    base_build(options) do
+      gradle(
+        task: ':app:assemble',
+        build_type: (options[:build_type] || 'Debug'),
+        flavor: 'Github',
+        properties: {
+          'seeneva.noDebSymbols': ''
+        }
+      )
+    end
+  end
+
+  desc 'Build Android App Bundle and upload it to Google Play as internal test draft'
+  lane :gplay_publish_internal do |options|
+    base_build(options) do
+      gradle(
+        task: ':app:bundle',
+        build_type: 'Release',
+        flavor: 'Gplay'
+      )
+    end
+
+    supply(
+      track: 'internal',
+      release_status: 'draft',
+      skip_upload_apk: true
+    )
+  end
+end

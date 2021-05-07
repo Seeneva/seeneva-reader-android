@@ -1,0 +1,18 @@
+{
+    "solargraph.useBundler": true,
+    "solargraph.formatting": true,
+    "ruby.useBundler": true,
+    "ruby.useLanguageServer": true,
+    "ruby.lint": {
+        "rubocop": {
+            "useBundler": true // enable rubocop via bundler
+        },
+        "reek": {
+            "useBundler": true // enable reek via bundler
+        }
+    },
+    "ruby.format": "rubocop", // use rubocop for formatting
+    "[ruby]": {
+        "editor.defaultFormatter": "castwide.solargraph"
+    }
+}

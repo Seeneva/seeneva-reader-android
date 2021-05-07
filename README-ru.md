@@ -14,7 +14,7 @@
 [**•** *Производительность*](#производительность)
 [**•** *Скриншоты*](#скриншоты)
 [**•** *Что дальше?*](#что-дальше)
-[**•** *Разработка*](#разработка)
+[**•** *Разработка*](docs/DEVELOPING-ru.md)
 [**•** *Помощь проекту*](#помощь-проекту)
 [**•** *Донат*](#донат)
 [**•** *ЧАВО*](#чаво)
@@ -94,98 +94,14 @@
 
 Больше умных возможностей, новые языки, поддерживающие [OCR](#ocr-и-tts). Идей для реализации много.
 
+Вот некоторые из них:
+
+- [ ] Утилиты для возможности пользователям внести вклад в улучшение ML возможностей.
+- [ ] Умный перевод текста в речевых балунах на другой язык.
+
 Следите за обновлениями!
 
 :exclamation: *Seeneva* - это некоммерческий проект, поэтому строгой "дорожной карты" по дням здесь не планируется.
-
-## Разработка
-
-Склонируйте репозиторий, используя команду `git clone --recurse-submodules https://github.com/Seeneva/seeneva-reader-android.git` для инициализации всех git подмодулей, например [seeneva-lib](https://github.com/Seeneva/seeneva-lib).
-
-Используйте Android Studio и Gradle чтобы собрать *Seeneva* apk/bundle.
-
-### Требования
-
-- Linux. Возможно получится собрать и с помощью macOS, но это не проверялось. Ваша система должна иметь возможность запуска shell скриптов.
-- Android [SDK](https://developer.android.com/studio).
-- Android [NDK](https://developer.android.com/ndk). Проверьте используемый проектом `ndkVersion`, чтобы установить правильную версию.
-- [CMake](https://developer.android.com/ndk/guides/cmake). Может быть установлен с помощью Android Studio.
-- [Autotools](https://www.gnu.org/software/automake/faq/autotools-faq.html).
-- [Kotlin](https://developer.android.com/kotlin). Может быть установлен с помощью Android Studio.
-- [Rust](https://www.rust-lang.org/tools/install). Rustup сам установит необходимые toolchain и цели для кросс компиляции, используя файл [rust-toolchain](rust-toolchain).
-  
-  - Установка Android целей вручную:
-
-    ```console
-    # Android arm64-v8a
-    rustup target add aarch64-linux-android
-    # Android armeabi-v7a
-    rustup target add armv7-linux-androideabi
-    # Android x86
-    rustup target add i686-linux-android
-    # Android x86_64
-    rustup target add x86_64-linux-android
-    ```
-
-### Варианты сборки Gradle
-
-- `rustDubug`: собрать debug динамическую библиотеку.
-- `rustRelease`: собрать release динамическую библиотеку.
-
- Обычно вы должны использовать `rustRelease` build flavor для лучшей производительности ML.
-
-Полученная динамическая библиотека всегда будет содержать дебаг символы (`-g` cflag). Поэтому динамическая библиотека может достигать 200+ MБ. Но не волнуйтесь об этом, Android Gradle плагин уберёт дебаг символы прежде чем упаковать динамическую библиотеку в apk приложения. Эти дебаг символы помогут при [дебаге](#дебаг-нативного-кода) нативного кода.
-
-### Gradle свойства
-
-Вы можете использовать следующие свойства:
-
-- `seeneva.disableSplitApk`: отключает деление apk. Будет сгенерирован только один универсальный apk.
-- `seeneva.noDebSymbols`: отключает генерацию дебаг символов для нативного кода.
-
-### Дебаг нативного кода
-
-Ваша apk должна поддерживать дебаг (debaggable).
-
-:exclamation:**Примечание:** Нативная часть приложения `Seeneva` была написана, используя язык Rust. Дебаг Rust кода в Android Studio или Intellij IDEA Community edition GUI невозможен.
-
-Для дебага вы можете использовать [Visual Studio Code](https://code.visualstudio.com) с установленным расширением [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb).
-
-У вас есть две возможности начать дебаг:
-
-1. Открыть директорию `./native` в VS Code (`code ./native`) и запустить VS Code таску `Attach Android debugger`.
-2. Запустить shell скрипт `./native/scripts/attach_android_debugger.sh` который запустит VS Code и LLDB. Не забудьте передать необходимые аргументы!
-
-### Подпись приложения
-
-Любой `Release` билд должен быть подписан. [Почитайте](https://developer.android.com/studio/publish/app-signing#sign-apk) как создать собственный ключ.
-
-Есть несколько путей подписи приложения:
-
-1. Используя [Android Studio](https://developer.android.com/studio/publish/app-signing#sign_release) GUI.
-2. Используя Gradle для автоматизации процесса подписи:
-    - Поместите файл `keystore.properties` в корень `app` модуля:
-
-        ```text
-        storeFile=</path/to/my.jks>
-        storePassword=<mYpAsSWord>
-        keyAlias=<my_key_alias>
-        keyPassword=<mYpAsSWord>
-        ```
-
-    - Поместите свои значения заместо `<...>`.
-    - Запустите `gradlew :app:assembleRelease` Gradle таску, чтобы собрать подписанный apk.
-
-3. Передать те же значения, как переменные окружения (env variables) и собрать apk.
-
-### Форматирование
-
-Проект содержит следующие файлы, описывающие предпочтительный стиль кода (code style):
-
-- `.editorconfig`
-- `rustfmt.toml` для форматирования кода на Rust, используя [rustfmt](https://github.com/rust-lang/rustfmt).
-
-Пожалуйста, убедитесь, что поддержка этих файлов включена в вашем редакторе.
 
 ## Помощь проекту
 
@@ -247,7 +163,7 @@
 <p align="center">
     <a href="docs/img/donate/bitcoin_qr.png"><img src="docs/img/donate/bitcoin_qr.png" width="170"/></a>
     <br>
-    bc1qka05pst7ls9g8fgdx4wvqr8fsjkwjkmj9jtcp0
+    bc1qka05pst7ls9g<br>8fgdx4wvqr8fsjkwjkmj9jtcp0
 </p>
 </td>
 </tr>
@@ -262,7 +178,7 @@
 <p align="center">
     <a href="docs/img/donate/nano_qr.png"><img src="docs/img/donate/nano_qr.png" width="170"/></a>
     <br>
-    nano_1oyofpnaacswu4byr4iiw8uwiqthhq83w4fkhsaujsmrestxnf6mzaby86ig
+    nano_1oyofpnaacs<br>wu4byr4iiw8uwiqt<br>hhq83w4fkhsaujsm<br>restxnf6mzaby86ig
 </p>
 </td>
 </tr>
@@ -277,7 +193,7 @@
 <p align="center">
     <a href="docs/img/donate/ethereum_qr.png"><img src="docs/img/donate/ethereum_qr.png" width="170"/></a>
     <br>
-    0xdBa3f438107208837491885351deAB00d66c718B
+    0xdBa3f438107208<br>837491885351deAB<br>00d66c718B
 </p>
 </td>
 </tr>
@@ -297,6 +213,16 @@
 **Q**: Почему [поток речевых балунов](#поток-речевых-балунов) или [OCR](#ocr-и-tts) в моём комиксе работает так плохо?
 
 **A**: Пожалуйста, попробуйте использовать изображения страниц большего разрешения. Если это не помогло, то в этом комиксе содержатся речевые балуны форма или шрифт которых сейчас не поддерживаются приложением. Обычно это может быть исправлено путём добавления этого комикса в процесс обучения моделей ML. Отмечу, что сейчас манга определяется хуже, чем комиксы.
+
+**Q**: В чём разница между **Импортировать** и **Связать** при добавлении комикса?
+
+**A**: Текущая UI реализация добавления комикса не совсем очевидна и может запутать пользователя. Реализация будет изменена в будущих версиях приложения.
+
+Разница между режимами добавления комикса:
+
+- **Импортировать** - файл комикса будет скопирован во внутреннюю папку приложения. Если вы импортируете 100 МБ комикс, то у вас на устройстве будет два одинаковых файла комикса, каждый по 100 МБ. Импортированный комикс всегда будет доступен для чтения в приложении.
+
+- **Связать** - приложение запросит постоянную ссылку на файл комикса с помощью встроенного в Android фреймворка [storage access framework](https://developer.android.com/guide/topics/providers/document-provider). Запрошенный файл будет обработан без копирования, что помогает уменьшить занимаемое приложением место на устройстве. **НО**. Если вы удалите с устройства файловый менеджер, которым была получена ссылка на комикс, *Seeneva* потеряет возможность открывать комикс. Сам файл комикса останется на своём месте.
 
 **Q**: Где мне найти цифровые комиксы?
 
