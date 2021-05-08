@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="add_mode_import_descr">En tegneseriefil vil bli kopiert til programmets indre mappe</string>
+    <string name="add_mode_link_descr">En tegneserie vil bli lagt til uten kopiering. Hvis du sletter programmet den ble åpnet med, vil tegneserien ikke kunne redigeres.</string>
+    <string name="sort_comic_list_name_desc">Overskrift (Å-A)</string>
+    <string name="sort_comic_list_name_asc">Overskrift (A-Å)</string>
+    <string name="comic_script_direction_rtl">Høyre til venstre</string>
+    <string name="comic_script_direction_ltr">Venstre til høyre</string>
+    <string name="comic_tag_corrupted">Skadet</string>
+    <string name="comic_tag_removed">Fjernet</string>
+    <string name="comic_tag_completed">Fullført</string>
+    <string name="add_mode_link">Lenke</string>
+    <string name="add_mode_import">Importer</string>
+    <string name="filter_comic_file_status_corrupted">Skadet</string>
+    <string name="filter_comic_file_status_any">Alle</string>
+    <string name="filter_comic_file_status_title">Filstatus</string>
+    <string name="filter_comic_completed_not">Ikke fullført</string>
+    <string name="filter_comic_completed_only">Fullført</string>
+    <string name="filter_comic_completed_any">Alle</string>
+    <string name="filter_comic_completed_title">Fullføringsstatus</string>
+    <string name="sort_comic_list_time_desc">Nyligste først</string>
+    <string name="sort_comic_list_time_asc">Nyligste sist</string>
+</resources>
