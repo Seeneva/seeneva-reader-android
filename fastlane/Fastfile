@@ -74,6 +74,20 @@ platform :android do
     end
   end
 
+  desc 'Build all APK without splitting by ABI and attach them to GitHub PR'
+  lane :pr_build_fork_apk do |options|
+    clean
+
+    gradle(
+      task: ':app:assemble',
+      build_type: (options[:build_type] || 'Debug'),
+      properties: {
+        'seeneva.disableSplitApk': '',
+        'seeneva.noDebSymbols': ''
+      }
+    )
+  end
+
   desc 'Build GitHub release APKs splitted by ABI'
   lane :gh_release_apk do |options|
     base_build(options) do
