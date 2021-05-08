@@ -21,8 +21,12 @@
 [**•** *Privacy Policy*](#privacy-policy)
 [**•** *License*](#license)
 
+**•**
+
 [![Telegram](https://img.shields.io/static/v1?style=flate&label=Telegram&message=Join&logo=telegram&labelColor=0073A7&color=29A9EB)](https://t.me/joinchat/VqnXJZQlTcpiMGVk)
 [![Twitter](https://img.shields.io/static/v1?style=flate&label=Twitter&message=Follow&logo=twitter&labelColor=0073A7&color=29A9EB)](https://twitter.com/Seeneva_app)
+
+[![Translation status](https://hosted.weblate.org/widgets/seeneva/-/svg-badge.svg)](https://hosted.weblate.org/engage/seeneva/)
 
 </div>
 
@@ -105,10 +109,9 @@ Stay tuned!
 
 ## Contribution
 
-Project main goal right now is code stabilization.
-
 - Open an issue if you catch a bug.
-- Help translate the app into new languages. Or correct current localization mistakes.
+- [Code contribution]((docs/CODE_CONTRIBUTION.md)) using Pull Request.
+- Help translate the app into new languages or correct current localization mistakes using [Weblate](https://hosted.weblate.org/projects/seeneva).
 - Tell your friends about the app.
 - Also you can support the app by [donation](#donate).
 
