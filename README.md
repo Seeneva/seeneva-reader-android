@@ -110,7 +110,7 @@ Stay tuned!
 ## Contribution
 
 - Open an issue if you catch a bug.
-- [Code contribution]((docs/CODE_CONTRIBUTION.md)) using Pull Request.
+- [Code contribution](docs/CODE_CONTRIBUTION.md) using Pull Request.
 - Help translate the app into new languages or correct current localization mistakes using [Weblate](https://hosted.weblate.org/projects/seeneva).
 - Tell your friends about the app.
 - Also you can support the app by [donation](#donate).
