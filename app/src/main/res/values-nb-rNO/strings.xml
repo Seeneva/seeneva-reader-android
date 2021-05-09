@@ -42,7 +42,7 @@
     <string name="viewer_settings_keep_screen_on">Behold skjerm påslått</string>
     <string name="viewer_swap_read_direction">Bytt leseretning</string>
     <string name="viewer_set_cover">Bruk som omslag</string>
-    <string name="viewer_preview_page_counter">Side %1$s av %2$d</string>
+    <string name="viewer_preview_page_counter">Side %1$d av %2$d</string>
     <string name="notification_open_metatada_error_open_container_unsupported_short">«%1$s» støttes ikke</string>
     <string name="notification_open_metatada_error_open_container_unsupported">Angitt fil støttes ikke</string>
     <string name="notification_open_metatada_already_opened_short">«%1$s» er allerede i biblioteket ditt</string>
