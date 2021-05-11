@@ -60,6 +60,11 @@ const val PROP_VERSION_NAME = "seeneva.versionName"
  */
 const val PROP_NO_DEB_SYMBOLS = "seeneva.noDebSymbols"
 
+/**
+ * Property: build unsigned Android APK/AAB
+ */
+const val PROP_BUILD_UNSIGNED = "seeneva.unsigned"
+
 
 /**
  * Env variable: path to a keystore

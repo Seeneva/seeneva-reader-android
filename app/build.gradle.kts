@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApkVariantOutput
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.internal.dsl.SigningConfig
@@ -79,7 +80,7 @@ android {
                 "proguard-rules.pro"
             )
 
-            signingConfig = signingConfigs["release"]
+            signingConfig = switchableSigningConfig("release")
 
             ndk {
                 // https://developer.android.com/studio/build/shrink-code.html#native-crash-support
@@ -95,6 +96,8 @@ android {
             isDebuggable = true
 
             applicationIdSuffix = ".debug"
+
+            signingConfig = switchableSigningConfig("debug")
         }
     }
 
@@ -171,6 +174,20 @@ dependencies {
     implementation(Deps.KOIN_ANDROIDX_WORKMANAGER)
 
     implementation(Deps.SCALE_IMAGE_VIEW)
+}
+
+/**
+ * Allows conditionally disable output APK/AAB signing
+ * @param name name of a sign config
+ * @param enabled true if build signed output, unsigned otherwise
+ */
+fun BaseExtension.switchableSigningConfig(
+    name: String,
+    enabled: Boolean = !hasProperty(extension.PROP_BUILD_UNSIGNED)
+) = if (enabled) {
+    signingConfigs[name]
+} else {
+    null
 }
 
 /**
