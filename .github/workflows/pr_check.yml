@@ -7,9 +7,9 @@ on:
       - "hotfix/[0-9]+.[0-9]+.[0-9]+"
 
 env:
-  FORK: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
+  FORK: "${{ github.event.pull_request.head.repo.full_name != github.repository }}"
   APP_BUILD_TYPE: Release
-  RELEASE_CANDIDATE: "${{ github.event.pull_request.head.repo.full_name != github.repository && startsWith(github.head_ref, 'release/') }}"
+  RELEASE_CANDIDATE: "${{ github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'release/') }}"
   BUNDLE_WITHOUT: development
   FASTLANE_SKIP_UPDATE_CHECK: true
 
