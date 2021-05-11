@@ -7,11 +7,8 @@ module Fastlane
       TAG_REGEX = /^v(([0-9]+\.?){3}(-.+)?)$/
 
       def self.run(params)
-        branch = params[:branch]
+        repo_filter = ->(r) { r.tag_name =~ TAG_REGEX && !r.draft }
 
-        repo_filter = ->(r) { r.target_commitish == branch && r.tag_name =~ TAG_REGEX && !r.draft }
-
-        # fastlane will take care of reading in the parameter and fetching the environment variable:
         client = Octokit::Client.new(access_token: params[:token])
         client.auto_paginate = true
 
@@ -19,12 +16,12 @@ module Fastlane
 
         version_tag = params[:tag]
 
-        # If there is not tag was provided we will try to get it from last release on the branch
+        # If there is not tag was provided we will try to get it from last release
         if version_tag.nil? || version_tag.empty?
-          # Take last release on the branch
+          # Take last release
           current_release = releases.find(&repo_filter)
 
-          UI.user_error!("There is no GH release on branch #{branch}") if current_release.nil?
+          UI.user_error!("There is no proper GH release") if current_release.nil?
 
           version_tag = current_release.tag_name
         end
@@ -33,7 +30,7 @@ module Fastlane
 
         UI.user_error!("Can't get version name from tag #{version_tag}") if version_name.nil? || version_name.empty?
 
-        # Count all releases on the provided branch and check that tag has a proper name
+        # Count all releases and check that tag has a proper name
         # I've published app with versionCode == 2 to Google Console internal test by mistake :( And cannot detete it... That's why +2
         version_code = releases.select(&repo_filter).count + 2
 
@@ -47,7 +44,7 @@ module Fastlane
       #####################################################
 
       def self.description
-        'Calculate app version name and code based on GitHub releases on the provided branch'
+        'Calculate app version name and code based on GitHub releases'
       end
 
       def self.available_options
@@ -60,15 +57,6 @@ module Fastlane
                                        verify_block: proc do |value|
                                                        unless value && !value.empty?
                                                          UI.user_error!('No GitHub PAT provided')
-                                                       end
-                                                     end),
-          FastlaneCore::ConfigItem.new(key: :branch,
-                                       env_name: 'FL_RELEASE_VERSION_BRANCH',
-                                       description: 'Git branch to use',
-                                       type: String,
-                                       verify_block: proc do |value|
-                                                       unless value && !value.empty?
-                                                         UI.user_error!('No GitHub branch provided')
                                                        end
                                                      end),
           FastlaneCore::ConfigItem.new(key: :repo,

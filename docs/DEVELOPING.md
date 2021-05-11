@@ -42,6 +42,7 @@ You can set these Gradle properties:
 
 - `seeneva.disableSplitApk`: disable apk splitting. Generate only one universal apk.
 - `seeneva.noDebSymbols`: do not generate native debug symbols.
+- `seeneva.unsigned`: build unsigned APK/AAB outputs.
 
 ## Native debug
 
@@ -161,13 +162,11 @@ bundle exec fastlane gplay_publish_internal --env gplay
 
 ## Git workflow
 
-Based on well known [git-flow](https://danielkummer.github.io/git-flow-cheatsheet).
+Based on well known [Github flow](https://guides.github.com/introduction/flow).
 
 ### Branches
 
-- **master**: protected branch. All merges should be done through GitHub Pull Request. GitHub Release with tag name *vX.Y.Z* will start CI job. This job will build and attach APKs to the GH Release and upload AAB to Google Play using Fastlane.
-- **dev**: protected branch. All merges should be done through GitHub Pull Request. GitHub Release with tag name *vX.Y.Z-nightly* will start CI job. This job will build and attach nightly APKs to the GH Release.
-- **feature_branch**: can have any name. It is always created from **dev** branch and merged back.
-- **release/x.y.z**: new app release is ready. x.y.z should describe new app version name e.g. 0.1.0. This branch always created from **dev** branch and merged to **master** and **dev**. The app version name and code will be calculated and committed by CI during Pull Request to **master** branch.
-- **hotfix/x.y.z**: the urgent bug fix. x.y.z should describe new app version name e.g. 0.1.0. This branch always created from **master** branch and merged to **master** and **dev**. The app version name and code will be calculated and committed by CI during Pull Request to **master** branch.
-- **master_feature_branch**: sometimes it is required to change some files on **master** branch e.g GitHub issue templates. This branch can have any name. It is always created from **master** branch and merged to **master** and **dev**.
+- **master**: protected branch. All merges should be done through GitHub Pull Request. GitHub Release with tag name *vX.Y.Z* will start CI job. This job will build and attach APKs to the GH Release and upload AAB to the Google Play using Fastlane.
+- **feature_branch**: can have any name. It is usually created from **master** branch and merged back.
+- **hotfix/x.y.z**: the urgent bug fix. This branch always created from **master**. Bug should be fixed on **master** branch (if related) and cherry-picked to this branch. GitHub Release with tag name *vX.Y.Z* will start CI job to build and upload fixed app version.
+- **release/x.y.z**: new app release is ready. x.y.z should describe new app version name e.g. 0.1.0. This branch created from **master** or **hotfix** branch and merged back. The app version name and code will be calculated and committed by CI during Pull Request.

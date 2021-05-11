@@ -16,6 +16,7 @@
 [**•** *Что дальше?*](#что-дальше)
 [**•** *Разработка*](docs/DEVELOPING-ru.md)
 [**•** *Помощь проекту*](#помощь-проекту)
+[**•** *Перевод*](#перевод)
 [**•** *Донат*](#донат)
 [**•** *ЧАВО*](#чаво)
 [**•** *Политика конфиденциальности*](#политика-конфиденциальности)
@@ -25,8 +26,6 @@
 
 [![Telegram](https://img.shields.io/static/v1?style=flate&label=Telegram&message=Join&logo=telegram&labelColor=0073A7&color=29A9EB)](https://t.me/joinchat/VqnXJZQlTcpiMGVk)
 [![Twitter](https://img.shields.io/static/v1?style=flate&label=Twitter&message=Follow&logo=twitter&labelColor=0073A7&color=29A9EB)](https://twitter.com/Seeneva_app)
-
-[![Translation status](https://hosted.weblate.org/widgets/seeneva/-/svg-badge.svg)](https://hosted.weblate.org/engage/seeneva/)
 
 </div>
 
@@ -118,6 +117,10 @@
 - Участвуя в переводе приложения на новые языки или исправляя ошибки в уже существующей локализации с помощью [Weblate](https://hosted.weblate.org/projects/seeneva).
 - Рассказав друзьям об этом приложении.
 - Отправив [донат](#донат) разработчику.
+  
+## Перевод
+
+[![Translation status](https://hosted.weblate.org/widgets/seeneva/-/android/287x66-grey.png)](https://hosted.weblate.org/engage/seeneva/)
 
 ## Донат
 

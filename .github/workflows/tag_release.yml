@@ -9,13 +9,13 @@ env:
   FASTLANE_SKIP_UPDATE_CHECK: true
 
 jobs:
-  # Filter by branch and tag name. Valid release tags: v0.1.0, v0.1.0-alpha, v0.1.0-something
+  # Filter by branch and tag name. Valid release tags: v0.1.0
   check_release:
     name: Check release before build
     runs-on: ubuntu-latest
     if: |
-      github.event.release.target_commitish == 'master' || 
-      github.event.release.target_commitish == 'dev'
+      github.event.release.target_commitish == 'master' ||
+      startsWith(github.event.release.target_commitish, 'hotfix/')
     outputs:
       valid: ${{ steps.check_tag.outputs.valid }}
       build_type: ${{ steps.check_tag.outputs.build_type }}
@@ -24,20 +24,19 @@ jobs:
       - name: Check Tag
         id: check_tag
         run: |
-          if [[ ${{ github.event.release.tag_name }} =~ ^v([0-9]+\.?){3}(-.+)?$ ]]; then
+          # To allow nightlu builds I can use regex like '^v([0-9]+\.?){3}(-.+)?$'
+          # In that case valid tags will be: v0.1.0-nightly, v0.1.0-something, etc.
+
+          # Valid tags: v0.1.0, v0.1.1
+          if [[ ${{ github.event.release.tag_name }} =~ ^v([0-9]+\.?){3}$ ]]; then
               echo ::set-output name=valid::true
 
-              if ${{ github.event.release.target_commitish == 'master' }}; then
-                echo ::set-output name=build_type::Release
-                echo ::set-output name=gh_envs::${{ toJSON('{"env":["release", "upload"]}') }}
-              else
-                echo ::set-output name=build_type::Debug
-                echo ::set-output name=gh_envs::${{ toJSON('{"env":["nightly"]}') }}
-              fi
+              echo ::set-output name=build_type::Release
+              echo ::set-output name=gh_envs::${{ toJSON('{"env":["release", "upload"]}') }}
           fi
 
   # Will be triggered only if the release event has valid branch and tag name
-  # If it is a release on master brtanch: upload to Google Play and attach APKs to GH release
+  # If it is a release on master branch: upload to Google Play and attach APKs to GH release
   # Otherwise just attach APKs
   build:
     name: Build release
@@ -87,12 +86,12 @@ jobs:
 
       # Calculate app's version name and code
       # We don't need to do it on 'master' branch because all PR's alredy bumped version name and code
-      - name: Calculate versionName and versionCode
-        if: github.event.release.target_commitish != 'master'
-        run: |
-          o=($(bundle exec fastlane run release_version_calc token:"${{ secrets.GITHUB_TOKEN }}" branch:"${{ github.event.release.target_commitish }}"))
-          echo "SEENEVA_VERSION_NAME=${o[-2]}" >> $GITHUB_ENV
-          echo "SEENEVA_VERSION_CODE=${o[-1]}" >> $GITHUB_ENV
+      # - name: Calculate versionName and versionCode
+      #   if: github.event.release.target_commitish != 'master'
+      #   run: |
+      #     o=($(bundle exec fastlane run release_version_calc token:"${{ secrets.GITHUB_TOKEN }}" branch:"${{ github.event.release.target_commitish }}"))
+      #     echo "SEENEVA_VERSION_NAME=${o[-2]}" >> $GITHUB_ENV
+      #     echo "SEENEVA_VERSION_CODE=${o[-1]}" >> $GITHUB_ENV
 
       # Assemble the app. Output APK will be signed using environment's KEYSTORE
       - name: Run assemble task

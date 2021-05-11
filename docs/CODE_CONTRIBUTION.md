@@ -8,6 +8,6 @@ After that:
 
 1. Read more about the [developing](DEVELOPING.md) process.
 2. Fork the project.
-3. Make a new branch from the **dev** branch on your forked project.
-4. Open a new Pull Request to the [Seeneva/seeneva-reader-android](https://github.com/Seeneva/seeneva-reader-android) **dev** branch from your branch with pushed changes.
+3. Make a new feature branch from the **master** branch on your forked project.
+4. Open a new Pull Request to the [Seeneva/seeneva-reader-android](https://github.com/Seeneva/seeneva-reader-android) **master** branch from your feature branch with pushed changes.
 5. :tada:

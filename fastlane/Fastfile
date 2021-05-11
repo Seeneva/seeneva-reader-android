@@ -74,7 +74,7 @@ platform :android do
     end
   end
 
-  desc 'Build all APK without splitting by ABI and attach them to GitHub PR'
+  desc 'Build all unsigned APK without splitting by ABI and attach them to GitHub PR'
   lane :pr_build_fork_apk do |options|
     clean
 
@@ -83,7 +83,8 @@ platform :android do
       build_type: (options[:build_type] || 'Debug'),
       properties: {
         'seeneva.disableSplitApk': '',
-        'seeneva.noDebSymbols': ''
+        'seeneva.noDebSymbols': '',
+        'seeneva.unsigned': ''
       }
     )
   end

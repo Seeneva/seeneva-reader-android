@@ -8,6 +8,6 @@
 
 1. Почитайте подробнее о процессе [разработки](DEVELOPING-ru.md).
 2. Форкните проект.
-3. В вашем форкнутом проекте создайте новую ветку из **dev** ветки.
-4. Откройте новый Pull Request на [Seeneva/seeneva-reader-android](https://github.com/Seeneva/seeneva-reader-android) **dev** ветку из вашей ветки c внесёнными изменениями.
+3. В вашем форкнутом проекте создайте новую ветку из **master** ветки.
+4. Откройте новый Pull Request на [Seeneva/seeneva-reader-android](https://github.com/Seeneva/seeneva-reader-android) **master** ветку из вашей ветки c внесёнными изменениями.
 5. :tada:

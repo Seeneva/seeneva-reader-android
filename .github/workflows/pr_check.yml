@@ -4,12 +4,12 @@ on:
   pull_request:
     branches:
       - master
-      - dev
+      - "hotfix/[0-9]+.[0-9]+.[0-9]+"
 
 env:
-  FORK: "${{ github.event.pull_request.head.repo.full_name != github.repository }}"
-  APP_BUILD_TYPE: "${{ github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'master' && 'Release' || 'Debug' }}"
-  RELEASE_CANDIDATE: "${{ github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'master' && (startsWith(github.head_ref, 'release/') || startsWith(github.head_ref, 'hotfix/')) }}"
+  FORK: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
+  APP_BUILD_TYPE: Release
+  RELEASE_CANDIDATE: "${{ github.event.pull_request.head.repo.full_name != github.repository && startsWith(github.head_ref, 'release/') }}"
   BUNDLE_WITHOUT: development
   FASTLANE_SKIP_UPDATE_CHECK: true
 
@@ -91,7 +91,7 @@ jobs:
         run: |
           version_tag="0.0.0"
 
-          # If this is a release candidate than branch should have valid name e.g. release/0.1.0, hotfix/0.1.0
+          # If this is a release candidate than branch should have valid name e.g. release/0.1.0
           if [[ ${RELEASE_CANDIDATE} = true ]]; then
             if [[ ${{ github.head_ref }} =~ /(([0-9]+\.?){3})$ ]]; then
               version_tag=$(echo ${BASH_REMATCH[1]})
@@ -101,7 +101,7 @@ jobs:
             fi
           fi
 
-          o=($(bundle exec fastlane run release_version_calc token:"${{ secrets.GITHUB_TOKEN }}" branch:"${{ github.base_ref }}" tag:"v${version_tag}"))
+          o=($(bundle exec fastlane run release_version_calc token:"${{ secrets.GITHUB_TOKEN }}" tag:"v${version_tag}"))
 
           name="pr-${{ github.event.number }}-${{ steps.short-sha.outputs.sha }}"
           code=$((${o[-1]}+1))
@@ -182,7 +182,7 @@ jobs:
     name: PR build
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.base_ref == 'master' && 'release' || 'nightly' }}
+      name: release
     if: ${{ needs.bump_version.outputs.bumped == 'false' }}
     needs: bump_version
     steps:
