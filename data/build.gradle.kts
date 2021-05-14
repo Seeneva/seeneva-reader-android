@@ -16,9 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import com.android.build.gradle.api.BaseVariant
-import com.android.build.gradle.tasks.ExternalNativeBuildJsonTask
-
 plugins {
     kotlin("kapt")
 }
@@ -46,6 +43,12 @@ android {
 
         ndk {
             abiFilters += Abi.values().map { it.abiName }
+        }
+
+        externalNativeBuild {
+            cmake {
+                targets("cargo-build")
+            }
         }
     }
 
@@ -81,8 +84,6 @@ android {
             }
         }
     }
-
-    libraryVariants.configureEach { setCustomCmakeTask(this) }
 }
 
 dependencies {
@@ -91,25 +92,4 @@ dependencies {
     implementation(Deps.ANDROIDX_ROOM_KTX)
 
     kapt(Deps.ANDROIDX_ROOM_COMPILER)
-}
-
-fun setCustomCmakeTask(variant: BaseVariant) {
-    variant.externalNativeBuildProviders
-        .single()
-        .invoke {
-            doLast {
-                // generateJsonModel* task running before externalNativeBuild* task
-                val generator =
-                    tasks.getByName<ExternalNativeBuildJsonTask>("generateJsonModel${variant.name.capitalize()}")
-                        .externalNativeJsonGenerator
-                        .get()
-
-                //AndroidBuildGradleJsons.getNativeBuildMiniConfigs(generator.nativeBuildConfigurationsJsons, generator.stats)
-
-                //start Cargo build script for each ABI
-                generator.abis.forEach {
-                    exec { commandLine(it.cmake!!.cmakeArtifactsBaseFolder.resolve("cargo_build.sh")) }.assertNormalExitValue()
-                }
-            }
-        }
 }

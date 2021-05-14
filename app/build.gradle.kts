@@ -49,9 +49,6 @@ android {
     signingConfigs {
         register("release") {
             applyPropertiesSigning()
-
-            isV1SigningEnabled = true
-            isV2SigningEnabled = true
         }
         named("debug") {
             if (buildUsingCI) {
