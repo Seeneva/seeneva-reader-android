@@ -16,8 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package extension
+object Plugin {
+    const val ANDROID_APPLICATION = "com.android.application"
+    const val ANDROID_LIBRARY = "com.android.library"
+}
 
-enum class RustBuildConfig {
-    Debug, Release
+object PluginVersion {
+    const val ANDROID = "4.2.1"
 }

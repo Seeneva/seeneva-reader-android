@@ -25,47 +25,32 @@ plugins {
     kotlin("jvm") version Version.KOTLIN
     kotlin("plugin.serialization") version Version.KOTLIN
     kotlin("android") version Version.KOTLIN apply false
-}
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-buildscript {
-    repositories {
-        mavenCentral()
-        google()
-        // will be deprecated soon
-        jcenter()
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:4.1.2")
-        //classpath(kotlin("gradle-plugin", Version.KOTLIN))
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
+    // https://docs.gradle.org/current/userguide/kotlin_dsl.html#sec:plugins_resolution_strategy
+    id(Plugin.ANDROID_APPLICATION) version PluginVersion.ANDROID apply false
+    id(Plugin.ANDROID_LIBRARY) version PluginVersion.ANDROID apply false
 }
 
 allprojects {
     repositories {
         mavenCentral()
         google()
-        // will be deprecated soon
-        jcenter()
     }
 }
 
 subprojects {
     apply {
         if (isAppLayer) {
-            plugin("com.android.application")
+            plugin(Plugin.ANDROID_APPLICATION)
         } else {
-            plugin("com.android.library")
+            plugin(Plugin.ANDROID_LIBRARY)
         }
+
         plugin("org.jetbrains.kotlin.android")
         plugin("org.jetbrains.kotlin.plugin.serialization")
     }
 
     configure<BaseExtension> {
-        //TODO update when fixed https://github.com/android/ndk/issues/1391 or build my own libz?
         ndkVersion = "21.4.7075529"
         buildToolsVersion = "30.0.3"
         compileSdkVersion(30)

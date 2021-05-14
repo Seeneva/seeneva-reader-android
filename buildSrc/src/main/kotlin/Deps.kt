@@ -119,13 +119,13 @@ object Deps {
     const val KOTLINX_SERIALIZATION_JSON =
         "org.jetbrains.kotlinx:kotlinx-serialization-json:${Version.KOTLINX_SERIALIZATION_JSON}"
 
-    //const val KOIN_ANDROID = "org.koin:koin-android:${Version.KOIN}"
+    //const val KOIN_ANDROID = "io.insert-koin:koin-android:${Version.KOIN}"
     const val KOIN_ANDROIDX_SCOPE =
-        "org.koin:koin-androidx-scope:${Version.KOIN}"
+        "io.insert-koin:koin-androidx-scope:${Version.KOIN}"
     const val KOIN_ANDROIDX_VIEWMODEL =
-        "org.koin:koin-androidx-viewmodel:${Version.KOIN}"
+        "io.insert-koin:koin-androidx-viewmodel:${Version.KOIN}"
     const val KOIN_ANDROIDX_WORKMANAGER =
-        "org.koin:koin-androidx-workmanager:${Version.KOIN}"
+        "io.insert-koin:koin-androidx-workmanager:${Version.KOIN}"
 
 
     const val COIL =
