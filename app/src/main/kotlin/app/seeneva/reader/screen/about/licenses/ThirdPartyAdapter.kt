@@ -84,9 +84,9 @@ class ThirdPartyAdapter(context: Context) : RecyclerView.Adapter<ThirdPartyAdapt
 
         init {
             binding.groupCardView.setOnClickListener {
-                val position = adapterPosition
+                val position = absoluteAdapterPosition
 
-                if (adapterPosition != RecyclerView.NO_POSITION) {
+                if (position != RecyclerView.NO_POSITION) {
                     clickEvents.tryEmit(position)
                 }
             }

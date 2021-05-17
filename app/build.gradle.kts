@@ -149,6 +149,7 @@ dependencies {
     implementation(Deps.ANDROIDX_FRAGMENT_KTX) {
         exclude("androidx.viewpager")
     }
+    implementation(Deps.ANDROIDX_LIFECYCLE_RUNTIME)
     implementation(Deps.ANDROIDX_LIFECYCLE_SERVICE)
     implementation(Deps.ANDROIDX_LIFECYCLE_VIEWMODEL)
     implementation(Deps.ANDROIDX_LIFECYCLE_LIVEDATA)

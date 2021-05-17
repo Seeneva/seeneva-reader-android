@@ -320,50 +320,54 @@ private class GroupObjectComparator(
         }
 
     private fun compareBbox(b1: RectF, b2: RectF): Int {
-        return if (b1 == b2) {
-            0
-        } else if (b1.top == b2.top) {
-            /*
-               o1, o2: ▣▣
-            */
-            compareX(b1, b2)
-        } else {
-            val bTop: RectF
-            val bLow: RectF
-            val c: Int //comparator value
-
-            //Calculate which object is the top most
-            if (b1.top < b2.top) {
-                bTop = b1
-                bLow = b2
-                c = -1
-            } else {
-                bTop = b2
-                bLow = b1
-                c = 1
+        return when {
+            b1 == b2 -> {
+                0
             }
+            b1.top == b2.top -> {
+                /*
+                    o1, o2: ▣▣
+                */
+                compareX(b1, b2)
+            }
+            else -> {
+                val bTop: RectF
+                val bLow: RectF
+                val c: Int //comparator value
 
-            when {
-                compareX(bTop, bLow) <= 0 -> {
-                    // we has top left object
-
-                    /*
-                        bTop: ▣   | ▣
-                        bLow:  ▣  | ▣
-                    */
-                    c
+                //Calculate which object is the top most
+                if (b1.top < b2.top) {
+                    bTop = b1
+                    bLow = b2
+                    c = -1
+                } else {
+                    bTop = b2
+                    bLow = b1
+                    c = 1
                 }
-                bLow.endX - bTop.startX >= bLow.width() * OBJECT_BENEATH -> {
-                    // low object is also beneath the top
 
-                    /*
-                        bTop:    ▣▣▣▣
-                        bLow:  ▣▣▣▣
-                    */
-                    c
-                }
-                else -> {
-                    c * -1
+                when {
+                    compareX(bTop, bLow) <= 0 -> {
+                        // we has top left object
+
+                        /*
+                            bTop: ▣   | ▣
+                            bLow:  ▣  | ▣
+                        */
+                        c
+                    }
+                    bLow.endX - bTop.startX >= bLow.width() * OBJECT_BENEATH -> {
+                        // low object is also beneath the top
+
+                        /*
+                            bTop:    ▣▣▣▣
+                            bLow:  ▣▣▣▣
+                        */
+                        c
+                    }
+                    else -> {
+                        c * -1
+                    }
                 }
             }
         }

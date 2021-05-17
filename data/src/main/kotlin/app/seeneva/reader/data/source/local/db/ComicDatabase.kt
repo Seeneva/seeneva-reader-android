@@ -25,12 +25,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import app.seeneva.reader.data.entity.*
-import app.seeneva.reader.data.source.local.db.converters.FindResultTypeIntConverter
 import app.seeneva.reader.data.source.local.db.converters.InstantLongConverter
-import app.seeneva.reader.data.source.local.db.dao.*
-import app.seeneva.reader.data.source.local.db.dao.ComicRackMetadataSource
-import app.seeneva.reader.data.source.local.db.dao.TaggedComicBookSource
 import app.seeneva.reader.data.source.local.db.converters.UriStringConverter
+import app.seeneva.reader.data.source.local.db.dao.*
 import app.seeneva.reader.data.source.local.db.entity.ComicPageObjectText
 import app.seeneva.reader.data.source.local.db.entity.TaggedComicBook
 import java.util.concurrent.Executor
@@ -53,8 +50,7 @@ private const val DB_NAME = "reader_data.db"
 )
 @TypeConverters(
     value = [UriStringConverter::class,
-        InstantLongConverter::class,
-        FindResultTypeIntConverter::class]
+        InstantLongConverter::class]
 )
 internal abstract class ComicDatabase : RoomDatabase() {
     abstract fun comicBookSource(): ComicBookSource

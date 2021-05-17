@@ -27,6 +27,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+//TODO observe functions should be replaced by 'repeatOnLifecycle'
+// after the 'androidx.lifecycle' 2.4.0 stable release
+// https://developer.android.com/jetpack/androidx/releases/lifecycle#version_240_2
+
 /**
  * Start [Flow] values collector. Values will be send to [observer] only when
  * current [Lifecycle.State] is at least [minState]
@@ -41,6 +45,9 @@ inline fun <T> Flow<T>.observe(
     crossinline observer: suspend (T) -> Unit
 ): Job = observe(lifecycleOwner.lifecycle, minState, observer)
 
+/**
+ * @see observe
+ */
 inline fun <T> Flow<T>.observe(
     lifecycle: Lifecycle,
     minState: Lifecycle.State = Lifecycle.State.STARTED,

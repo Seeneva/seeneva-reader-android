@@ -28,10 +28,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 
-sealed class ChangeTtsEvent {
-    object Idle : ChangeTtsEvent()
-    object Process : ChangeTtsEvent()
-    data class Result(val result: TTS.InitResult) : ChangeTtsEvent()
+sealed interface ChangeTtsEvent {
+    object Idle : ChangeTtsEvent
+    object Process : ChangeTtsEvent
+    data class Result(val result: TTS.InitResult) : ChangeTtsEvent
 }
 
 interface ViewerConfigPresenter : Presenter {

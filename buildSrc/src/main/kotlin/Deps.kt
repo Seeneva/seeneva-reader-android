@@ -17,27 +17,27 @@
  */
 
 object Version {
-    const val ANDROID_JAVA8_DESUGAR = "1.1.1"
+    const val ANDROID_JAVA8_DESUGAR = "1.1.5"
 
-    const val KOTLIN = "1.4.31"
-    const val KOTLINX_COROUTINES = "1.4.2"
-    const val KOTLINX_SERIALIZATION_JSON = "1.1.0"
+    const val KOTLIN = "1.5.0"
+    const val KOTLINX_COROUTINES = "1.5.0"
+    const val KOTLINX_SERIALIZATION_JSON = "1.2.1"
 
     const val ANDROIDX_APPCOMPAT = "1.2.0"
-    const val ANDROIDX_ANNOTATIONS = "1.1.0"
+    const val ANDROIDX_ANNOTATIONS = "1.2.0"
     const val ANDROIDX_VIEW_PAGER = "1.0.0"
-    const val ANDROIDX_RECYCLER_VIEW = "1.1.0"
-    const val ANDROIDX_RECYCLER_VIEW_SELECTION = "1.0.0"
+    const val ANDROIDX_RECYCLER_VIEW = "1.2.0"
+    const val ANDROIDX_RECYCLER_VIEW_SELECTION = "1.1.0"
     const val ANDROIDX_FRAGMENT_KTX = "1.2.5"
     const val ANDROIDX_CONSTRAINT_LAYOUT = "2.0.4"
     const val ANDROIDX_CORE_KTX = "1.3.2"
-    const val ANDROIDX_LIFECYCLE = "2.2.0"
+    const val ANDROIDX_LIFECYCLE = "2.3.1"
     const val ANDROIDX_PAGING = "2.1.2"
     const val ANDROIDX_PALETTE = "1.0.0"
     const val ANDROIDX_TEST_CORE_KTX = "1.3.0"
     const val ANDROIDX_TEST_JUNIT_KTX = "1.1.2"
     const val ANDROIDX_WORK_RUNTIME = "2.4.0"
-    const val ANDROIDX_ROOM = "2.2.6"
+    const val ANDROIDX_ROOM = "2.3.0"
     const val ANDROIDX_SWIPE_REFRESH_LAYOUT = "1.1.0"
     const val ANDROIDX_TEST_RUNNER = "1.3.0"
 
@@ -53,7 +53,7 @@ object Version {
 
     const val KLUENT = "1.65"
 
-    const val TINYLOG = "2.2.1"
+    const val TINYLOG = "2.3.1"
 
     const val SCALE_IMAGE_VIEW = "3.10.0"
 
@@ -81,6 +81,8 @@ object Deps {
     const val ANDROIDX_CONSTRAINT_LAYOUT =
         "androidx.constraintlayout:constraintlayout:${Version.ANDROIDX_CONSTRAINT_LAYOUT}"
 
+    const val ANDROIDX_LIFECYCLE_RUNTIME =
+        "androidx.lifecycle:lifecycle-runtime-ktx:${Version.ANDROIDX_LIFECYCLE}"
     const val ANDROIDX_LIFECYCLE_SERVICE =
         "androidx.lifecycle:lifecycle-service:${Version.ANDROIDX_LIFECYCLE}"
     const val ANDROIDX_LIFECYCLE_VIEWMODEL =

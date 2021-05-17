@@ -165,7 +165,7 @@ class BookViewerPagePresenterImpl(
             )
         }
 
-        txtRecognition.filterIsInstance<TxtRecognitionState.Recogized>()
+        txtRecognition.filterIsInstance<TxtRecognitionState.Recognized>()
             .map { it.txt }
             .filterNot { it.isEmpty() }
             .observe(view) { tts.speakAsync(it).await() }

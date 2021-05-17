@@ -310,15 +310,15 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
     private var currentSyncState by Delegates.observable(ComicsListView.SyncState.IDLE) { _, _, newState ->
         with(viewBinding.swipeSyncView) {
             when (newState) {
-                app.seeneva.reader.screen.list.ComicsListView.SyncState.IN_PROGRESS -> {
+                ComicsListView.SyncState.IN_PROGRESS -> {
                     isEnabled = !listSelectionTracker.hasSelection()
                     isRefreshing = true
                 }
-                app.seeneva.reader.screen.list.ComicsListView.SyncState.IDLE -> {
+                ComicsListView.SyncState.IDLE -> {
                     isEnabled = !listSelectionTracker.hasSelection()
                     isRefreshing = false
                 }
-                app.seeneva.reader.screen.list.ComicsListView.SyncState.DISABLED -> {
+                ComicsListView.SyncState.DISABLED -> {
                     isEnabled = false
                     isRefreshing = false
                 }

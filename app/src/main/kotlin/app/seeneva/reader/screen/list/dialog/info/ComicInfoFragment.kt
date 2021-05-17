@@ -176,7 +176,10 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
                 comicInfo.languageIso?.also {
                     row(
                         R.string.comic_info_general_info_language,
-                        Locale(it).displayLanguage.orEmpty().ifEmpty { it }.capitalize()
+                        Locale(it).displayLanguage
+                            .orEmpty()
+                            .ifEmpty { it }
+                            .replaceFirstChar(Char::uppercase)
                     )
                 }
 
@@ -224,7 +227,7 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
                         dateAccessor.isSupported(ChronoField.YEAR) -> DateTimeFormatter.ofPattern("[LLL] uuuu")
                         else -> null
                     }?.format(dateAccessor)
-                        ?.capitalize()
+                        ?.replaceFirstChar(Char::uppercase)
                         ?.also { row(R.string.comic_info_date, it) }
                 }
                 comicInfo.format?.also { row(R.string.comic_info_format, it) }

@@ -30,7 +30,7 @@ import app.seeneva.reader.screen.viewer.BookViewerActivity
 import app.seeneva.reader.viewmodel.EventSender
 import kotlinx.coroutines.flow.Flow
 
-sealed class ComicListRouterResult {
+sealed interface ComicListRouterResult {
     /**
      * User has been chose comic book to add into library
      * @param mode adding mode
@@ -38,18 +38,18 @@ sealed class ComicListRouterResult {
      * @param flags [Intent] adding flags
      */
     data class ComicBookChose(val mode: AddComicBookMode, val paths: List<Uri>, val flags: Int) :
-        ComicListRouterResult()
+        ComicListRouterResult
 
 
     /**
      * User tried to open corrupted comic book
      */
-    object CorruptedComicBook : ComicListRouterResult()
+    object CorruptedComicBook : ComicListRouterResult
 
     /**
      * User tried to open nin existed comic book
      */
-    object NonExistentBook : ComicListRouterResult()
+    object NonExistentBook : ComicListRouterResult
 }
 
 interface ComicListRouter : ResultRouter<ComicListRouterResult> {

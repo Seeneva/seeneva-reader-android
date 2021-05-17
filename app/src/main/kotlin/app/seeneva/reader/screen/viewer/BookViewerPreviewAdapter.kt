@@ -147,10 +147,10 @@ class BookViewerPreviewAdapter(
         init {
             if (callback != null) {
                 itemView.setOnClickListener {
-                    if (adapterPosition != RecyclerView.NO_POSITION) {
-                        callback.onPageClick(adapterPosition)
+                    if (absoluteAdapterPosition != RecyclerView.NO_POSITION) {
+                        callback.onPageClick(absoluteAdapterPosition)
                     } else {
-                        Logger.error("Invalid viewer preview adapter position: $adapterPosition")
+                        Logger.error("Invalid viewer preview adapter position: $absoluteAdapterPosition")
                     }
                 }
             }
@@ -159,7 +159,7 @@ class BookViewerPreviewAdapter(
         fun bind(page: ComicBookPage, selected: Boolean) {
             this._page = page
 
-            val positionString = (adapterPosition + 1).toString()
+            val positionString = (absoluteAdapterPosition + 1).toString()
 
             if (selected) {
                 scalePage(1.0f)

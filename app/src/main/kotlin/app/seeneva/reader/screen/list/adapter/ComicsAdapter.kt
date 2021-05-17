@@ -212,7 +212,7 @@ class ComicsAdapter(
         private val callback: Callback
     ) : RecyclerView.ViewHolder(parent.inflate(layout)) {
         private val selectionDetails: ItemDetailsLookup.ItemDetails<Long>
-            get() = SelectionDetails(displayedComic.id, adapterPosition)
+            get() = SelectionDetails(displayedComic.id, absoluteAdapterPosition)
 
         private val comicItemView: ComicItemView
             get() = itemView as ComicItemView

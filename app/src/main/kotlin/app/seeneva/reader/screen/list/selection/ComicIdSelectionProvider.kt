@@ -28,6 +28,6 @@ class ComicIdSelectionProvider(private val recyclerView: RecyclerView) : ItemKey
     }
 
     override fun getPosition(key: Long): Int {
-        return recyclerView.findViewHolderForItemId(key)?.adapterPosition ?: RecyclerView.NO_POSITION
+        return recyclerView.findViewHolderForItemId(key)?.absoluteAdapterPosition ?: RecyclerView.NO_POSITION
     }
 }

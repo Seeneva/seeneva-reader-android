@@ -63,7 +63,9 @@ internal class RecognizeTextUseCaseImpl(
         return buildString {
             sentenceBreakerFactory.get(languageLocale)
                 .breakText(text)
-                .map { it.toLowerCase(languageLocale).capitalize(languageLocale) }
+                .map { seq ->
+                    seq.lowercase(languageLocale).replaceFirstChar { it.uppercase(languageLocale) }
+                }
                 .collect { append(it) }
         }
     }

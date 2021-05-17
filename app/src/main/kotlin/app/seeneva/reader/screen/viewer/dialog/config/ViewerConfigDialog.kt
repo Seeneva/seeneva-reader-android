@@ -206,7 +206,7 @@ class ViewerConfigDialog : BaseDraggableDialog(), ViewerConfigView, KoinScopeCom
         callbackFlow {
             val changeListener = Slider.OnChangeListener { _, value, fromUser ->
                 if (fromUser) {
-                    offer(value * 0.01f)
+                    trySend(value * 0.01f)
                 }
             }
 

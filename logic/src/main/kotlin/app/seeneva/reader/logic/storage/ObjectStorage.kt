@@ -344,9 +344,9 @@ internal class ObjectStorageImpl<K : Any, O>(
         }
     }
 
-    private sealed class Action<K, O> {
+    private sealed interface Action<K, O> {
         class Borrow<K, O> private constructor(val borrowKey: K, parent: Job? = null) :
-            Action<K, O>(),
+            Action<K, O>,
             CompletableDeferred<ObjectBorrower<O>> by CompletableDeferred(parent) {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
@@ -379,7 +379,7 @@ internal class ObjectStorageImpl<K : Any, O>(
             }
         }
 
-        data class Return<K, O>(val borrowerId: String, val obj: O) : Action<K, O>()
+        data class Return<K, O>(val borrowerId: String, val obj: O) : Action<K, O>
     }
 }
 

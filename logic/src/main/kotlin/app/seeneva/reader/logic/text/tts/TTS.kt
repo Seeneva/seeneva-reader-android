@@ -62,27 +62,27 @@ interface TTS {
      */
     fun close()
 
-    sealed class Result {
-        object Success : Result()
-        object Disabled : Result()
-        object Error : Result()
+    sealed interface Result {
+        object Success : Result
+        object Disabled : Result
+        object Error : Result
     }
 
-    sealed class InitResult {
+    sealed interface InitResult {
         /**
          * TTS was initialized
          */
-        object Success : InitResult()
+        object Success : InitResult
 
         /**
          * TTS engine is nit installed on device
          */
-        object EngineNotInstalled : InitResult()
+        object EngineNotInstalled : InitResult
 
         /**
          * Language is not supported by TTS engine
          */
-        object LanguageNotSupported : InitResult()
+        object LanguageNotSupported : InitResult
     }
 
     /**
@@ -299,9 +299,9 @@ internal class AndroidTTS(context: Context, dispatchers: Dispatchers) : Coroutin
 
     private object ChunkSpeakException : RuntimeException()
 
-    private sealed class InitResultInner {
-        data class Success(val tts: TextToSpeech) : InitResultInner()
-        data class Error(val result: TTS.InitResult) : InitResultInner()
+    private sealed interface InitResultInner {
+        data class Success(val tts: TextToSpeech) : InitResultInner
+        data class Error(val result: TTS.InitResult) : InitResultInner
     }
 
     private fun InitResultInner.asInitResult() =
