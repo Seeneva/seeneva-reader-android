@@ -154,7 +154,7 @@ object TestDeps {
     const val KOTLINX_COROUTINES_TEST =
         "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Version.KOTLINX_COROUTINES}"
 
-    const val KOIN_TEST = "org.koin:koin-test:${Version.KOIN}"
+    const val KOIN_TEST = "io.insert-koin:koin-test:${Version.KOIN}"
 
     const val MOCKK = "io.mockk:mockk:${Version.MOCKK}"
 
