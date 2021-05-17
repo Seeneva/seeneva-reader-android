@@ -33,39 +33,37 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.io.Closeable
 
-sealed class EncodedPageState {
+sealed interface EncodedPageState {
     /**
      * Loaded state. It is also helper to prevent close encoded page image while [pageData] not closed
      */
-    data class Loaded(
-        val pageData: ComicPageData
-    ) : EncodedPageState(), Closeable by pageData
+    data class Loaded(val pageData: ComicPageData) : EncodedPageState, Closeable by pageData
 
-    data class Loading(val pageId: Long) : EncodedPageState()
-    data class Error(val t: Throwable) : EncodedPageState()
+    data class Loading(val pageId: Long) : EncodedPageState
+    data class Error(val t: Throwable) : EncodedPageState
 
-    object Idle : EncodedPageState()
+    object Idle : EncodedPageState
 }
 
 /**
  * State of text recognition
  */
-sealed class TxtRecognitionState {
+sealed interface TxtRecognitionState {
     /**
      * No text recognition in progress
      */
-    object Idle : TxtRecognitionState()
+    object Idle : TxtRecognitionState
 
     /**
      * Text recognition in progress
      * @param objectId id of the page object
      */
-    data class Process(val objectId: Long) : TxtRecognitionState()
+    data class Process(val objectId: Long) : TxtRecognitionState
 
     /**
      * Text was recognized
      */
-    data class Recogized(val txt: String) : TxtRecognitionState()
+    data class Recognized(val txt: String) : TxtRecognitionState
 }
 
 interface BookViewerPageViewModel {
@@ -76,7 +74,7 @@ interface BookViewerPageViewModel {
     /**
      * Will emit recognized text on image
      */
-    val txtRecognitionEvent: SharedFlow<TxtRecognitionState.Recogized>
+    val txtRecognitionEvent: SharedFlow<TxtRecognitionState.Recognized>
 
     fun loadPageData(pageId: Long)
 
@@ -105,7 +103,7 @@ class BookViewerPageViewModelImpl(
     private val recognizeTextUseCase by _recognizeTextUseCase
 
     private val _txtRecognitionEvent =
-        MutableSharedFlow<TxtRecognitionState.Recogized>(
+        MutableSharedFlow<TxtRecognitionState.Recognized>(
             extraBufferCapacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
@@ -149,7 +147,7 @@ class BookViewerPageViewModelImpl(
 
             try {
                 _txtRecognitionEvent.emit(
-                    TxtRecognitionState.Recogized(
+                    TxtRecognitionState.Recognized(
                         recognizeTextUseCase.recognizePageObjectText(
                             objectId,
                             ocr,

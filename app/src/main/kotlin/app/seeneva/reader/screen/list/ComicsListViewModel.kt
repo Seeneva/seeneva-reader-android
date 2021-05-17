@@ -43,25 +43,25 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
-sealed class ListEvents
+sealed interface ListEvents
 
 /**
  * Comic books marked as removed, but not deleted yet
  * @param ids ids of marked comic books
  */
-data class ComicsMarkedAsRemoved(val ids: Set<Long>) : ListEvents()
+data class ComicsMarkedAsRemoved(val ids: Set<Long>) : ListEvents
 
-data class ComicsOpened(val result: ComicAddResult) : ListEvents()
+data class ComicsOpened(val result: ComicAddResult) : ListEvents
 
-sealed class ComicsListState {
-    object Idle : ComicsListState()
+sealed interface ComicsListState {
+    object Idle : ComicsListState
 
-    object Loading : ComicsListState()
+    object Loading : ComicsListState
 
     data class Loaded(
         val list: PagedList<ComicListItem?>,
         val totalCount: Long
-    ) : ComicsListState()
+    ) : ComicsListState
 }
 
 interface ComicsListViewModel {

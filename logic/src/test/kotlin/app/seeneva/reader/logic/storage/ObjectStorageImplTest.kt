@@ -92,7 +92,7 @@ class ObjectStorageImplTest {
     }
 
     @Test
-    fun `borrowing`() {
+    fun borrowing() {
         defaultMock()
 
         runBlocking {

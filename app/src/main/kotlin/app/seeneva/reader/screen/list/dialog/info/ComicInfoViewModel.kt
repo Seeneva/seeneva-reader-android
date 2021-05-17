@@ -29,12 +29,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-sealed class ComicInfoState {
-    object Idle : ComicInfoState()
-    data class Loading(val id: Long) : ComicInfoState()
-    object NotFound : ComicInfoState()
-    data class Success(val comicInfo: ComicInfo) : ComicInfoState()
-    data class Error(val t: Throwable) : ComicInfoState()
+sealed interface ComicInfoState {
+    object Idle : ComicInfoState
+    data class Loading(val id: Long) : ComicInfoState
+    object NotFound : ComicInfoState
+    data class Success(val comicInfo: ComicInfo) : ComicInfoState
+    data class Error(val t: Throwable) : ComicInfoState
 }
 
 interface ComicInfoViewModel {

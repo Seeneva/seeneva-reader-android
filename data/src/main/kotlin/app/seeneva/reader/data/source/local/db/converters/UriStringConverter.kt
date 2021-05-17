@@ -22,10 +22,12 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.room.TypeConverter
 
-internal class UriStringConverter {
+internal object UriStringConverter {
     @TypeConverter
+    @JvmStatic
     fun uriToString(input: Uri?): String? = input?.toString()
 
     @TypeConverter
+    @JvmStatic
     fun stringToUri(input: String?): Uri? = input?.toUri()
 }

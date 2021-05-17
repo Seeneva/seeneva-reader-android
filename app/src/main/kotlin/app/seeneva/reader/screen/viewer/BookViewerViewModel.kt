@@ -31,29 +31,29 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.tinylog.kotlin.Logger
 
-sealed class BookDescriptionState {
+sealed interface BookDescriptionState {
     /**
      * Loading is finished
      * @param description comic book description
      */
-    data class Loaded(val description: ComicBookDescription) : BookDescriptionState()
-    data class Error(val error: Throwable) : BookDescriptionState()
-    data class Loading(val id: Long) : BookDescriptionState()
-    object NotFound : BookDescriptionState()
-    object Corrupted : BookDescriptionState()
-    object Idle : BookDescriptionState()
+    data class Loaded(val description: ComicBookDescription) : BookDescriptionState
+    data class Error(val error: Throwable) : BookDescriptionState
+    data class Loading(val id: Long) : BookDescriptionState
+    object NotFound : BookDescriptionState
+    object Corrupted : BookDescriptionState
+    object Idle : BookDescriptionState
 }
 
-sealed class ViewerConfigState {
-    object Loading : ViewerConfigState()
-    data class Loaded(val config: ViewerConfig) : ViewerConfigState()
+sealed interface ViewerConfigState {
+    object Loading : ViewerConfigState
+    data class Loaded(val config: ViewerConfig) : ViewerConfigState
 }
 
-sealed class BookDescriptionEvent {
+sealed interface BookDescriptionEvent {
     /**
      * Comic book cover was changed
      */
-    data class CoverChanged(val position: Int) : BookDescriptionEvent()
+    data class CoverChanged(val position: Int) : BookDescriptionEvent
 }
 
 interface BookViewerViewModel {

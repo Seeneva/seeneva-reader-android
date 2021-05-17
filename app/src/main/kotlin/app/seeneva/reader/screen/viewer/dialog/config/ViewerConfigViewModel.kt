@@ -33,10 +33,10 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-sealed class ConfigState {
-    data class Loaded(val config: ViewerConfig) : ConfigState()
-    object Loading : ConfigState()
-    object Idle : ConfigState()
+sealed interface ConfigState {
+    data class Loaded(val config: ViewerConfig) : ConfigState
+    object Loading : ConfigState
+    object Idle : ConfigState
 }
 
 interface ViewerConfigViewModel {
@@ -111,13 +111,13 @@ class ViewerConfigViewModelImpl(
                     Settings.System.getInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS)
 
                 //send init value
-                offer(getSystemBrightness())
+                trySend(getSystemBrightness())
 
                 val observer = object : ContentObserver(null) {
                     override fun onChange(selfChange: Boolean) {
                         super.onChange(selfChange)
                         if (!isClosedForSend) {
-                            offer(getSystemBrightness())
+                            trySend(getSystemBrightness())
                         }
                     }
 

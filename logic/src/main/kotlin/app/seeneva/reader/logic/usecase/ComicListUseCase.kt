@@ -115,7 +115,7 @@ internal class ComicListUseCaseImpl(
         flow {
             emitAll(comicBookSource.subscribeSimpleWithTags(params.resolve(0, 0))
                 .drop(1) //we do not want to receive first emit
-                .map { Unit }
+                .map { }
                 .conflate()
                 .flowOn(dispatchers.io))
         }
@@ -125,6 +125,6 @@ internal class ComicListUseCaseImpl(
             this,
             start,
             count,
-            edit = app.seeneva.reader.logic.entity.query.QueryParamsResolver.FiltersEditor::defaultResolverEditor
+            edit = QueryParamsResolver.FiltersEditor::defaultResolverEditor
         )
 }

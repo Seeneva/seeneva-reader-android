@@ -21,11 +21,12 @@ package app.seeneva.reader.data.source.local.db.converters
 import androidx.room.TypeConverter
 import java.time.Instant
 
-internal class InstantLongConverter {
+internal object InstantLongConverter {
     /**
      * Format into UTC seconds
      */
     @TypeConverter
+    @JvmStatic
     fun instantToString(input: Instant): Long =
         input.toEpochMilli()
 
@@ -33,6 +34,7 @@ internal class InstantLongConverter {
      * From UTC seconds
      */
     @TypeConverter
+    @JvmStatic
     fun stringToInstant(input: Long): Instant {
         return Instant.ofEpochMilli(input)
     }

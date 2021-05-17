@@ -132,7 +132,7 @@ suspend fun View.waitAttachChange(attached: Boolean = true) {
 fun View.systemUiVisibilityChange(): Flow<Int> =
     @Suppress("DEPRECATION")
     singleListenerFlow<Int, View.OnSystemUiVisibilityChangeListener>(
-        initListener = { WeakReference(View.OnSystemUiVisibilityChangeListener { offer(it) }) },
+        initListener = { WeakReference(View.OnSystemUiVisibilityChangeListener { trySend(it) }) },
         applyListener = { v, listener -> v.setOnSystemUiVisibilityChangeListener(listener) }
     )
 
@@ -149,7 +149,7 @@ fun View.insetsFlow() =
         singleListenerFlow<WindowInsetsCompat, OnApplyWindowInsetsListener>(
             initListener = {
                 WeakReference(OnApplyWindowInsetsListener { _, insets ->
-                    offer(insets)
+                    trySend(insets)
 
                     insets
                 })

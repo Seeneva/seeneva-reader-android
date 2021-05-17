@@ -21,6 +21,7 @@ package app.seeneva.reader.data.entity
 import android.net.Uri
 import androidx.annotation.Keep
 import androidx.room.*
+import app.seeneva.reader.data.source.local.db.converters.FindResultTypeIntConverter
 import app.seeneva.reader.data.source.local.db.entity.SimpleComicBookWithTags
 import java.time.Instant
 
@@ -164,6 +165,7 @@ data class ComicBook @JvmOverloads constructor(
     }
 }
 
+@TypeConverters(value = [FindResultTypeIntConverter::class])
 data class FindResult(
     @ColumnInfo(name = COLUMN_FOUND_TYPE)
     val type: Type,

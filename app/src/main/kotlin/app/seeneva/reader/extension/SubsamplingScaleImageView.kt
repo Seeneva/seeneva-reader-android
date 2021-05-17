@@ -87,17 +87,17 @@ private class ComposeOnImageEventListener private constructor(
     }
 }
 
-sealed class SubsamplingStateEvent
-data class ScaleChanged(val newScale: Float, val origin: Int) : SubsamplingStateEvent()
-data class CenterChanged(val newCenter: PointF, val origin: Int) : SubsamplingStateEvent()
+sealed interface SubsamplingStateEvent
+data class ScaleChanged(val newScale: Float, val origin: Int) : SubsamplingStateEvent
+data class CenterChanged(val newCenter: PointF, val origin: Int) : SubsamplingStateEvent
 
-sealed class SubsamplingImageEvent {
-    object Ready : SubsamplingImageEvent()
-    object Loaded : SubsamplingImageEvent()
-    data class PreviewLoadError(val e: Exception) : SubsamplingImageEvent()
-    data class ImageLoadError(val e: Exception) : SubsamplingImageEvent()
-    data class TileLoadError(val e: Exception) : SubsamplingImageEvent()
-    object PreviewReleased : SubsamplingImageEvent()
+sealed interface SubsamplingImageEvent {
+    object Ready : SubsamplingImageEvent
+    object Loaded : SubsamplingImageEvent
+    data class PreviewLoadError(val e: Exception) : SubsamplingImageEvent
+    data class ImageLoadError(val e: Exception) : SubsamplingImageEvent
+    data class TileLoadError(val e: Exception) : SubsamplingImageEvent
+    object PreviewReleased : SubsamplingImageEvent
 }
 
 enum class SubsamplingAnimationEvent { COMPLETED, INTERRUPTED, INTERRUPTED_BY_USER }
@@ -160,14 +160,14 @@ fun SubsamplingScaleImageView.removeOnImageEventListener(listener: SubsamplingSc
  * @return Flow of [SubsamplingScaleImageView.OnStateChangedListener] events
  */
 fun SubsamplingScaleImageView.stateChangedFlow() =
-    callbackFlow<SubsamplingStateEvent> {
+    callbackFlow {
         val listener = object : SubsamplingScaleImageView.OnStateChangedListener {
             override fun onScaleChanged(newScale: Float, origin: Int) {
-                offer(ScaleChanged(newScale, origin))
+                trySend(ScaleChanged(newScale, origin))
             }
 
             override fun onCenterChanged(newCenter: PointF, origin: Int) {
-                offer(CenterChanged(newCenter, origin))
+                trySend(CenterChanged(newCenter, origin))
             }
         }
 
@@ -180,30 +180,30 @@ fun SubsamplingScaleImageView.stateChangedFlow() =
  * @return  Flow of [SubsamplingScaleImageView.OnImageEventListener] events
  */
 fun SubsamplingScaleImageView.imageEventsFlow() =
-    callbackFlow<SubsamplingImageEvent> {
+    callbackFlow {
         val listener = object : SubsamplingScaleImageView.OnImageEventListener {
             override fun onReady() {
-                offer(SubsamplingImageEvent.Ready)
+                trySend(SubsamplingImageEvent.Ready)
             }
 
             override fun onImageLoaded() {
-                offer(SubsamplingImageEvent.Loaded)
+                trySend(SubsamplingImageEvent.Loaded)
             }
 
             override fun onPreviewLoadError(e: Exception) {
-                offer(SubsamplingImageEvent.PreviewLoadError(e))
+                trySend(SubsamplingImageEvent.PreviewLoadError(e))
             }
 
             override fun onImageLoadError(e: Exception) {
-                offer(SubsamplingImageEvent.ImageLoadError(e))
+                trySend(SubsamplingImageEvent.ImageLoadError(e))
             }
 
             override fun onTileLoadError(e: Exception) {
-                offer(SubsamplingImageEvent.TileLoadError(e))
+                trySend(SubsamplingImageEvent.TileLoadError(e))
             }
 
             override fun onPreviewReleased() {
-                offer(SubsamplingImageEvent.PreviewReleased)
+                trySend(SubsamplingImageEvent.PreviewReleased)
             }
         }
 

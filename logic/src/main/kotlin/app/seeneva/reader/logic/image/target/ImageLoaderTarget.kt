@@ -34,26 +34,26 @@ interface ImageLoaderTarget<T> {
     @MainThread
     fun onImageLoadStateChanged(state: State<T>)
 
-    sealed class State<out T> {
+    sealed interface State<out T> {
         /**
          * Image loaded
          */
-        data class Success<T>(val result: T) : State<T>()
+        data class Success<T>(val result: T) : State<T>
 
         /**
          * Image loading error
          */
-        data class Error(override val placeholder: Drawable?) : State<Nothing>(), WithPlaceholder
+        data class Error(override val placeholder: Drawable?) : State<Nothing>, WithPlaceholder
 
         /**
          * Image load started
          */
-        data class Loading(override val placeholder: Drawable?) : State<Nothing>(), WithPlaceholder
+        data class Loading(override val placeholder: Drawable?) : State<Nothing>, WithPlaceholder
 
         /**
          * Previously loaded image should be removed
          */
-        object Clear : State<Nothing>(), WithPlaceholder {
+        object Clear : State<Nothing>, WithPlaceholder {
             override val placeholder: Drawable?
                 get() = null
         }

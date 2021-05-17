@@ -21,8 +21,9 @@ package app.seeneva.reader.data.source.local.db.converters
 import androidx.room.TypeConverter
 import app.seeneva.reader.data.entity.FindResult
 
-internal class FindResultTypeIntConverter {
+internal object FindResultTypeIntConverter {
     @TypeConverter
+    @JvmStatic
     fun intToType(value: Int): FindResult.Type =
         FindResult.Type.values().firstOrNull { it.id == value }
             ?: throw IllegalArgumentException("Unknown find result type: '$value'")

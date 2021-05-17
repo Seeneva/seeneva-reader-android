@@ -36,4 +36,4 @@ data class ComicBookPageWithObjects(
  * Map from [ComicBookPageWithObjects] to [ComicBookPage]
  */
 internal fun ComicBookPageWithObjects.intoPublic() =
-    this?.let { page.copy(objects = it.objects) }
+    page.copy(objects = objects)

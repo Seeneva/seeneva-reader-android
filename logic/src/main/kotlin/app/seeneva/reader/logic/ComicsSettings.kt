@@ -180,7 +180,7 @@ internal class PrefsComicsSettings(
     private fun updateFlow() =
         callbackFlow<String> {
             val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                offer(key)
+                trySend(key)
             }
 
             prefs.registerOnSharedPreferenceChangeListener(listener)

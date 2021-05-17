@@ -52,17 +52,17 @@ abstract class BaseServiceConnector<S : Service, B : Any>(
     /**
      * Service binder flow. It is **hot** flow which will be active until have subscribers
      */
-    protected val binderFlow = callbackFlow<BinderState<B>> {
+    protected val binderFlow = callbackFlow {
         val connection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName, service: IBinder) {
                 Logger.info("Service '${serviceClazz.name}' binder connected")
 
                 @Suppress("UNCHECKED_CAST")
-                offer(BinderState.Connected(service as B))
+                trySend(BinderState.Connected(service as B))
             }
 
             override fun onServiceDisconnected(name: ComponentName) {
-                offer(BinderState.Disconnected)
+                trySend(BinderState.Disconnected)
             }
 
             override fun onBindingDied(name: ComponentName) {
@@ -139,17 +139,17 @@ abstract class BaseServiceConnector<S : Service, B : Any>(
     private class BindingDied(componentName: ComponentName) :
         RuntimeException("Android binding died: $componentName")
 
-    protected sealed class BinderState<out B : Any> {
+    protected sealed interface BinderState<out B : Any> {
         /**
          * Binder connected and ready to use
          * @param binder binder reference
          */
-        data class Connected<out B : Any>(val binder: B) : BinderState<B>()
+        data class Connected<out B : Any>(val binder: B) : BinderState<B>
 
         /**
          * Binder was disconnected or it is not ready yet
          */
-        object Disconnected : BinderState<Nothing>()
+        object Disconnected : BinderState<Nothing>
     }
 }
 

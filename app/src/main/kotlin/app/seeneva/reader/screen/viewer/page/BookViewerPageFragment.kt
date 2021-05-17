@@ -260,7 +260,7 @@ class BookViewerPageFragment :
 
                 when (state) {
                     is TxtRecognitionState.Idle -> return@observe
-                    is TxtRecognitionState.Recogized -> {
+                    is TxtRecognitionState.Recognized -> {
                         val txt = state.txt
 
                         //if text was recognized than show it with copy action
@@ -611,13 +611,14 @@ class BookViewerPageFragment :
      * Send Fragment's onResume signals
      */
     private fun fragmentResumeSignalsFlow() =
-        callbackFlow<Unit> {
+        callbackFlow {
             val observer = object : DefaultLifecycleObserver {
                 override fun onResume(owner: LifecycleOwner) {
                     super.onResume(owner)
-                    offer(Unit)
+                    trySend(Unit)
                 }
             }
+
             lifecycle.addObserver(observer)
 
             awaitClose { lifecycle.removeObserver(observer) }

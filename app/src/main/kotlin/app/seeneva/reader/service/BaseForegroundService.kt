@@ -68,13 +68,13 @@ abstract class BaseForegroundService : LifecycleService() {
             .setChannelId(AppNotification.Channel.FOREGROUND_TASK)
             .build()
 
-    protected sealed class CommandResult {
+    protected sealed interface CommandResult {
         data class Foreground(
             val notification: Notification,
             val startState: Int = Service.START_NOT_STICKY
-        ) : CommandResult()
+        ) : CommandResult
 
-        data class NonForeground(val startState: Int = Service.START_NOT_STICKY) : CommandResult()
+        data class NonForeground(val startState: Int = Service.START_NOT_STICKY) : CommandResult
     }
 }
 
