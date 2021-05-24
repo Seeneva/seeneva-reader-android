@@ -63,8 +63,7 @@ data class CountQueryParams(
     override val tagsFilters: TagsFilters = null
 ) : FilterQueryParams {
     companion object {
-        val EMPTY =
-            CountQueryParams()
+        val EMPTY = CountQueryParams()
     }
 }
 

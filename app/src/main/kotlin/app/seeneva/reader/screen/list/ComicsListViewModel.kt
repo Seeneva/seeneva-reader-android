@@ -19,17 +19,16 @@
 package app.seeneva.reader.screen.list
 
 import android.net.Uri
-import androidx.paging.PagedList
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import app.seeneva.reader.common.coroutines.Dispatchers
-import app.seeneva.reader.logic.ComicsPagingDataSourceFactory
 import app.seeneva.reader.logic.ComicsSettings
 import app.seeneva.reader.logic.comic.AddComicBookMode
 import app.seeneva.reader.logic.comic.Library
 import app.seeneva.reader.logic.entity.ComicAddResult
 import app.seeneva.reader.logic.entity.ComicListItem
 import app.seeneva.reader.logic.entity.query.QueryParams
-import app.seeneva.reader.logic.extension.asFlow
-import app.seeneva.reader.logic.extension.toPagedList
 import app.seeneva.reader.logic.usecase.ComicListUseCase
 import app.seeneva.reader.logic.usecase.RenameComicBookUseCase
 import app.seeneva.reader.logic.usecase.tags.ComicCompletedTagUseCase
@@ -38,10 +37,9 @@ import app.seeneva.reader.service.add.AddComicBookServiceConnector
 import app.seeneva.reader.viewmodel.CoroutineViewModel
 import app.seeneva.reader.viewmodel.EventSender
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlin.properties.Delegates
 
 sealed interface ListEvents
 
@@ -53,19 +51,24 @@ data class ComicsMarkedAsRemoved(val ids: Set<Long>) : ListEvents
 
 data class ComicsOpened(val result: ComicAddResult) : ListEvents
 
-sealed interface ComicsListState {
-    object Idle : ComicsListState
+sealed interface ComicsPagingState {
+    object Idle : ComicsPagingState
 
-    object Loading : ComicsListState
+    object Loading : ComicsPagingState
 
+    /**
+     * Loaded comic book page
+     * @param pagingData data pf the page
+     * @param totalCount total count of comic books
+     */
     data class Loaded(
-        val list: PagedList<ComicListItem?>,
+        val pagingData: PagingData<ComicListItem>,
         val totalCount: Long
-    ) : ComicsListState
+    ) : ComicsPagingState
 }
 
 interface ComicsListViewModel {
-    val listState: StateFlow<ComicsListState>
+    val pagingState: StateFlow<ComicsPagingState>
 
     val eventsFlow: Flow<ListEvents>
 
@@ -75,15 +78,10 @@ interface ComicsListViewModel {
 
     /**
      * Start comics list page loading
-     * @param pageSize comic book single page size
-     * @param initKey init page key
+     * @param startIndex init page position
+     * @param pageSize page size
      */
-    fun loadList(pageSize: Int, initKey: Int? = null)
-
-    /**
-     * @return last used comic book page key
-     */
-    fun currentPageLastKey(): Int?
+    fun loadComicsPagingData(startIndex: Int, pageSize: Int)
 
     /**
      * Synchronize library
@@ -127,29 +125,26 @@ interface ComicsListViewModel {
 class ComicsListViewModelImpl(
     dispatchers: Dispatchers,
     private val settings: ComicsSettings,
-    private val comicsDataSourceFactory: ComicsPagingDataSourceFactory,
     private val addComicBookServiceConnector: AddComicBookServiceConnector,
     private val comicListUseCase: ComicListUseCase,
     private val removeStateUseCase: ComicRemovedTagUseCase,
     private val renameUseCase: RenameComicBookUseCase,
     private val markComicCompletedUseCase: ComicCompletedTagUseCase,
     private val library: Library,
-    job: Job //need to set as parent in the [ComicsPagingDataSourceFactory]
+    job: Job //need to set as parent in the [AddComicBookServiceConnector]
 ) : CoroutineViewModel(dispatchers, job), ComicsListViewModel {
-    override val listState = MutableStateFlow<ComicsListState>(ComicsListState.Idle)
+    override val pagingState = MutableStateFlow<ComicsPagingState>(ComicsPagingState.Idle)
 
     override val libraryState
         get() = library.state
 
-    override var queryParams by Delegates.observable(
-        settings.getComicListQueryParams().also(::onQueryParamsChange)
-    ) { _, old, new ->
-        if (old != new) {
-            vmScope.launch { settings.saveComicListQueryParams(new) }
+    override var queryParams
+        get() = queryParamsFlow.value
+        set(value) {
+            queryParamsFlow.value = value
         }
 
-        onQueryParamsChange(new)
-    }
+    private val queryParamsFlow = MutableStateFlow(settings.getComicListQueryParams())
 
     private val eventsSender = EventSender<ListEvents>()
 
@@ -158,9 +153,17 @@ class ComicsListViewModelImpl(
 
     private var listLoadJob: ListLoadingJob? = null
 
-    override fun loadList(pageSize: Int, initKey: Int?) {
+    init {
+        vmScope.launch {
+            queryParamsFlow.collectLatest {
+                settings.saveComicListQueryParams(it)
+            }
+        }
+    }
+
+    override fun loadComicsPagingData(startIndex: Int, pageSize: Int) {
         listLoadJob?.also {
-            val sameRequest = it.isActive && it.pageSize == pageSize && it.initKey == initKey
+            val sameRequest = it.isActive && it.pageSize == pageSize && it.startIndex == startIndex
 
             if (sameRequest) {
                 return
@@ -170,25 +173,23 @@ class ComicsListViewModelImpl(
         val prevListLoadJob = listLoadJob
 
         listLoadJob = ListLoadingJob(pageSize,
-            initKey,
+            startIndex,
             vmScope.launch {
-                prevListLoadJob?.cancel()
+                prevListLoadJob?.cancelAndJoin()
 
-                listLoadingFlow(pageSize, initKey).collect {
-                    val totalCount = comicListUseCase.totalCount(queryParams)
+                val pagingDataFlow = queryParamsFlow.flatMapLatest {
+                    comicListUseCase.getPagingData(PagingConfig(pageSize), it, startIndex)
+                }.cachedIn(this)
+                    .mapLatest {
+                        val totalCount = comicListUseCase.totalCount(queryParams)
 
-                    if (!it.isDetached) {
-                        ensureActive()
+                        ComicsPagingState.Loaded(it, totalCount)
+                    }.onStart<ComicsPagingState> { emit(ComicsPagingState.Loading) }
+                    .onCompletion { emit(ComicsPagingState.Idle) }
 
-                        listState.value =
-                            ComicsListState.Loaded(it, totalCount)
-                    }
-                }
+                pagingState.emitAll(pagingDataFlow)
             })
     }
-
-    override fun currentPageLastKey() =
-        (listState.value as? ComicsListState.Loaded)?.let { it.list.lastKey as Int }
 
     override fun sync() {
         //TODO I think it should be moved to a Service...
@@ -239,39 +240,9 @@ class ComicsListViewModelImpl(
         vmScope.launch { markComicCompletedUseCase.change(ids, completed) }
     }
 
-    private fun onQueryParamsChange(queryParams: QueryParams) {
-        comicsDataSourceFactory.queryParams = queryParams
-    }
-
-    /**
-     * Create new flow of comic book [PagedList]
-     * @param pageSize list page size
-     * @param initKey used to determine init loading position
-     */
-    private fun listLoadingFlow(
-        pageSize: Int,
-        initKey: Int?
-    ) = comicsDataSourceFactory.asFlow()
-        .onStart { listState.value = ComicsListState.Loading }
-        .toPagedList(
-            PagedList.Config
-                .Builder()
-                .setPageSize(pageSize)
-                .build(),
-            initKey,
-            notifyDispatcher = dispatchers.mainImmediate,
-            fetchDispatcher = dispatchers.io,
-        )
-        .map {
-            //we will have placeholders. So [PagedList] will have null values
-            @Suppress("UNCHECKED_CAST")
-            it as PagedList<ComicListItem?>
-        }
-        .onCompletion { listState.value = ComicsListState.Idle }
-
     private data class ListLoadingJob(
         val pageSize: Int,
-        val initKey: Int?,
+        val startIndex: Int,
         private val job: Job
     ) : Job by job
 }

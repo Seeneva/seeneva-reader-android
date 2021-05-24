@@ -102,7 +102,7 @@ private class LifecycleScopeImpl<T>(
 
     override fun <T : Any> autoInit(clazz: KClass<T>, qualifier: Qualifier?) =
         if (_scope.isInitialized()) {
-            lazyOf(scope.get(clazz))
+            lazyOf(scope.get(clazz, qualifier))
         } else {
             lazy { scope.get(clazz, qualifier) }.also { autoInit += it }
         }

@@ -18,129 +18,92 @@
 
 package app.seeneva.reader.logic
 
-import androidx.paging.DataSource
-import androidx.paging.PositionalDataSource
-import app.seeneva.reader.common.coroutines.Dispatched
-import app.seeneva.reader.common.coroutines.Dispatchers
+import androidx.paging.PagingSource
+import androidx.paging.PagingSource.LoadParams
+import androidx.paging.PagingState
+import app.seeneva.reader.data.source.local.db.LocalTransactionRunner
 import app.seeneva.reader.logic.entity.ComicListItem
 import app.seeneva.reader.logic.entity.query.QueryParams
-import app.seeneva.reader.logic.usecase.ComicListUseCase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.runBlocking
-import kotlin.properties.Delegates
-
-abstract class ComicsPagingDataSourceFactory : DataSource.Factory<Int, ComicListItem>() {
-    private var currentDataSource: DataSource<Int, ComicListItem>? = null
-
-    /**
-     * Current comic book query params
-     * Change it to invalidate last created [DataSource]
-     */
-    var queryParams by Delegates.observable<QueryParams?>(null) { _, old, new ->
-        if (old != new) {
-            currentDataSource?.invalidate()
-        }
-    }
-
-    override fun create(): DataSource<Int, ComicListItem> =
-        createInner().also { currentDataSource = it }
-
-    protected abstract fun createInner(): DataSource<Int, ComicListItem>
-}
+import app.seeneva.reader.logic.usecase.ComicsPageUseCase
+import org.tinylog.kotlin.Logger
 
 /**
- * @param parentJob used to cancel source's coroutines if parent job cancelled
+ * Comics paging source.
+ *
+ * Key here is the page start index (zero based) (e.g. '0, 15, 30' if loadSize == 15)
+ *
+ * @param useCase list use case to use
+ * @param transaction local transaction runner
+ * @param queryParams requested comics query parameters
+ * @param defaultLoadSize default load size. It can be different from [LoadParams.loadSize]
  */
 internal class ComicsPagingDataSource(
-    override val dispatchers: Dispatchers,
-    private val useCase: ComicListUseCase,
-    private val queryParams: QueryParams?,
-    parentJob: Job?
-) : PositionalDataSource<ComicListItem>(), CoroutineScope, Dispatched {
-    override val coroutineContext = Job(parentJob) + dispatchers.main
+    private val useCase: ComicsPageUseCase,
+    private val transaction: LocalTransactionRunner,
+    private val queryParams: QueryParams,
+    private val defaultLoadSize: Int,
+) : PagingSource<Int, ComicListItem>() {
+    private var totalCount = COUNT_UNDEFINED
 
-    private var updatesJob: Job? = null
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ComicListItem> {
+        // Page's first item index relatively to full items list in the database
+        val pageStartIndex = params.key?.coerceAtLeast(0) ?: 0
 
-    init {
-        coroutineContext[Job]!!.invokeOnCompletion { invalidate() }
-    }
+        Logger.debug { "Start loading comics page starting from $pageStartIndex. Requested size: ${params.loadSize}" }
 
-    override fun invalidate() {
-        super.invalidate()
+        val pageData = transaction.run {
+            if (totalCount == COUNT_UNDEFINED) {
+                totalCount = useCase.count(queryParams)
+            }
 
-        //cancel coroutine job if this data source marked as invalid
-        coroutineContext.cancel()
-    }
-
-    override fun loadInitial(
-        params: LoadInitialParams,
-        callback: LoadInitialCallback<ComicListItem>
-    ) {
-        //it seems that I can't do async work here. So I need run it on non Main Thread
-        runBlocking {
-            val totalCount = if (queryParams != null) {
-                useCase.count(queryParams).toInt()
+            if (totalCount == 0L) {
+                emptyList()
             } else {
+                useCase.getPage(
+                    pageStartIndex,
+                    when (params) {
+                        is LoadParams.Refresh -> params.loadSize
+                        else -> defaultLoadSize
+                    },
+                    queryParams
+                )
+            }
+        }
+
+        if (pageData.isEmpty()) {
+            return LoadResult.Page(pageData, null, null, 0, 0)
+        }
+
+        val page = LoadResult.Page(
+            data = pageData,
+            prevKey = if (pageStartIndex == 0) {
+                null
+            } else {
+                // it is possible to have negative value so force it to zero
+                (pageStartIndex - defaultLoadSize).coerceAtLeast(0)
+            },
+            nextKey = (pageStartIndex + pageData.size).takeIf { it < totalCount },
+            itemsBefore = if (pageStartIndex == 0) 0 else pageStartIndex - 1,
+            itemsAfter = (totalCount - (pageStartIndex + pageData.size)).toInt()
+        )
+
+        Logger.debug { "Comics page loaded. Start index: $pageStartIndex. Page: $page" }
+
+        return page
+    }
+
+    override fun getRefreshKey(state: PagingState<Int, ComicListItem>) =
+        state.anchorPosition?.let {
+            if (it < state.config.initialLoadSize) {
+                // if anchor position is less than initial loading count then download from the beginning
                 0
-            }
-
-            if (totalCount == 0) {
-                callback.onResult(emptyList(), 0, 0)
             } else {
-                val position = computeInitialLoadPosition(params, totalCount)
-                val loadSize = computeInitialLoadSize(params, position, totalCount)
-
-                val result = loadRangeInternal(position, loadSize)
-
-                if (result.size == loadSize) {
-                    callback.onResult(result, position, totalCount)
-                } else {
-                    invalidate()
-                }
-            }
-
-            if (!isInvalid) {
-                updatesJob?.cancel()
-
-                //Subscribe to data update if paging data source is still valid
-                updatesJob = useCase.subscribeUpdates(requireNotNull(queryParams))
-                    .takeWhile { !isInvalid }
-                    .take(1)
-                    .onEach { invalidate() }
-                    .launchIn(this@ComicsPagingDataSource)
+                // otherwise load a page around anchorPosition using initialLoadSize
+                (it - state.config.initialLoadSize / 2).coerceAtLeast(0)
             }
         }
-    }
 
-    override fun loadRange(params: LoadRangeParams, callback: LoadRangeCallback<ComicListItem>) {
-        runBlocking {
-            callback.onResult(loadRangeInternal(params.startPosition, params.loadSize))
-        }
-    }
-
-    private suspend fun loadRangeInternal(position: Int, loadSize: Int): List<ComicListItem> {
-        return useCase.getPage(position, loadSize, requireNotNull(queryParams))
-    }
-
-    /**
-     * Comic book pagination source factory
-     *
-     * @param dispatchers
-     * @param useCase
-     * @param parentJob optional parent job. Used to cancel inner job
-     */
-    class Factory(
-        private val dispatchers: Dispatchers,
-        private val useCase: ComicListUseCase,
-        private val parentJob: Job? = null
-    ) : ComicsPagingDataSourceFactory() {
-        override fun createInner(): DataSource<Int, ComicListItem> =
-            ComicsPagingDataSource(dispatchers, useCase, queryParams, parentJob)
+    companion object {
+        private const val COUNT_UNDEFINED = Long.MIN_VALUE
     }
 }

@@ -317,7 +317,7 @@ interface AddComicBookServiceBinder {
         addComicBookMode: AddComicBookMode,
         openFlags: Int
     ): ComicAddResult {
-        return add(Collections.singletonList(path), addComicBookMode, openFlags).first()
+        return add(listOf(path), addComicBookMode, openFlags).first()
     }
 
     /**

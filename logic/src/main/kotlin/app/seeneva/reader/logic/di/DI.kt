@@ -23,8 +23,6 @@ import app.seeneva.reader.common.coroutines.Dispatchers
 import app.seeneva.reader.data.entity.ComicBook
 import app.seeneva.reader.data.source.local.db.entity.FullComicBookWithTags
 import app.seeneva.reader.data.source.local.db.entity.SimpleComicBookWithTags
-import app.seeneva.reader.logic.ComicsPagingDataSource
-import app.seeneva.reader.logic.ComicsPagingDataSourceFactory
 import app.seeneva.reader.logic.ComicsSettings
 import app.seeneva.reader.logic.PrefsComicsSettings
 import app.seeneva.reader.logic.comic.Library
@@ -43,27 +41,13 @@ import app.seeneva.reader.logic.image.ImageLoader
 import app.seeneva.reader.logic.image.coil.CoilImageLoader
 import app.seeneva.reader.logic.image.coil.fetcher.ComicImageFetcher
 import app.seeneva.reader.logic.mapper.*
-import app.seeneva.reader.logic.mapper.ComicBookIntoDescription
-import app.seeneva.reader.logic.mapper.ComicMetadataIntoComicInfo
-import app.seeneva.reader.logic.mapper.ComicMetadataIntoComicListItem
-import app.seeneva.reader.logic.mapper.intoComicInfo
-import app.seeneva.reader.logic.mapper.intoListItem
-import app.seeneva.reader.logic.storage.EncodedComicPageStorage
-import app.seeneva.reader.logic.storage.EncodedImageSource
-import app.seeneva.reader.logic.storage.InterpreterObjectStorage
-import app.seeneva.reader.logic.storage.InterpreterSource
-import app.seeneva.reader.logic.storage.ObjectStorageImpl
-import app.seeneva.reader.logic.storage.SingleObjectStorageImpl
-import app.seeneva.reader.logic.usecase.*
-import app.seeneva.reader.logic.usecase.GetPageDataUseCaseImpl
-import app.seeneva.reader.logic.usecase.InterpreterUseCase
-import app.seeneva.reader.logic.usecase.InterpreterUseCaseImpl
-import app.seeneva.reader.logic.usecase.ViewerConfigUseCaseImpl
+import app.seeneva.reader.logic.storage.*
 import app.seeneva.reader.logic.text.SentenceBreakerFactory
 import app.seeneva.reader.logic.text.ocr.OCR
 import app.seeneva.reader.logic.text.ocr.TesseractOCR
 import app.seeneva.reader.logic.text.tts.TTS
 import app.seeneva.reader.logic.text.tts.TTSFactory
+import app.seeneva.reader.logic.usecase.*
 import app.seeneva.reader.logic.usecase.image.DecodePageUseCase
 import app.seeneva.reader.logic.usecase.image.DecodePageUseCaseImpl
 import app.seeneva.reader.logic.usecase.image.GetEncodedPageUseCase
@@ -74,7 +58,6 @@ import app.seeneva.reader.logic.usecase.tags.ComicRemovedStateUseCaseImpl
 import app.seeneva.reader.logic.usecase.tags.ComicRemovedTagUseCase
 import app.seeneva.reader.logic.usecase.text.RecognizeTextUseCase
 import app.seeneva.reader.logic.usecase.text.RecognizeTextUseCaseImpl
-import kotlinx.coroutines.Job
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.plus
@@ -175,14 +158,6 @@ object Modules {
             )
         }
 
-        factory<ComicsPagingDataSourceFactory> { (parentJob: Job?) ->
-            ComicsPagingDataSource.Factory(
-                get(),
-                get(),
-                parentJob
-            )
-        }
-
         single { SentenceBreakerFactory(get<Dispatchers>().io) }
     }
 
@@ -227,9 +202,19 @@ object Modules {
                 get(),
                 get(),
                 get(),
+                inject(),
+                get(),
+            )
+        }
+
+        single<ComicsPageUseCase> {
+            ComicsPageUseCaseImpl(
                 get(),
                 get(),
-                get(Names.mapperComicToListItem)
+                get(),
+                get(),
+                get(Names.mapperComicToListItem),
+                get(),
             )
         }
 

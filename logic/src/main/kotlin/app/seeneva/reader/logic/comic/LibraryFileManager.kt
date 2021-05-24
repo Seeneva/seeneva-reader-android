@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.tinylog.kotlin.Logger
-import java.util.*
 import kotlin.coroutines.coroutineContext
 
 internal interface LibraryFileManager {
@@ -116,7 +115,7 @@ internal class LibraryFileManagerImpl(
         mutex.withLock {
             Logger.debug("Replace library path $oldPath with ${newFileData.path}")
 
-            removeInner(Collections.singletonList(oldPath))
+            removeInner(listOf(oldPath))
 
             addInner(newFileData, addMode)
         }

@@ -18,66 +18,53 @@
 
 package app.seeneva.reader.logic.usecase
 
+import androidx.paging.InvalidatingPagingSourceFactory
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import app.seeneva.reader.common.coroutines.Dispatched
 import app.seeneva.reader.common.coroutines.Dispatchers
-import app.seeneva.reader.common.coroutines.io
 import app.seeneva.reader.data.source.local.db.LocalTransactionRunner
 import app.seeneva.reader.data.source.local.db.dao.ComicBookSource
-import app.seeneva.reader.data.source.local.db.dao.ComicTagSource
-import app.seeneva.reader.data.source.local.db.entity.SimpleComicBookWithTags
+import app.seeneva.reader.logic.ComicsPagingDataSource
 import app.seeneva.reader.logic.entity.ComicListItem
-import app.seeneva.reader.logic.entity.TagType
 import app.seeneva.reader.logic.entity.query.QueryParams
 import app.seeneva.reader.logic.entity.query.QueryParamsResolver
 import app.seeneva.reader.logic.entity.query.addDefaultFilters
-import app.seeneva.reader.logic.extension.getHardcodedTagId
-import app.seeneva.reader.logic.extension.hasTag
-import app.seeneva.reader.logic.mapper.ComicMetadataIntoComicListItem
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
+import org.tinylog.kotlin.Logger
 import app.seeneva.reader.data.source.local.db.query.QueryParams as DataLayerQueryParams
 
 interface ComicListUseCase {
-    /**
-     * Get count of comic books to which [params] are applicable
-     * @return comic books count
-     */
-    suspend fun count(params: QueryParams): Long
-
     /**
      * Get total count of all not removed comic books
      * @return comic books count
      */
     suspend fun totalCount(params: QueryParams): Long
 
-    suspend fun getPage(start: Int, count: Int, params: QueryParams): List<ComicListItem>
-
     /**
-     * Create [Flow] which will emit when comic books have been changed
-     * @param params comic book query params
+     * Get comic books paging data
+     * @param config paging config
+     * @param queryParams requested query params
+     * @param initPageStartIndex initial requested page start index
+     * @return flow of [PagingData]
      */
-    fun subscribeUpdates(params: QueryParams): Flow<Unit>
-}
-
-private suspend fun QueryParamsResolver.FiltersEditor.defaultResolverEditor() {
-    addDefaultFilters()
+    fun getPagingData(
+        config: PagingConfig,
+        queryParams: QueryParams,
+        initPageStartIndex: Int? = null
+    ): Flow<PagingData<ComicListItem>>
 }
 
 internal class ComicListUseCaseImpl(
     private val comicBookSource: ComicBookSource,
-    private val comicTagSource: ComicTagSource,
     private val queryParamsResolver: QueryParamsResolver,
     private val localTransactionRunner: LocalTransactionRunner,
+    _pageUseCase: Lazy<ComicsPageUseCase>,
     override val dispatchers: Dispatchers,
-    private val mapper: ComicMetadataIntoComicListItem
 ) : ComicListUseCase, Dispatched {
-
-    override suspend fun count(params: QueryParams) =
-        comicBookSource.count(
-            queryParamsResolver.resolveCount(
-                params,
-                QueryParamsResolver.FiltersEditor::defaultResolverEditor
-            )
-        )
+    private val pageUseCase by _pageUseCase
 
     override suspend fun totalCount(params: QueryParams): Long {
         //remove any user added filters to get total comic book count
@@ -87,31 +74,45 @@ internal class ComicListUseCaseImpl(
                 params.buildNew {
                     clearFilters()
                     titleQuery = null
-                }, QueryParamsResolver.FiltersEditor::defaultResolverEditor
+                }, QueryParamsResolver.FiltersEditor::addDefaultFilters
             )
         )
     }
 
-    override suspend fun getPage(start: Int, count: Int, params: QueryParams): List<ComicListItem> {
-        fun SimpleComicBookWithTags.hasTagInner(id: Long?): Boolean {
-            return id?.let { hasTag(it) } ?: false
+    override fun getPagingData(
+        config: PagingConfig,
+        queryParams: QueryParams,
+        initPageStartIndex: Int?
+    ) = flow {
+        val sourceFactory = InvalidatingPagingSourceFactory {
+            Logger.debug("Create new comics paging source")
+
+            ComicsPagingDataSource(
+                pageUseCase,
+                localTransactionRunner,
+                queryParams,
+                config.pageSize
+            )
         }
 
-        return localTransactionRunner.run {
-            val completedTagId = comicTagSource.getHardcodedTagId(TagType.TYPE_COMPLETED)
-            val corruptedTagId = comicTagSource.getHardcodedTagId(TagType.TYPE_CORRUPTED)
-
-            val page = comicBookSource.querySimpleWithTags(params.resolve(start, count))
-
-            io {
-                page.map {
-                    mapper(it, it.hasTagInner(completedTagId), it.hasTagInner(corruptedTagId))
+        coroutineScope {
+            // Subscribe to database changes and invalidate data source if any occur
+            subscribeUpdates(queryParams)
+                .onEach {
+                    Logger.debug("Invalidate paging data source")
+                    sourceFactory.invalidate()
                 }
-            }
-        }
-    }
+                .launchIn(this)
 
-    override fun subscribeUpdates(params: QueryParams) =
+            emitAll(Pager(config, initPageStartIndex, sourceFactory).flow)
+        }
+    }.flowOn(dispatchers.io)
+
+    /**
+     * Create [Flow] which will emit when comic books have been changed
+     * @param params comic book query params
+     */
+    private fun subscribeUpdates(params: QueryParams) =
         flow {
             emitAll(comicBookSource.subscribeSimpleWithTags(params.resolve(0, 0))
                 .drop(1) //we do not want to receive first emit
@@ -125,6 +126,6 @@ internal class ComicListUseCaseImpl(
             this,
             start,
             count,
-            edit = QueryParamsResolver.FiltersEditor::defaultResolverEditor
+            edit = QueryParamsResolver.FiltersEditor::addDefaultFilters
         )
 }

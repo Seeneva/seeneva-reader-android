@@ -29,6 +29,7 @@ import androidx.core.view.plusAssign
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentFactory
 import androidx.fragment.app.commit
+import androidx.lifecycle.Lifecycle
 import app.seeneva.reader.R
 import app.seeneva.reader.binding.getValue
 import app.seeneva.reader.binding.viewBinding
@@ -87,7 +88,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     override fun onSupportActionModeFinished(mode: ActionMode) {
         super.onSupportActionModeFinished(mode)
         startedActionMode = null
-        viewBinding.toolbar.isInvisible = false
+
+        // It can be called after the onDestroy was already called
+        if(lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
+            viewBinding.toolbar.isInvisible = false
+        }
     }
 
     private fun onBottomMenuSelect(itemId: Int) =

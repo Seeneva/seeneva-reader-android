@@ -21,11 +21,15 @@ package app.seeneva.reader.screen.list.selection
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.view.ActionMode
+import androidx.lifecycle.Lifecycle
+import androidx.paging.LoadState
 import androidx.recyclerview.selection.SelectionTracker
 import app.seeneva.reader.R
-import app.seeneva.reader.screen.list.adapter.ComicListObserver
+import app.seeneva.reader.extension.observe
 import app.seeneva.reader.screen.list.adapter.ComicsAdapter
-import java.util.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
 
 /**
  * Start action mode if any comic book were selected
@@ -33,8 +37,16 @@ import java.util.*
 class ComicSelectionActionModeObserver(
     private val adapter: ComicsAdapter,
     private val selectionTracker: SelectionTracker<Long>,
-    private val actionModeCallback: ActionModeCallback
+    private val lifecycle: Lifecycle,
+    private val actionModeCallback: ActionModeCallback,
 ) : SelectionTracker.SelectionObserver<Long>() {
+    private val selectChangeChannel = Channel<Unit>(Channel.CONFLATED)
+
+    /**
+     * Job of ActionMode invalidator
+     */
+    private var actionModeJob: Job? = null
+
     private var actionMode: ActionMode? = null
 
     private val actionModeCallbackInner = object : ActionMode.Callback {
@@ -46,9 +58,7 @@ class ComicSelectionActionModeObserver(
                     true
                 }
                 R.id.change_complete_state -> {
-                    val allCompleted = mode.comicsTag?.allCompleted
-
-                    requireNotNull(allCompleted) { "Can't get ActionMode tag" }
+                    val allCompleted = mode.allSelectedCompleted
 
                     actionModeCallback.onMarkAsCompletedSelectedClick(!allCompleted)
                     finishActionMode()
@@ -66,35 +76,20 @@ class ComicSelectionActionModeObserver(
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
             mode.setSelectedCount()
 
-            menu.findItem(R.id.change_complete_state).setTitle(
-                if (mode.comicsTag.isAllCompleted()) {
-                    R.string.comic_list_not_completed
-                } else {
-                    R.string.comic_list_completed
-                }
-            )
+            menu.findItem(R.id.change_complete_state)
+                .setTitle(
+                    if (mode.allSelectedCompleted) {
+                        R.string.comic_list_not_completed
+                    } else {
+                        R.string.comic_list_completed
+                    }
+                )
 
             return true
         }
 
         override fun onDestroyActionMode(mode: ActionMode) {
             finishActionMode()
-        }
-    }
-
-    private val observer: ComicListObserver = { _, currentList ->
-        if (selectionTracker.hasSelection()) {
-            actionMode.also { actionMode ->
-                requireNotNull(actionMode) { "ActionMode cannot be null" }
-
-                actionMode.tag = ComicActionModeTag(
-                    currentList?.filterNotNull()
-                        ?.associateByTo(hashMapOf(), { it.id }, { it.completed })
-                        ?: Collections.emptyMap()
-                )
-
-                actionMode.invalidate()
-            }
         }
     }
 
@@ -117,54 +112,80 @@ class ComicSelectionActionModeObserver(
         when {
             selected && actionMode == null -> startActionMode()
             !selected && !selectionTracker.hasSelection() -> finishActionMode()
-            else -> {
-                actionMode?.also {
-                    //clear to recalculate later
-                    it.comicsTag!!.allCompleted = null
-                    it.invalidate()
-                }
-            }
+            else -> selectChangeChannel.trySend(Unit)
         }
     }
 
     private fun startActionMode() {
-        if (actionMode == null) {
-            actionMode = actionModeCallback.start(actionModeCallbackInner)
-
-            observer(null, adapter.currentList)
-            adapter.addWeakCurrentListObserver(observer)
+        if (actionModeJob?.isActive == true) {
+            return
         }
+
+        actionModeJob =
+            comicsCompletionFlow().combine(selectionChangeSignal()) { idToCompletion, _ ->
+                // Iterate over all selected ids and check is any of them has not_completed state
+                // Otherwise all books are completed
+                selectionTracker.selection.firstNotNullOfOrNull {
+                    if (idToCompletion[it] == false) {
+                        false
+                    } else {
+                        null
+                    }
+                } ?: true
+            }.onCompletion {
+                actionMode?.finish()
+                actionMode = null
+
+                selectionTracker.clearSelection()
+            }.observe(lifecycle) { allSelectedCompleted ->
+                val actionMode = actionMode ?: actionModeCallback.start(actionModeCallbackInner)
+                    .also { actionMode = it }
+
+                if (actionMode != null) {
+                    actionMode.tag = allSelectedCompleted
+
+                    actionMode.invalidate()
+                } else {
+                    // nothing to do here
+                    finishActionMode()
+                }
+            }
     }
 
     private fun finishActionMode() {
-        if (actionMode != null) {
-            actionMode?.finish()
-            actionMode = null
-            adapter.removeWeakCurrentListObserver(observer)
-
-            selectionTracker.clearSelection()
-        }
+        actionModeJob?.cancel()
+        actionModeJob = null
     }
 
-    private fun ComicActionModeTag?.isAllCompleted(): Boolean {
-        return if (this == null) {
-            false
-        } else {
-            allCompleted
-                ?: (!idToCompleted.filter { selectionTracker.isSelected(it.key) }
-                    .containsValue(false))
-                    .also { allCompleted = it }
-        }
-    }
+    /**
+     * @return Flow which emit all loaded comic books completion state
+     */
+    private fun comicsCompletionFlow() =
+        adapter.loadStateFlow
+            .filter {
+                it.refresh is LoadState.NotLoading &&
+                        it.append is LoadState.NotLoading &&
+                        it.prepend is LoadState.NotLoading
+            }
+            .map {
+                // Get all loaded items and build map of bookId -> completed_or_not
+                adapter.snapshot()
+                    .items
+                    .associateByTo(
+                        hashMapOf(),
+                        { it.id },
+                        { it.completed })
+            }
+
+    /**
+     * @return Flow which emit signals that selection was changed
+     */
+    private fun selectionChangeSignal() =
+        selectChangeChannel.receiveAsFlow().onStart { emit(Unit) }
 
     private fun ActionMode.setSelectedCount() {
         title = selectionTracker.selection.size().toString()
     }
-
-    private data class ComicActionModeTag(
-        val idToCompleted: Map<Long, Boolean>,
-        var allCompleted: Boolean? = null
-    )
 
     interface ActionModeCallback {
         /**
@@ -185,7 +206,10 @@ class ComicSelectionActionModeObserver(
     }
 
     private companion object {
-        private val ActionMode.comicsTag: ComicActionModeTag?
-            get() = tag as ComicActionModeTag?
+        /**
+         * true if all selected comic books are in completed state
+         */
+        private val ActionMode.allSelectedCompleted
+            get() = tag as? Boolean ?: false
     }
 }

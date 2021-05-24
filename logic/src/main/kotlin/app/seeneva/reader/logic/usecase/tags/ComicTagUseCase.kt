@@ -20,7 +20,6 @@ package app.seeneva.reader.logic.usecase.tags
 
 import app.seeneva.reader.data.source.local.db.LocalTransactionRunner
 import app.seeneva.reader.data.source.local.db.dao.ComicBookSource
-import java.util.*
 
 interface ComicTagUseCase {
     /**
@@ -30,7 +29,7 @@ interface ComicTagUseCase {
     suspend fun toggle(id: Long)
 
     suspend fun change(id: Long, add: Boolean) {
-        change(Collections.singleton(id), add)
+        change(setOf(id), add)
     }
 
     /**
@@ -52,9 +51,9 @@ internal abstract class BaseComicTagUseCase(
             val hasTag = comicBookSource.hasTag(id, tagId) ?: return@run
 
             if (hasTag) {
-                comicBookSource.removeTags(id, Collections.singleton(tagId))
+                comicBookSource.removeTags(id, setOf(tagId))
             } else {
-                comicBookSource.addTags(id, Collections.singleton(tagId))
+                comicBookSource.addTags(id, setOf(tagId))
             }
         }
     }
@@ -65,7 +64,7 @@ internal abstract class BaseComicTagUseCase(
         }
 
         localTransactionRunner.run {
-            comicBookSource.changeTags(ids, Collections.singleton(getTagId()), add)
+            comicBookSource.changeTags(ids, setOf(getTagId()), add)
         }
     }
 

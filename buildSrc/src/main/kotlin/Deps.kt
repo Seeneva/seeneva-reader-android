@@ -32,7 +32,7 @@ object Version {
     const val ANDROIDX_CONSTRAINT_LAYOUT = "2.0.4"
     const val ANDROIDX_CORE_KTX = "1.3.2"
     const val ANDROIDX_LIFECYCLE = "2.3.1"
-    const val ANDROIDX_PAGING = "2.1.2"
+    const val ANDROIDX_PAGING = "3.0.0"
     const val ANDROIDX_PALETTE = "1.0.0"
     const val ANDROIDX_TEST_CORE_KTX = "1.3.0"
     const val ANDROIDX_TEST_JUNIT_KTX = "1.1.2"

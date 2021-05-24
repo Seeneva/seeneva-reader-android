@@ -35,8 +35,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Instant
-import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.coroutines.coroutineContext
 
 @Dao
@@ -157,7 +155,7 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
      * @param tagIds id of tags to add
      */
     suspend fun addTags(bookId: Long, tagIds: Set<Long>) =
-        addTags(Collections.singleton(bookId), tagIds)
+        addTags(setOf(bookId), tagIds)
 
     /**
      * Add tags to a comic books
@@ -173,7 +171,7 @@ abstract class ComicBookSource internal constructor(private val database: ComicD
      * @param tagIds id of tags to remove
      */
     suspend fun removeTags(bookId: Long, tagIds: Set<Long>) =
-        removeTags(Collections.singleton(bookId), tagIds)
+        removeTags(setOf(bookId), tagIds)
 
     /**
      * Remove tags from a comic books

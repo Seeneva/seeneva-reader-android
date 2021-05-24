@@ -49,8 +49,8 @@ interface ComicsSettings {
     suspend fun saveComicListQueryParams(params: QueryParams)
 
     /**
-     * Restore last saved titleQuery params
-     * @return last saved titleQuery params or default
+     * Restore last saved comic book query params
+     * @return last saved comic book query params or default
      */
     fun getComicListQueryParams(): QueryParams
 
