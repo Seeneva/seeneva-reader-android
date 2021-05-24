@@ -22,7 +22,7 @@ import app.seeneva.reader.data.source.local.db.entity.SimpleComicBookWithTags
 import app.seeneva.reader.logic.entity.TagType
 
 internal fun SimpleComicBookWithTags.hasHardcodedTag(tagType: TagType): Boolean =
-    tags.find { it.type == tagType.ordinal }?.let { true } ?: false
+    tags.firstNotNullOfOrNull { if (it.type == tagType.ordinal) true else null } ?: false
 
 internal fun SimpleComicBookWithTags.hasTag(id: Long): Boolean =
-    tags.find { it.id == id }?.let { true } ?: false
+    tags.firstNotNullOfOrNull { if (it.id == id) true else null } ?: false

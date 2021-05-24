@@ -32,7 +32,8 @@ import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
-import androidx.paging.PagedList
+import androidx.paging.LoadState
+import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.GridLayoutManager
@@ -66,11 +67,12 @@ import app.seeneva.reader.screen.list.dialog.info.ComicInfoFragment
 import app.seeneva.reader.screen.list.dialog.radiobuttons.ComicsSortDialog
 import app.seeneva.reader.screen.list.entity.FilterLabel
 import app.seeneva.reader.screen.list.selection.ComicDetailsLookup
-import app.seeneva.reader.screen.list.selection.ComicIdSelectionProvider
+import app.seeneva.reader.screen.list.selection.ComicKeyProvider
 import app.seeneva.reader.screen.list.selection.ComicSelectionActionModeObserver
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.flow.*
 import org.koin.core.scope.KoinScopeComponent
 import org.koin.core.scope.Scope
 import org.koin.core.scope.get
@@ -79,16 +81,34 @@ import java.util.*
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-interface ComicsListView : PresenterStatefulView {
-    fun showFilters(filters: List<FilterLabel>)
-
-    fun setComicsPagedList(list: PagedList<ComicListItem?>)
+/**
+ * State of teh whole screen
+ * @param menuEnabled is options menu should be visible
+ */
+private enum class ScreenState(val menuEnabled: Boolean = true) {
+    /**
+     * Comic books list showed
+     */
+    STATE_DEFAULT,
 
     /**
-     * Set and show a new screen state
-     * @param newScreenState state to show
+     * Nothing has been found with such filters
      */
-    fun showScreenState(newScreenState: ScreenState)
+    STATE_NOTHING_FOUND,
+
+    /**
+     * No comics at all
+     */
+    STATE_EMPTY(false),
+
+    /**
+     * Comic list loading
+     */
+    STATE_LOADING(false)
+}
+
+interface ComicsListView : PresenterStatefulView {
+    fun showFilters(filters: List<FilterLabel>)
 
     fun onComicsMarkedRemoved(ids: Set<Long>)
 
@@ -109,32 +129,6 @@ interface ComicsListView : PresenterStatefulView {
      * @param state sync state
      */
     fun onSyncStateChanged(state: SyncState)
-
-    /**
-     * State of teh whole screen
-     * @param menuEnabled is options menu should be visible
-     */
-    enum class ScreenState(val menuEnabled: Boolean = true) {
-        /**
-         * Comic books list showed
-         */
-        STATE_DEFAULT,
-
-        /**
-         * Nothing has been found with such filters
-         */
-        STATE_NOTHING_FOUND,
-
-        /**
-         * No comics at all
-         */
-        STATE_EMPTY(false),
-
-        /**
-         * Comic list loading
-         */
-        STATE_LOADING(false)
-    }
 
     /**
      * View's sync state
@@ -204,7 +198,49 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
 
     private val listLayoutManager by lazy { GridLayoutManager(requireContext(), gridSpanCount) }
 
-    private lateinit var listSelectionTracker: SelectionTracker<Long>
+    private val listSelectionTracker: SelectionTracker<Long> by lazy {
+        SelectionTracker.Builder(
+            COMIC_SELECTION_ID,
+            viewBinding.recyclerView,
+            ComicKeyProvider(listAdapter),
+            ComicDetailsLookup(viewBinding.recyclerView),
+            StorageStrategy.createLongStorage()
+        ).withSelectionPredicate(SelectionPredicates.createSelectAnything())
+            .build()
+            .also {
+                it.addObserver(
+                    ComicSelectionActionModeObserver(
+                        listAdapter,
+                        it,
+                        viewLifecycleOwner.lifecycle,
+                        object : ComicSelectionActionModeObserver.ActionModeCallback {
+                            override fun start(callback: ActionMode.Callback) =
+                                (requireActivity() as AppCompatActivity).startSupportActionMode(
+                                    callback
+                                )
+
+                            override fun onMarkAsRemovedSelectedClick() {
+                                presenter.deleteComicBook(listSelectionTracker.selection.toHashSet())
+                            }
+
+                            override fun onMarkAsCompletedSelectedClick(completed: Boolean) {
+                                presenter.setComicsCompletedMark(
+                                    listSelectionTracker.selection.toHashSet(),
+                                    completed
+                                )
+                            }
+                        })
+                )
+
+                it.addObserver(object : SelectionTracker.SelectionObserver<Long>() {
+                    override fun onSelectionChanged() {
+                        super.onSelectionChanged()
+                        //prevent swipe to scroll event while selectiong
+                        viewBinding.swipeSyncView.isEnabled = !listSelectionTracker.hasSelection()
+                    }
+                })
+            }
+    }
 
     private val filtersAdapter = FiltersAdapter(object : FiltersAdapter.Callback {
         override fun onFilterClicked(filterLabel: FilterLabel) {
@@ -216,6 +252,7 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
         ComicsAdapter(
             currentListType,
             get(),
+            layoutInflater,
             object : ComicsAdapter.Callback {
                 override fun onItemDeleteClick(comic: ComicListItem) {
                     presenter.deleteComicBook(setOf(comic.id))
@@ -249,60 +286,10 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
             })
     }
 
-
     /**
      * ScreenState of the list
      */
-    private var currentListScreenState: ComicsListView.ScreenState by Delegates.observable(
-        ComicsListView.ScreenState.STATE_EMPTY
-    ) { _, oldState, newState ->
-        if (oldState != newState) {
-            //if parent view has scrolling behavior it needs to change nested scrolling
-            if (isRootParentScrollingView(requireNotNull(view)) != null) {
-                //if list is empty than fling list to show toolbar
-                if (oldState == ComicsListView.ScreenState.STATE_DEFAULT) {
-                    viewBinding.recyclerView.addOnScrollListener(object :
-                        RecyclerView.OnScrollListener() {
-                        override fun onScrollStateChanged(
-                            recyclerView: RecyclerView,
-                            newState: Int
-                        ) {
-                            super.onScrollStateChanged(recyclerView, newState)
-                            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                                recyclerView.suppressLayout(true)
-                                recyclerView.removeOnScrollListener(this)
-
-                                showCurrentState()
-                            }
-                        }
-                    })
-
-                    //fling to restore appbarLayout visibility
-                    viewBinding.recyclerView.fling(0, -viewBinding.recyclerView.maxFlingVelocity)
-                } else {
-                    viewBinding.recyclerView.suppressLayout(false)
-
-                    showCurrentState()
-                }
-            }
-
-            searchView.also { searchView ->
-                fun setViewEnabled(v: View, enabled: Boolean) {
-                    if (v is ViewGroup) {
-                        v.forEach {
-                            setViewEnabled(it, enabled)
-                        }
-                    }
-                    v.isEnabled = enabled
-                }
-
-                //need to change enabled state of all children
-                setViewEnabled(searchView, newState.menuEnabled)
-            }
-
-            requireActivity().invalidateOptionsMenu()
-        }
-    }
+    private val currentListScreenState = MutableStateFlow(ScreenState.STATE_EMPTY)
 
     /**
      * Current sync state
@@ -372,47 +359,105 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
             it.adapter = listAdapter
 
             it.addItemDecoration(ComicGridMarginDecoration(resources.getDimensionPixelSize(R.dimen.comic_thumb_grid_margin)))
-            it.addOnItemTouchListener(PreventBookClickTouchListener { listSelectionTracker.hasSelection() })
         }
 
-        listSelectionTracker = SelectionTracker.Builder(
-            COMIC_SELECTION_ID,
-            viewBinding.recyclerView,
-            ComicIdSelectionProvider(viewBinding.recyclerView),
-            ComicDetailsLookup(viewBinding.recyclerView),
-            StorageStrategy.createLongStorage()
-        ).build().also {
-            it.addObserver(
-                ComicSelectionActionModeObserver(
-                    listAdapter,
-                    it,
-                    object : ComicSelectionActionModeObserver.ActionModeCallback {
-                        override fun start(callback: ActionMode.Callback) =
-                            (requireActivity() as AppCompatActivity).startSupportActionMode(callback)
+        // should be called after setting an adapter to the recyclerview
+        listSelectionTracker.onRestoreInstanceState(savedInstanceState)
 
-                        override fun onMarkAsRemovedSelectedClick() {
-                            presenter.deleteComicBook(listSelectionTracker.selection.toHashSet())
-                        }
+        // listen to screen state change
+        flow {
+            var oldState: ScreenState? = null
 
-                        override fun onMarkAsCompletedSelectedClick(completed: Boolean) {
-                            presenter.setComicsCompletedMark(
-                                listSelectionTracker.selection.toHashSet(),
-                                completed
-                            )
-                        }
-                    })
-            )
+            currentListScreenState.collect {
+                emit(oldState to it)
 
-            it.addObserver(object : SelectionTracker.SelectionObserver<Long>() {
-                override fun onSelectionChanged() {
-                    super.onSelectionChanged()
-                    //prevent swipe to scroll event while selectiong
-                    viewBinding.swipeSyncView.isEnabled = !listSelectionTracker.hasSelection()
+                oldState = it
+            }
+        }.conflate()
+            .observe(viewLifecycleOwner) { (oldState, newState) ->
+                //if parent view has scrolling behavior it needs to change nested scrolling
+                if (isRootParentScrollingView(requireView()) != null) {
+                    //if list is empty than fling list to show toolbar
+                    if (oldState == ScreenState.STATE_DEFAULT) {
+                        viewBinding.recyclerView.addOnScrollListener(object :
+                            RecyclerView.OnScrollListener() {
+                            override fun onScrollStateChanged(
+                                recyclerView: RecyclerView,
+                                newState: Int
+                            ) {
+                                super.onScrollStateChanged(recyclerView, newState)
+                                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                                    recyclerView.suppressLayout(true)
+                                    recyclerView.removeOnScrollListener(this)
+
+                                    showCurrentState()
+                                }
+                            }
+                        })
+
+                        //fling to restore appbarLayout visibility
+                        viewBinding.recyclerView.fling(
+                            0,
+                            -viewBinding.recyclerView.maxFlingVelocity
+                        )
+                    } else {
+                        viewBinding.recyclerView.suppressLayout(false)
+
+                        showCurrentState()
+                    }
                 }
-            })
 
-            it.onRestoreInstanceState(savedInstanceState)
-        }
+                searchView.also { searchView ->
+                    fun setViewEnabled(v: View, enabled: Boolean) {
+                        if (v is ViewGroup) {
+                            v.forEach {
+                                setViewEnabled(it, enabled)
+                            }
+                        }
+                        v.isEnabled = enabled
+                    }
+
+                    //need to change enabled state of all children
+                    setViewEnabled(searchView, newState.menuEnabled)
+                }
+
+                requireActivity().invalidateOptionsMenu()
+            }
+
+        // Here we set every loaded paging data to the Adapter
+        presenter.pagingState
+            .filterIsInstance<ComicsPagingState.Loaded>()
+            .observe(viewLifecycleOwner) { listAdapter.submitData(it.pagingData) }
+
+        // listen to pagination states and update screen state
+        presenter.pagingState
+            .transformLatest {
+                when (it) {
+                    ComicsPagingState.Loading, ComicsPagingState.Idle -> emit(ScreenState.STATE_LOADING)
+                    is ComicsPagingState.Loaded -> {
+                        when (it.totalCount) {
+                            0L -> emit(ScreenState.STATE_EMPTY)
+                            else -> {
+                                emitAll(listAdapter.loadStateFlow
+                                    .filter { s ->
+                                        s.refresh is LoadState.NotLoading &&
+                                                s.prepend is LoadState.NotLoading &&
+                                                s.append is LoadState.NotLoading
+                                    }
+                                    .map { s ->
+                                        if (listAdapter.itemCount == 0 && s.prepend.endOfPaginationReached && s.append.endOfPaginationReached) {
+                                            ScreenState.STATE_NOTHING_FOUND
+                                        } else {
+                                            ScreenState.STATE_DEFAULT
+                                        }
+                                    })
+                            }
+                        }
+                    }
+                }
+            }.observe(viewLifecycleOwner) {
+                currentListScreenState.value = it
+            }
 
         router.resultFlow.observe(viewLifecycleOwner) {
             fun showSnackbar(@StringRes msg: Int) {
@@ -435,6 +480,9 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
                 }
             }
         }
+
+        // restore last visible item and start loading list paging
+        presenter.loadComicsPagingData(savedInstanceState?.getInt(STATE_LIST_FIRST_ITEM) ?: 0)
     }
 
     override fun onDestroyView() {
@@ -452,6 +500,7 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         listSelectionTracker.onSaveInstanceState(outState)
+        outState.putInt(STATE_LIST_FIRST_ITEM, listLayoutManager.findFirstVisibleItemPosition())
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -462,7 +511,7 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
 
-        if (currentListScreenState.menuEnabled) {
+        if (currentListScreenState.value.menuEnabled) {
             with(menu.findItem(R.id.list_view)) {
                 val iconResId: Int
                 val titleResId: Int
@@ -575,17 +624,6 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
         }
 
         viewBinding.filtersRecyclerView.doOnLayout { animateFilters(filters.isNotEmpty()) }
-    }
-
-    override fun setComicsPagedList(list: PagedList<ComicListItem?>) {
-        //do not calculate diff on the same list again. It can cause some visual issues
-        if (listAdapter.currentList !== list) {
-            listAdapter.submitList(list)
-        }
-    }
-
-    override fun showScreenState(newScreenState: ComicsListView.ScreenState) {
-        currentListScreenState = newScreenState
     }
 
     override fun onComicsMarkedRemoved(ids: Set<Long>) {
@@ -707,17 +745,17 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
      * Show current list state
      */
     private fun showCurrentState() {
-        when (currentListScreenState) {
-            ComicsListView.ScreenState.STATE_DEFAULT -> viewBinding.contentMessageView.showContent()
-            ComicsListView.ScreenState.STATE_NOTHING_FOUND -> viewBinding.contentMessageView.showMessage(
+        when (currentListScreenState.value) {
+            ScreenState.STATE_DEFAULT -> viewBinding.contentMessageView.showContent()
+            ScreenState.STATE_NOTHING_FOUND -> viewBinding.contentMessageView.showMessage(
                 R.string.comic_list_message_not_found,
                 R.drawable.ic_round_search_24dp
             )
-            ComicsListView.ScreenState.STATE_EMPTY -> viewBinding.contentMessageView.showMessage(
+            ScreenState.STATE_EMPTY -> viewBinding.contentMessageView.showMessage(
                 R.string.comic_list_message_empty,
                 R.drawable.ic_whale_simple
             )
-            ComicsListView.ScreenState.STATE_LOADING -> viewBinding.contentMessageView.showLoading()
+            ScreenState.STATE_LOADING -> viewBinding.contentMessageView.showLoading()
         }
     }
 
@@ -760,27 +798,9 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
         }
     }
 
-    private class PreventBookClickTouchListener(
-        private val hasSelection: () -> Boolean
-    ) : RecyclerView.SimpleOnItemTouchListener() {
-        override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-            if (hasSelection()) {
-                if (e.action == MotionEvent.ACTION_DOWN) {
-                    val childView = rv.findChildViewUnder(e.x, e.y)
-
-                    if (childView != null) {
-                        val vh = rv.getChildViewHolder(childView) as? ComicsAdapter.ComicsViewHolder
-
-                        return vh?.getSelectionDetails(e) == null
-                    }
-                }
-            }
-
-            return false
-        }
-    }
-
     private companion object {
+        private const val STATE_LIST_FIRST_ITEM = "comic_list_first_item"
+
         private const val COMIC_SELECTION_ID = "comic_path_selection"
 
         private const val TAG_SORT = "sort"

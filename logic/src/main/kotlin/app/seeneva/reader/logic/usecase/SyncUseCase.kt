@@ -32,7 +32,6 @@ import app.seeneva.reader.logic.extension.getHardcodedTagId
 import app.seeneva.reader.logic.extension.getOrCreateHardcodedTag
 import app.seeneva.reader.logic.extension.hasTag
 import org.tinylog.kotlin.Logger
-import java.util.*
 
 /**
  * Use [app.seeneva.reader.logic.comic.Library] tol call it
@@ -72,7 +71,7 @@ internal class SyncUseCaseImpl(
                             if (comicBook.hasTag(corruptedTag.id)) {
                                 removeTags(
                                     comicBook.id,
-                                    Collections.singleton(corruptedTag.id)
+                                    setOf(corruptedTag.id)
                                 )
                                 Logger.debug("${comicBook.filePath} marked as not '${corruptedTag.name}'")
                             }
@@ -80,7 +79,7 @@ internal class SyncUseCaseImpl(
                             if (!comicBook.hasTag(corruptedTag.id)) {
                                 addTags(
                                     comicBook.id,
-                                    Collections.singleton(corruptedTag.id)
+                                    setOf(corruptedTag.id)
                                 )
                                 Logger.debug("${comicBook.filePath} marked as '${corruptedTag.name}'")
                             }

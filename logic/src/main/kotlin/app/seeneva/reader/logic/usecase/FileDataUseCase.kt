@@ -36,7 +36,6 @@ import app.seeneva.reader.common.entity.FileHashData
 import app.seeneva.reader.data.source.jni.NativeSource
 import app.seeneva.reader.logic.entity.FileData
 import kotlinx.coroutines.flow.*
-import java.util.*
 
 /**
  * Get file data by [Uri]
@@ -76,7 +75,7 @@ internal class FileDataUseCaseImpl(
     }
 
     private suspend fun extractFileData(path: Uri): FileData {
-        return extractFileData(Collections.singletonList(path)).first()
+        return extractFileData(listOf(path)).first()
     }
 
     /**

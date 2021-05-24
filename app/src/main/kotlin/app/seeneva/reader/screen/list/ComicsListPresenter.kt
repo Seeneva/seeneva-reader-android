@@ -20,6 +20,7 @@ package app.seeneva.reader.screen.list
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.core.os.bundleOf
 import androidx.lifecycle.whenStarted
 import app.seeneva.reader.common.coroutines.Dispatchers
 import app.seeneva.reader.extension.observe
@@ -34,12 +35,22 @@ import app.seeneva.reader.logic.entity.query.filter.FilterGroup
 import app.seeneva.reader.presenter.BaseStatefulPresenter
 import app.seeneva.reader.presenter.Presenter
 import app.seeneva.reader.screen.list.entity.FilterLabel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.tinylog.kotlin.Logger
-import app.seeneva.reader.screen.list.ComicsListView.ScreenState as ViewScreenState
 
 interface ComicsListPresenter : Presenter {
+    val pagingState: StateFlow<ComicsPagingState>
+
     val currentSearchQuery: String?
+
+    /**
+     * Load comic book paging data
+     * @param startIndex start loading position
+     * @param pageSize size of loading page
+     * @see pagingState
+     */
+    fun loadComicsPagingData(startIndex: Int = 0, pageSize: Int = COMIC_PAGE_SIZE)
 
     /**
      * User click on edit list filters button
@@ -106,6 +117,10 @@ interface ComicsListPresenter : Presenter {
      * @param flags adding flags
      */
     fun addComicBooks(mode: AddComicBookMode, paths: List<Uri>, flags: Int)
+
+    companion object {
+        private const val COMIC_PAGE_SIZE = 15
+    }
 }
 
 class ComicsListPresenterImpl(
@@ -114,6 +129,9 @@ class ComicsListPresenterImpl(
     private val settings: ComicsSettings,
     private val viewModel: ComicsListViewModel
 ) : BaseStatefulPresenter<ComicsListView>(view, dispatchers), ComicsListPresenter {
+    override val pagingState: StateFlow<ComicsPagingState>
+        get() = viewModel.pagingState
+
     private var queryParams: QueryParams
         get() = viewModel.queryParams
         set(newQueryParams) {
@@ -128,28 +146,6 @@ class ComicsListPresenterImpl(
         get() = queryParams.titleQuery
 
     init {
-        viewModel.listState
-            .observe(view) { comicsLoadingState ->
-                when (comicsLoadingState) {
-                    ComicsListState.Loading, ComicsListState.Idle -> {
-                        view.showScreenState(ViewScreenState.STATE_LOADING)
-                    }
-                    is ComicsListState.Loaded -> {
-                        val (list, totalCount) = comicsLoadingState
-
-                        view.setComicsPagedList(list)
-
-                        view.showScreenState(
-                            when {
-                                totalCount == 0L -> ViewScreenState.STATE_EMPTY
-                                list.isEmpty() && totalCount > 0 -> ViewScreenState.STATE_NOTHING_FOUND
-                                else -> ViewScreenState.STATE_DEFAULT
-                            }
-                        )
-                    }
-                }
-            }
-
         viewModel.eventsFlow
             .observe(view) {
                 when (val content = it) {
@@ -181,30 +177,17 @@ class ComicsListPresenterImpl(
     override fun onCreate(state: Bundle?) {
         view.setComicListType(settings.getComicListType())
 
-        val comicPageInitKey = if (state != null) {
+        if (state != null) {
             //restore titleQuery if needed
             onSearchQuery(state.getString(STATE_SEARCH_QUERY))
-
-            state.getInt(STATE_PAGE_LAST_KEY, 0)
-        } else {
-            0
-        }
-
-        if(viewModel.listState.value == ComicsListState.Idle) {
-            viewModel.loadList(COMIC_PAGE_SIZE, comicPageInitKey)
         }
     }
 
-    override fun saveState(): Bundle {
-        val outState = Bundle()
+    override fun saveState() =
+        bundleOf(STATE_SEARCH_QUERY to currentSearchQuery)
 
-        outState.putString(STATE_SEARCH_QUERY, currentSearchQuery)
-
-        viewModel.currentPageLastKey()?.also {
-            outState.putInt(STATE_PAGE_LAST_KEY, it)
-        }
-
-        return outState
+    override fun loadComicsPagingData(startIndex: Int, pageSize: Int) {
+        viewModel.loadComicsPagingData(startIndex, pageSize)
     }
 
     override fun onEditFilterClick() {
@@ -288,9 +271,6 @@ class ComicsListPresenterImpl(
     }
 
     private companion object {
-        private const val COMIC_PAGE_SIZE = 15
-
         private const val STATE_SEARCH_QUERY = "search_query"
-        private const val STATE_PAGE_LAST_KEY = "page_last_key"
     }
 }

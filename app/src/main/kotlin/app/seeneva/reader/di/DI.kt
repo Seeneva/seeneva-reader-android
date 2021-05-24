@@ -239,7 +239,6 @@ private object Modules {
             ComicsListViewModelImpl(
                 get(),
                 get(),
-                get { parametersOf(job as Job) },
                 get { parametersOf(job) },
                 get(),
                 get(),
