@@ -134,21 +134,14 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation(project(":logic")) {
-        exclude("androidx.viewpager")
-    }
+    implementation(project(":logic"))
 
-    implementation(Deps.ANDROIDX_APPCOMPAT) {
-        exclude("androidx.viewpager")
-    }
-    implementation(Deps.ANDROIDX_VIEW_PAGER) {
-        exclude("androidx.viewpager")
-    }
+    implementation(Deps.ANDROIDX_APPCOMPAT)
+    implementation(Deps.ANDROIDX_ACTIVITY_KTX)
+    implementation(Deps.ANDROIDX_VIEW_PAGER)
     implementation(Deps.ANDROIDX_RECYCLER_VIEW)
     implementation(Deps.ANDROIDX_RECYCLER_VIEW_SELECTION)
-    implementation(Deps.ANDROIDX_FRAGMENT_KTX) {
-        exclude("androidx.viewpager")
-    }
+    implementation(Deps.ANDROIDX_FRAGMENT_KTX)
     implementation(Deps.ANDROIDX_LIFECYCLE_RUNTIME)
     implementation(Deps.ANDROIDX_LIFECYCLE_SERVICE)
     implementation(Deps.ANDROIDX_LIFECYCLE_VIEWMODEL)
@@ -159,13 +152,9 @@ dependencies {
     implementation(Deps.ANDROIDX_WORK_RUNTIME)
     implementation(Deps.ANDROIDX_SWIPE_REFRESH_LAYOUT)
 
-    implementation(Deps.MATERIAL) {
-        exclude("androidx.viewpager")
-    }
+    implementation(Deps.MATERIAL)
 
-    implementation(Deps.KOIN_ANDROIDX_VIEWMODEL) {
-        exclude("androidx.viewpager")
-    }
+    implementation(Deps.KOIN_ANDROIDX_VIEWMODEL)
     implementation(Deps.KOIN_ANDROIDX_WORKMANAGER)
 
     implementation(Deps.SCALE_IMAGE_VIEW)

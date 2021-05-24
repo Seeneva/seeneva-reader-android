@@ -36,6 +36,11 @@ allprojects {
         mavenCentral()
         google()
     }
+
+    // we will use ViewPager2, so remove ViewPager dependency globally
+    configurations.configureEach {
+        exclude(group = "androidx.viewpager")
+    }
 }
 
 subprojects {
@@ -127,9 +132,7 @@ subprojects {
         implementation(Deps.ANDROIDX_CORE_KTX)
 
         //implementation(Deps.KOIN_ANDROID)
-        implementation(Deps.KOIN_ANDROIDX_SCOPE) {
-            exclude("androidx.viewpager")
-        }
+        implementation(Deps.KOIN_ANDROIDX_SCOPE)
 
         implementation(Deps.TINYLOG_API)
         implementation(Deps.TINYLOG_IMPL)
