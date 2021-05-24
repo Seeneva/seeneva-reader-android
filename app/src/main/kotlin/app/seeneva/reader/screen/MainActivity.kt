@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         startedActionMode = null
 
         // It can be called after the onDestroy was already called
-        if(lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
             viewBinding.toolbar.isInvisible = false
         }
     }
