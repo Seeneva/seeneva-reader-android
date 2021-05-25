@@ -18,28 +18,32 @@
 
 package app.seeneva.reader.screen.list
 
-import android.app.Activity
 import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
+import androidx.annotation.MainThread
+import androidx.core.os.bundleOf
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryOwner
+import app.seeneva.reader.extension.registerAndRestore
 import app.seeneva.reader.logic.comic.AddComicBookMode
-import app.seeneva.reader.logic.comic.ComicHelper
+import app.seeneva.reader.logic.results.ChooseComicBookContract
+import app.seeneva.reader.logic.results.ChooseComicBookResult
 import app.seeneva.reader.router.ResultRouter
 import app.seeneva.reader.router.RouterResultContext
 import app.seeneva.reader.screen.viewer.BookViewerActivity
 import app.seeneva.reader.viewmodel.EventSender
 import kotlinx.coroutines.flow.Flow
+import org.tinylog.kotlin.Logger
 
 sealed interface ComicListRouterResult {
     /**
-     * User has been chose comic book to add into library
+     * Add provided comic book(s) into the library
      * @param mode adding mode
-     * @param paths comic book paths
-     * @param flags [Intent] adding flags
+     * @param result comic book chose result
      */
-    data class ComicBookChose(val mode: AddComicBookMode, val paths: List<Uri>, val flags: Int) :
-        ComicListRouterResult
-
+    data class AddComicBooks(
+        val mode: AddComicBookMode,
+        val result: ChooseComicBookResult
+    ) : ComicListRouterResult
 
     /**
      * User tried to open corrupted comic book
@@ -67,89 +71,73 @@ interface ComicListRouter : ResultRouter<ComicListRouterResult> {
     fun showComicBookViewer(bookId: Long)
 }
 
-class ComicListRouterImpl(private val view: RouterResultContext) : ComicListRouter {
+class ComicListRouterImpl(
+    routerContext: RouterResultContext,
+    savedStateRegistryOwner: SavedStateRegistryOwner
+) : ComicListRouter, SavedStateRegistry.SavedStateProvider {
     private val resultSender = EventSender<ComicListRouterResult>()
 
     override val resultFlow: Flow<ComicListRouterResult>
         get() = resultSender.eventState
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            REQUEST_VIEWER -> {
-                when (resultCode) {
-                    BookViewerActivity.RESULT_CORRUPTED -> resultSender.send(ComicListRouterResult.CorruptedComicBook)
-                    BookViewerActivity.RESULT_NOT_FOUND -> resultSender.send(ComicListRouterResult.NonExistentBook)
-                }
+    private var lastComicSelectorMode: AddComicBookMode? = null
+
+    private val comicBookSelectorLauncher =
+        routerContext.registerForActivityResult(ChooseComicBookContract()) {
+            if (it != null) {
+                resultSender.send(
+                    ComicListRouterResult.AddComicBooks(
+                        checkNotNull(lastComicSelectorMode) { "Add mode cannot be null" },
+                        it
+                    )
+                )
             }
-            else -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    val openMode = openModeFromRequestCode(requestCode)
 
-                    if (openMode != null) {
-                        requireNotNull(data) { "Comic books opening result doesn't have any data" }
+            lastComicSelectorMode = null
+        }
 
-                        val dataContent = data.data
-                        val dataClipData = data.clipData
-
-                        val paths = when {
-                            dataContent != null -> listOf(dataContent)
-                            dataClipData != null -> {
-                                (0 until dataClipData.itemCount).map { dataClipData.getItemAt(it).uri }
-                            }
-                            else -> throw IllegalStateException("Result intent doesn't have any data $data")
-                        }
-
-                        resultSender.send(
-                            ComicListRouterResult.ComicBookChose(
-                                openMode,
-                                paths,
-                                data.flags
-                            )
-                        )
-                    } else {
-                        throw IllegalArgumentException("Unknown request code: $requestCode")
+    private val comicBookViewerLauncher =
+        routerContext.registerForActivityResult(BookViewerActivity.OpenViewerContract()) {
+            if (it != null) {
+                resultSender.send(
+                    when (it) {
+                        BookViewerActivity.ResultMessage.CORRUPTED -> ComicListRouterResult.CorruptedComicBook
+                        BookViewerActivity.ResultMessage.NOT_FOUND -> ComicListRouterResult.NonExistentBook
                     }
-                }
+                )
+            }
+        }
+
+    init {
+        registerAndRestore(savedStateRegistryOwner) {
+            if (it != null) {
+                lastComicSelectorMode = it.getSerializable(STATE_SELECTOR_MODE) as? AddComicBookMode
             }
         }
     }
 
+    @MainThread
     override fun showComicBookSelector(mode: AddComicBookMode) =
         try {
-            view.startActivityForResult(
-                ComicHelper.openComicBookIntent(mode),
-                openRequestCode(mode)
-            )
+            Logger.debug { "Start comic book selector with adding mode: '$mode'" }
 
+            lastComicSelectorMode = mode
+
+            comicBookSelectorLauncher.launch(mode)
             true
         } catch (_: ActivityNotFoundException) {
             false
         }
 
     override fun showComicBookViewer(bookId: Long) {
-        view.startActivityForResult(
-            BookViewerActivity.openViewer(view.context, bookId),
-            REQUEST_VIEWER
-        )
+        Logger.debug { "Start viewer for result by comic book id '$bookId'" }
+        comicBookViewerLauncher.launch(bookId)
     }
 
+    override fun saveState() =
+        bundleOf(STATE_SELECTOR_MODE to lastComicSelectorMode)
+
     companion object {
-        private const val REQUEST_ADD_COMIC_BOOK = 100
-        private const val REQUEST_VIEWER = 200
-
-        private fun openRequestCode(addComicBookMode: AddComicBookMode) =
-            REQUEST_ADD_COMIC_BOOK or (addComicBookMode.ordinal + 1)
-
-        private fun openModeFromRequestCode(requestCode: Int): AddComicBookMode? {
-            AddComicBookMode.values().forEach {
-                val id = it.ordinal + 1
-
-                if (requestCode and id == id) {
-                    return it
-                }
-            }
-
-            return null
-        }
+        private const val STATE_SELECTOR_MODE = "selector_mode"
     }
 }

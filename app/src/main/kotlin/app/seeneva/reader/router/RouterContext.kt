@@ -21,62 +21,54 @@ package app.seeneva.reader.router
 import android.content.Context
 import android.content.Intent
 import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultCaller
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 
 /**
  * Router source context
  */
 interface RouterContext {
-    val context: Context
-
     /**
-     * @see FragmentActivity.startActivity
+     * @see ComponentActivity.startActivity
      * @see Fragment.startActivity
      */
     fun startActivity(data: Intent)
 }
 
-interface RouterResultContext : RouterContext {
-    /**
-     * @see FragmentActivity.startActivityForResult
-     * @see Fragment.startActivityForResult
-     */
-    fun startActivityForResult(data: Intent, requestCode: Int)
-}
+/**
+ * Router source context which can return results
+ */
+interface RouterResultContext : RouterContext, ActivityResultCaller
 
-fun ComponentActivity.asRouterContext() = object : RouterResultContext {
-    override val context: Context
-        get() = this@asRouterContext
+fun ComponentActivity.asRouterContext(): RouterResultContext =
+    ActivityRouterContext(this)
 
+fun Fragment.asRouterContext(): RouterResultContext =
+    FragmentRouterContext(this)
+
+fun Context.asRouterContext(): RouterContext =
+    ContextRouterContext(this)
+
+private class ActivityRouterContext(
+    private val activity: ComponentActivity
+) : RouterResultContext, ActivityResultCaller by activity {
     override fun startActivity(data: Intent) {
-        this@asRouterContext.startActivity(data)
-    }
-
-    override fun startActivityForResult(data: Intent, requestCode: Int) {
-        //wait while Fragment will support `registerForActivityResult` too
-        this@asRouterContext.startActivityForResult(data, requestCode)
-    }
-}
-
-fun Fragment.asRouterContext() = object : RouterResultContext {
-    override val context: Context
-        get() = this@asRouterContext.requireContext()
-
-    override fun startActivity(data: Intent) {
-        this@asRouterContext.startActivity(data)
-    }
-
-    override fun startActivityForResult(data: Intent, requestCode: Int) {
-        this@asRouterContext.startActivityForResult(data, requestCode)
+        activity.startActivity(data)
     }
 }
 
-fun Context.asRouterContext() = object : RouterContext {
-    override val context: Context
-        get() = this@asRouterContext
-
+private class FragmentRouterContext(
+    private val fragment: Fragment
+) : RouterResultContext, ActivityResultCaller by fragment {
     override fun startActivity(data: Intent) {
-        this@asRouterContext.startActivity(data)
+        fragment.startActivity(data)
+    }
+}
+
+private class ContextRouterContext(
+    private val context: Context
+) : RouterContext {
+    override fun startActivity(data: Intent) {
+        context.startActivity(data)
     }
 }

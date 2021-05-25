@@ -19,11 +19,10 @@
 package app.seeneva.reader.presenter
 
 import android.os.Bundle
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.savedstate.SavedStateRegistry
 import app.seeneva.reader.common.coroutines.Dispatched
 import app.seeneva.reader.common.coroutines.Dispatchers
+import app.seeneva.reader.extension.registerAndRestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
@@ -51,18 +50,7 @@ abstract class BaseStatefulPresenter<V : PresenterStatefulView>(
 ) : BasePresenter<V>(view, dispatchers), SavedStateRegistry.SavedStateProvider {
 
     init {
-        viewLifeCycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onCreate(owner: LifecycleOwner) {
-                val key = this@BaseStatefulPresenter.javaClass.name
-
-                //register presenter as state provider and try to restore previous state
-                with(view.savedStateRegistry) {
-                    registerSavedStateProvider(key, this@BaseStatefulPresenter)
-
-                    onCreate(consumeRestoredStateForKey(key))
-                }
-            }
-        })
+        registerAndRestore(view, restore = ::onCreate)
     }
 
     protected abstract fun onCreate(state: Bundle?)

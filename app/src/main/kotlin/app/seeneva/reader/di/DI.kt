@@ -123,7 +123,11 @@ private object Modules {
                 )
             }
 
-            scoped<ComicListRouter> { ComicListRouterImpl(getSource<Fragment>().asRouterContext()) }
+            scoped<ComicListRouter> {
+                val src = getSource<Fragment>()
+
+                ComicListRouterImpl(src.asRouterContext(), src)
+            }
 
             scopedImageLoader()
         }

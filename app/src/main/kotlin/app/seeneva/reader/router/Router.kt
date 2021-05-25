@@ -18,14 +18,20 @@
 
 package app.seeneva.reader.router
 
-import android.content.Intent
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Router which do not return any results
+ */
 interface Router
 
-interface ResultRouter<R>: Router {
+/**
+ * Router which return results
+ * @param R type of the router results
+ */
+interface ResultRouter<R> : Router {
+    /**
+     * Flow of router results
+     */
     val resultFlow: Flow<R>
-
-    //TODO get an eye into https://developer.android.com/reference/androidx/activity/result/package-summary and wait for stable release
-    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
 }
