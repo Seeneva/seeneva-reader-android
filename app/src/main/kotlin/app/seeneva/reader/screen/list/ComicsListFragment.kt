@@ -18,7 +18,6 @@
 
 package app.seeneva.reader.screen.list
 
-import android.content.Intent
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
@@ -76,7 +75,6 @@ import kotlinx.coroutines.flow.*
 import org.koin.core.scope.KoinScopeComponent
 import org.koin.core.scope.Scope
 import org.koin.core.scope.get
-import org.koin.core.scope.inject
 import java.util.*
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
@@ -169,7 +167,7 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
 
     private val presenter by lifecycleScope.autoInit<ComicsListPresenter>()
 
-    private val router by inject<ComicListRouter>()
+    private val router by lifecycleScope.autoInit<ComicListRouter>()
 
     private val gridSpanCount by lazy { resources.getInteger(R.integer.comic_thumb_grid_size) }
 
@@ -469,8 +467,8 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
             }
 
             when (it) {
-                is ComicListRouterResult.ComicBookChose -> {
-                    presenter.addComicBooks(it.mode, it.paths, it.flags)
+                is ComicListRouterResult.AddComicBooks -> {
+                    presenter.addComicBooks(it.mode, it.result.paths, it.result.permissionFlags)
                 }
                 is ComicListRouterResult.NonExistentBook -> {
                     showSnackbar(R.string.comic_list_error_view_non_existed)
@@ -490,11 +488,6 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
         // Clean listeners
         searchView.setOnCloseListener(null)
         searchView.setOnQueryTextListener(null)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        router.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -25,6 +25,7 @@ import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.*
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.addListener
@@ -605,16 +606,49 @@ class BookViewerActivity :
         }
     }
 
+    /**
+     * Result contract to open open comic book viewer
+     * Pass comic book id as input
+     * Output is null or [ResultMessage]
+     */
+    class OpenViewerContract : ActivityResultContract<Long, ResultMessage?>() {
+        override fun createIntent(context: Context, input: Long) =
+            openViewer(context, input)
+
+        override fun parseResult(resultCode: Int, intent: Intent?) =
+            when (resultCode) {
+                RESULT_CORRUPTED -> ResultMessage.CORRUPTED
+                RESULT_NOT_FOUND -> ResultMessage.NOT_FOUND
+                else -> null
+            }
+    }
+
+    /**
+     * Viewer result
+     * @see OpenViewerContract
+     */
+    enum class ResultMessage {
+        /**
+         * Comic book was corrupted
+         */
+        CORRUPTED,
+
+        /**
+         * Comic book cannot be found
+         */
+        NOT_FOUND
+    }
+
     companion object {
         /**
          * Set as Activity result in case if comic book was corrupted
          */
-        const val RESULT_CORRUPTED = 100
+        private const val RESULT_CORRUPTED = 100
 
         /**
          * Set as Activity result in case if comic book cannot be fount
          */
-        const val RESULT_NOT_FOUND = 101
+        private const val RESULT_NOT_FOUND = 101
 
         private const val ARG_BOOK_ID = "book_id"
 
@@ -626,7 +660,7 @@ class BookViewerActivity :
          * @param bookId comic book id
          * @return viewer open intent
          */
-        fun openViewer(context: Context, bookId: Long): Intent =
+        private fun openViewer(context: Context, bookId: Long): Intent =
             Intent(context, BookViewerActivity::class.java)
                 .putExtra(ARG_BOOK_ID, bookId)
 
