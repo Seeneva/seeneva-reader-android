@@ -23,6 +23,7 @@ import android.view.View
 import androidx.annotation.MainThread
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -98,10 +99,12 @@ class PageViewerHelperFragment : Fragment(R.layout.fragment_viewer_help) {
             }
 
             setOnApplyWindowInsetsListenerByPadding { v, initialPadding, insets ->
+                val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
                 v.updatePadding(
-                    left = initialPadding.left + insets.systemWindowInsetLeft,
-                    right = initialPadding.right + insets.systemWindowInsetRight,
-                    top = initialPadding.top + insets.systemWindowInsetTop
+                    left = initialPadding.left + systemInsets.left,
+                    right = initialPadding.right + systemInsets.right,
+                    top = initialPadding.top + systemInsets.top
                 )
 
                 insets
@@ -109,7 +112,7 @@ class PageViewerHelperFragment : Fragment(R.layout.fragment_viewer_help) {
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(viewBinder.tipView) { _, insets ->
-            tipInsets = insets.stableInsets
+            tipInsets = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars())
 
             insets
         }

@@ -356,27 +356,30 @@ class BookViewerActivity :
             adapter = pagesPreviewAdapter
 
             ViewCompat.setOnApplyWindowInsetsListener(this) { v, insets ->
-                if (insets.systemWindowInsetBottom != 0) {
-                    v.translationY = -insets.systemWindowInsetBottom.toFloat()
-                    insets
+                val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+                if (systemInsets.bottom != 0) {
+                    v.translationY = -systemInsets.bottom.toFloat()
                 } else {
                     //remove top inset because our preview list can't reach it
                     v.updatePadding(
-                        left = v.paddingLeft + insets.systemWindowInsetLeft,
-                        right = v.paddingRight + insets.systemWindowInsetRight,
-                        bottom = v.paddingBottom + insets.systemWindowInsetBottom
+                        left = v.paddingLeft + systemInsets.left,
+                        right = v.paddingRight + systemInsets.right,
+                        bottom = v.paddingBottom + systemInsets.bottom
                     )
-
-                    insets
                 }
+
+                insets
             }
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(viewBinding.toolbar) { v, insets ->
+            val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
             v.updatePadding(
-                top = insets.systemWindowInsetTop,
-                left = insets.systemWindowInsetLeft,
-                right = insets.systemWindowInsetRight
+                top = systemInsets.top,
+                left = systemInsets.left,
+                right = systemInsets.right
             )
 
             insets
