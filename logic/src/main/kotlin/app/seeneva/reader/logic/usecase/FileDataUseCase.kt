@@ -20,15 +20,13 @@ package app.seeneva.reader.logic.usecase
 
 import android.content.ContentResolver
 import android.content.Context
-import android.database.Cursor
 import android.database.MatrixCursor
-import android.database.MergeCursor
 import android.net.Uri
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toFile
-import androidx.documentfile.provider.DocumentFile
 import app.seeneva.reader.common.coroutines.Dispatched
 import app.seeneva.reader.common.coroutines.Dispatchers
 import app.seeneva.reader.common.coroutines.io
@@ -81,83 +79,63 @@ internal class FileDataUseCaseImpl(
     /**
      * @param paths comic books file paths which should be used
      * @return a flow over all [paths] files data
-     * @see pathsIntoCursor
      */
     private fun extractFileData(paths: List<Uri>): Flow<FileData> {
-        if (paths.isEmpty()) {
-            return emptyFlow()
+        return if (paths.isEmpty()) {
+            emptyFlow()
+        } else {
+            paths.asFlow().map(::getPathData).flowOn(dispatchers.io)
         }
-
-        return flow {
-            pathsIntoCursor(paths).use { cursor ->
-                require(cursor.count == paths.size) { "Not equal count of input and output when build cursor. In ${paths.size}, out ${cursor.count}" }
-
-                val inputIterator = paths.iterator()
-
-                while (cursor.moveToNext()) {
-                    val path = inputIterator.next()
-
-                    val fileName =
-                        requireNotNull(cursor.getStringOrNull(0)) { "Can't get comic book file name: $path" }
-
-                    val fileSize =
-                        requireNotNull(cursor.getLongOrNull(1)) { "Can't get comic book file size: $path" }
-
-                    emit(FileData(path, fileName, fileSize))
-                }
-            }
-        }.flowOn(dispatchers.io)
     }
 
     /**
-     * Convert provided [paths] into [Cursor]. Cursor's row position is correspondent to [paths] position
-     * @param paths
-     * @return result cursor
+     * Convert provided [path] into [FileData]
+     * @param path comic book path
+     * @return result [FileData]
      */
-    private suspend fun pathsIntoCursor(paths: List<Uri>): Cursor {
-        require(paths.isNotEmpty()) { "Can't convert paths into Cursor. Empty comic book paths." }
-
+    private suspend fun getPathData(path: Uri): FileData {
         val projection = arrayOf(
             // DocumentsContract.Document.COLUMN_DISPLAY_NAME == OpenableColumns.DISPLAY_NAME
             OpenableColumns.DISPLAY_NAME,
+            // Some file managers doesn't return '_display_name', so we will try to fallback here
+            // https://github.com/Seeneva/seeneva-reader-android/issues/25
+            MediaStore.MediaColumns.TITLE,
             OpenableColumns.SIZE
         )
 
-        val getContentCursor: suspend (Uri) -> Cursor = { path ->
-            io {
-                requireNotNull(
-                    context.contentResolver.query(
-                        path,
-                        projection,
-                        null,
-                        null,
-                        null
-                    )
-                ) { "Can't get cursor for comic book path: $path" }
-            }
-        }
-
-        val intoCursor: suspend (Uri) -> Cursor = { path ->
-            if (DocumentFile.isDocumentUri(context, path)) {
-                getContentCursor(path)
-            } else {
-                when (path.scheme) {
-                    ContentResolver.SCHEME_CONTENT -> getContentCursor(path)
-                    ContentResolver.SCHEME_FILE -> {
-                        io {
-                            MatrixCursor(projection).also {
-                                it.addRow(arrayOf(path.lastPathSegment, path.toFile().length()))
-                            }
-                        }
+        return io {
+            when (path.scheme) {
+                ContentResolver.SCHEME_FILE ->
+                    MatrixCursor(projection).also {
+                        it.addRow(arrayOf(path.lastPathSegment, null, path.toFile().length()))
                     }
-                    else -> throw Error("Unsupported comic book scheme type: $path")
+                ContentResolver.SCHEME_CONTENT -> {
+                    context.contentResolver
+                        .query(
+                            path,
+                            projection,
+                            null,
+                            null,
+                            null
+                        )
+                }
+                else -> throw RuntimeException("Unsupported comic book scheme type: $path")
+            }?.use {
+                if (it.moveToFirst()) {
+                    val fileName =
+                        it.getStringOrNull(0)
+                            ?: it.getStringOrNull(1)
+                            ?: throw RuntimeException("Can't get comic book file name: $path")
+
+                    val fileSize =
+                        it.getLongOrNull(2)
+                            ?: throw RuntimeException("Can't get comic book file size: $path")
+
+                    FileData(path, fileName, fileSize)
+                } else {
+                    null
                 }
             }
-        }
-
-        return when (val count = paths.size) {
-            1 -> intoCursor(paths.first())
-            else -> MergeCursor(Array(count) { intoCursor(paths[it]) })
-        }
+        } ?: throw RuntimeException("Can't get cursor for comic book path: $path")
     }
 }
