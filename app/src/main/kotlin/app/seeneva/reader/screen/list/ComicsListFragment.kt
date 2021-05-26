@@ -468,6 +468,7 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
 
             when (it) {
                 is ComicListRouterResult.AddComicBooks -> {
+                    showSnackbar(R.string.comic_list_message_add_progress)
                     presenter.addComicBooks(it.mode, it.result.paths, it.result.permissionFlags)
                 }
                 is ComicListRouterResult.NonExistentBook -> {

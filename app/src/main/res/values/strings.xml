@@ -45,6 +45,7 @@
 
     <string name="comic_list_message_empty">Your library is empty ☹️</string>
     <string name="comic_list_message_not_found">No comic books were found ☹️</string>
+    <string name="comic_list_message_add_progress">Processing. It may take a few minutes.️</string>
 
     <string name="comic_list_error_no_file_manager">File manager is required</string>
     <string name="comic_list_error_view_corrupted">Oops. Comic book file is corrupted 😨</string>
@@ -120,17 +121,17 @@
 
     <string name="notification_open_metatada_success_title">Added</string>
     <string name="notification_open_metatada_success">The comic book added to your library</string>
-    <string name="notification_open_metatada_success_short">\'%1$s\': added to your library</string>
+    <string name="notification_open_metatada_success_short">\‘%1$s\’: added to your library</string>
     <string name="notification_open_metatada_already_opened">The comic book is already in your library</string>
-    <string name="notification_open_metatada_already_opened_short">\'%1$s\': is already in your library</string>
+    <string name="notification_open_metatada_already_opened_short">\‘%1$s\’: is already in your library</string>
 
     <string name="notification_open_metatada_error_title">Opening error</string>
     <string name="notification_open_metatada_error_read_container">Can\'t read provided comic book file</string>
-    <string name="notification_open_metatada_error_read_container_short">\'%1$s\': can\'t read</string>
+    <string name="notification_open_metatada_error_read_container_short">\‘%1$s\’: can\'t read</string>
     <string name="notification_open_metatada_error_open_container_unsupported">Provided file is not supported</string>
-    <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': is not supported</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">\‘%1$s\’: is not supported</string>
     <string name="notification_open_metatada_error_no_pages">Provided comic book file doesn\'t have any pages</string>
-    <string name="notification_open_metatada_error_no_pages_short">\'%1$s\': doesn\'t have any pages</string>
+    <string name="notification_open_metatada_error_no_pages_short">\‘%1$s\’: doesn\'t have any pages</string>
 
     <string name="viewer_preview_page_counter">Page: %1$d of %2$d</string>
     <string name="viewer_set_cover">Set as cover</string>
@@ -146,8 +147,8 @@
     <string name="viewer_settings_tts">Text-to-speech (English only)</string>
 
     <string name="viewer_tts_error_title">TTS not available</string>
-    <string name="viewer_tts_error_not_installed">Please install any available text-to-speech engine on the device and configure \'%1$s\' language.</string>
-    <string name="viewer_tts_error_language">Please install \'%1$s\' language for the selected TTS engine.</string>
+    <string name="viewer_tts_error_not_installed">Please install any available text-to-speech engine on the device and configure \‘%1$s\’ language.</string>
+    <string name="viewer_tts_error_language">Please install \‘%1$s\’ language for the selected TTS engine.</string>
 
     <string name="viewer_help_title">Tip</string>
     <string name="viewer_help_tap">Tap</string>
