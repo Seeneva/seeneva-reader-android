@@ -294,7 +294,11 @@ class BookViewerActivity :
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        gestureDetector.onTouchEvent(ev)
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            // On Android 9 dispatchTouchEvent can be called after the Activity was closed
+            // https://github.com/Seeneva/seeneva-reader-android/issues/24
+            gestureDetector.onTouchEvent(ev)
+        }
         return super.dispatchTouchEvent(ev)
     }
 
