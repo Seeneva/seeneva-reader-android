@@ -21,9 +21,9 @@ package app.seeneva.reader.screen.viewer
 import android.os.Build
 import android.view.View
 import android.view.Window
-import android.view.WindowInsets
-import android.view.WindowInsetsController
-import androidx.annotation.RequiresApi
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -78,16 +78,15 @@ interface SystemUiManager {
             lifecycle: Lifecycle,
             initState: SystemUiState = SystemUiState.HIDDEN
         ): SystemUiManager =
-            //TODO wait stable WindowInsetsControllerCompat
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 SystemUiManagerInsets(window, lifecycle, initState)
             } else {
                 @Suppress("DEPRECATION")
-                (SystemUiManagerLegacy(
-        window,
-        lifecycle,
-        initState
-    ))
+                SystemUiManagerLegacy(
+                    window,
+                    lifecycle,
+                    initState
+                )
             }
     }
 }
@@ -144,16 +143,19 @@ private abstract class BaseSystemUiManager(
 /**
  * System UI manager for Android 11 and higher
  */
-@RequiresApi(Build.VERSION_CODES.R)
 private class SystemUiManagerInsets(
     window: Window,
     lifecycle: Lifecycle,
     initState: SystemUiState,
 ) : BaseSystemUiManager(lifecycle) {
     private val typeMask
-        get() = WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars()
+        get() = WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars()
 
-    private val windowInsetsController by lazy { checkNotNull(window.insetsController) { "Window inset controller is null" } }
+    private val windowInsetsController by lazy {
+        checkNotNull(WindowCompat.getInsetsController(window, window.decorView)) {
+            "Window inset controller is null"
+        }
+    }
 
     override val stateFlow = window.decorView
         .insetsFlow()
@@ -163,9 +165,9 @@ private class SystemUiManagerInsets(
             window.decorView.waitLayout()
 
             windowInsetsController.systemBarsBehavior =
-                WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_SWIPE
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_SWIPE
 
-            if (it.toWindowInsets()!!.isVisible(typeMask)) {
+            if (it.isVisible(typeMask)) {
                 SystemUiState.SHOWED
             } else {
                 SystemUiState.HIDDEN
@@ -174,7 +176,9 @@ private class SystemUiManagerInsets(
         .stateIn(coroutineScope, SharingStarted.Eagerly, initState)
 
     init {
-        window.setDecorFitsSystemWindows(false)
+        // This is the primary step for ensuring that your app goes edge-to-edge
+        // https://developer.android.com/training/gestures/edge-to-edge#lay-out-in-full-screen
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         coroutineScope.launch { stateFlow.collect(::onStateChange) }
 
