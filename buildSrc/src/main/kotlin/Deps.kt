@@ -19,7 +19,7 @@
 object Version {
     const val ANDROID_JAVA8_DESUGAR = "1.1.5"
 
-    const val KOTLIN = "1.5.0"
+    const val KOTLIN = "1.5.10"
     const val KOTLINX_COROUTINES = "1.5.0"
     const val KOTLINX_SERIALIZATION_JSON = "1.2.1"
 
@@ -42,7 +42,7 @@ object Version {
     const val ANDROIDX_SWIPE_REFRESH_LAYOUT = "1.1.0"
     const val ANDROIDX_TEST_RUNNER = "1.3.0"
 
-    const val MATERIAL = "1.2.1"
+    const val MATERIAL = "1.3.0"
 
     const val COIL = "1.2.1"
 
