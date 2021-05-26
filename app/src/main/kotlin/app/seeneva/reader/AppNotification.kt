@@ -18,11 +18,9 @@
 
 package app.seeneva.reader
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
-import androidx.core.content.getSystemService
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationManagerCompat
 
 object AppNotification {
     object Channel {
@@ -45,18 +43,17 @@ object AppNotification {
      */
     fun Context.createComicNotificationChannels() {
         //Channels available only from Android 8
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = requireNotNull(getSystemService<NotificationManager>())
+        val notificationManager = NotificationManagerCompat.from(this)
 
-            if (notificationManager.getNotificationChannel(Channel.FOREGROUND_TASK) == null) {
-                val channel = NotificationChannel(
-                    Channel.FOREGROUND_TASK,
-                    getString(R.string.notification_channel_foreground_task),
-                    NotificationManager.IMPORTANCE_LOW
-                )
+        if (notificationManager.getNotificationChannel(Channel.FOREGROUND_TASK) == null) {
+            val channel = NotificationChannelCompat.Builder(
+                Channel.FOREGROUND_TASK,
+                NotificationManagerCompat.IMPORTANCE_LOW
+            ).setName(getString(R.string.notification_channel_foreground_task))
+                .setShowBadge(false)
+                .build()
 
-                notificationManager.createNotificationChannel(channel)
-            }
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }

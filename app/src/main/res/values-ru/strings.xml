@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ This file is part of Seeneva Android Reader
   ~ Copyright (C) 2021 Sergei Solodovnikov
   ~
@@ -44,6 +43,7 @@
 
     <string name="comic_list_message_empty">Ваша библиотека комиксов пуста ☹️</string>
     <string name="comic_list_message_not_found">Ни один комикс не найден ☹</string>
+    <string name="comic_list_message_add_progress">Обработка. Это может занять несколько минут.️</string>
 
     <string name="comic_list_error_no_file_manager">Необходим файловый менеджер</string>
     <string name="comic_list_error_view_corrupted">Упс. Файл комикса повреждён 😨</string>
@@ -121,17 +121,17 @@
 
     <string name="notification_open_metatada_success_title">Добавлен</string>
     <string name="notification_open_metatada_success">Комикс добавлен в библиотеку</string>
-    <string name="notification_open_metatada_success_short">\'%1$s\': добавлен в библиотеку</string>
+    <string name="notification_open_metatada_success_short">\‘%1$s\’: добавлен в библиотеку</string>
     <string name="notification_open_metatada_already_opened">Комикс уже находится в библиотеке</string>
-    <string name="notification_open_metatada_already_opened_short">\'%1$s\': уже находится в библиотеке</string>
+    <string name="notification_open_metatada_already_opened_short">\‘%1$s\’: уже находится в библиотеке</string>
 
     <string name="notification_open_metatada_error_title">Ошибка открытия</string>
     <string name="notification_open_metatada_error_read_container">Не удалось прочитать файл комикса</string>
-    <string name="notification_open_metatada_error_read_container_short">\'%1$s\': не удалось прочитать файл</string>
+    <string name="notification_open_metatada_error_read_container_short">\‘%1$s\’: не удалось прочитать файл</string>
     <string name="notification_open_metatada_error_open_container_unsupported">Данный файл не поддерживается</string>
-    <string name="notification_open_metatada_error_open_container_unsupported_short">\'%1$s\': не поддерживается</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">\‘%1$s\’: не поддерживается</string>
     <string name="notification_open_metatada_error_no_pages">Файл комикса не содержит страниц</string>
-    <string name="notification_open_metatada_error_no_pages_short">\'%1$s\': не содержит страниц</string>
+    <string name="notification_open_metatada_error_no_pages_short">\‘%1$s\’: не содержит страниц</string>
 
     <string name="viewer_preview_page_counter">Страница: %1$d из %2$d</string>
     <string name="viewer_set_cover">Сделать обложкой</string>
@@ -145,8 +145,8 @@
     <string name="viewer_settings_tts">Синтез речи (только английский)</string>
 
     <string name="viewer_tts_error_title">TTS не доступен</string>
-    <string name="viewer_tts_error_not_installed">Для продолжения установите на устройство любой доступный синтезатор речи (TTS) и настройте \'%1$s\' язык.</string>
-    <string name="viewer_tts_error_language">Для продолжения установите \'%1$s\' язык для выбранного TTS.</string>
+    <string name="viewer_tts_error_not_installed">Для продолжения установите на устройство любой доступный синтезатор речи (TTS) и настройте \‘%1$s\’ язык.</string>
+    <string name="viewer_tts_error_language">Для продолжения установите \‘%1$s\’ язык для выбранного TTS.</string>
 
     <string name="viewer_help_title">Подсказка</string>
     <string name="viewer_help_tap">Нажмите</string>
