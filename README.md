@@ -9,7 +9,7 @@
 **•**
 
 [**•** *Features*](#features)
-[**•** *Speech balloons flow*](#speech-balloons-flow)
+[**•** *Speech balloons zooming*](#speech-balloons-zooming)
 [**•** *OCR and TTS*](#ocr-and-tts)
 [**•** *Performance*](#performance)
 [**•** *Screenshots*](#screenshots)
@@ -35,9 +35,9 @@
 
 ## Features
 
-- Smart [speech balloons flow](#speech-balloons-flow). :speech_balloon:
+- Smart [speech balloons zooming](#speech-balloons-zooming). :speech_balloon:
 - Speech balloons [***OCR*** and ***TTS***](#ocr-and-tts). :eyes:
-- Supports ***CBZ*** (.zip), ***CBR*** (.rar), ***CB7*** (.7z), ***CBT*** (.tar) and ***PDF*** comic book archives.
+- Supports ***CBZ*** (.zip), ***CBR*** (.rar) with [limitations](https://github.com/Seeneva/seeneva-reader-android/issues/23), ***CB7*** (.7z), ***CBT*** (.tar) and ***PDF*** comic book archives.
 - Supports different [image formats](https://github.com/image-rs/image#supported-image-formats) on any Android device.
 - View ***ComicRack metadata*** (from `ComicInfo.xml` file).
 - Supports Left-to-Right (LTR) and Right-to-Left (RTL) read directions.
@@ -47,13 +47,13 @@
 - No ads, no personal data collection.
 - Is it not enough? Hey, there is a bubble-whale on the icon! :whale2:
 
-## Speech balloons flow
+## Speech balloons zooming
 
 Every time you add a new comic book into the app's library, it will scan each page to find all speech balloons on them using Machine Learning object detection model (based on [YOLOv4-tiny](https://github.com/AlexeyAB/darknet)).
 
-Now you can easily navigate through speech balloons no matter how small your screen:
+Now you can easily zooming and navigate through comic book speech balloons no matter how small your screen:
 
-![Speech balloons flow](docs/img/gif/balloons_flow.gif)
+![Speech balloons zooming](docs/img/gif/balloons_zooming.gif)
 
 :exclamation:**Note:**
 
@@ -214,7 +214,7 @@ Please remember that donations are totally voluntary. There is no any bonuses ri
 
 **A**: You can't because of legal issues. Maybe there will be a way in the future.
 
-**Q**: Why my comic book [speech balloons flow](#speech-balloons-flow) or [OCR](#ocr-and-tts) recognition results so poor?
+**Q**: Why my comic book [speech balloons zooming](#speech-balloons-zooming) or [OCR](#ocr-and-tts) recognition results so poor?
 
 **A**: Please try to use high resolution images. If it doesn't help then your comic book has unsupported speech balloon's shapes or fonts. This usually can be fixed by adding this comic book into ML training process. Also manga recognition is worse than comic book right now.
 
