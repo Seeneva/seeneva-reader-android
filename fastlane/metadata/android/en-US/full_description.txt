@@ -1,9 +1,9 @@
 A libre smart powered comic book reader.
 
 <b>Features</b>:
-• Smart speech balloons flow. 💬
+• Smart speech balloons zooming. 💬
 • Speech balloons <b>OCR</b> and <b>TTS</b>. 👀
-• Supports <b>CBZ</b> (.zip), <b>CBR</b> (.rar), <b>CB7</b> (.7z), <b>CBT</b> (.tar) and <b>PDF</b> comic book archives.
+• Supports <b>CBZ</b> (.zip), limited <b>CBR</b> (.rar), <b>CB7</b> (.7z), <b>CBT</b> (.tar) and <b>PDF</b> comic book archives.
 • Supports different image formats on any Android device.
 • View <b>ComicRack metadata</b>.
 • Supports Left-to-Right (LTR) and Right-to-Left (RTL) read directions.
@@ -12,14 +12,14 @@ A libre smart powered comic book reader.
 • Libre application under GPLv3 or later license.
 • No ads, no personal data collection.
 
-💬 <b>Speech balloons flow</b>
-Read digital comic books on mobile devices can be difficult especially if they have small screen. <b>Seeneva</b> to the rescue! Built-in Machine Learning model trained to detect speech balloons on pages allows you easily navigate through them with a touch of a finger. 
+💬 <b>Speech balloons zooming</b>
+Read digital comic books on mobile devices can be difficult especially if they have small screen. <b>Seeneva</b> to the rescue! Built-in Machine Learning model trained to detect speech balloons on pages allows you easily zooming and navigate through them with a touch of a finger. 
 
 👀 <b>OCR and TTS</b>
 Have you ever wanted to copy text from speech balloons? <b>Seeneva</b> make it possible to use Optical Character Recognition on all founded speech balloons to extract text from them. And the built-in Android Text-To-Speech allows you to use Seeneva like audio comic book reader. 
 
-❗<b>Note</b>: 
+❗<b>Note</b>:
 • No comic book included.
-• OCR and TTS features are only available for English language right now. 
+• OCR and TTS features are only available for English language right now.
 
 Please read app <a href="https://github.com/Seeneva/seeneva-reader-android">repository</a> https://github.com/Seeneva/seeneva-reader-android for more information about the app and known issues.
