@@ -29,12 +29,11 @@ import app.seeneva.reader.data.entity.ComicBook
 import app.seeneva.reader.data.entity.ComicPageImageData
 import app.seeneva.reader.data.entity.ml.Interpreter
 import app.seeneva.reader.data.entity.ml.Tesseract
-import app.seeneva.reader.data.source.jni.Native.Task
+import app.seeneva.reader.data.source.jni.Native.TaskHandler
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.tinylog.kotlin.Logger
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -137,30 +136,22 @@ internal class NativeSourceImpl(
     private val context = context.applicationContext
 
     override suspend fun initInterpreterFromAsset(modelAssetName: String) =
-        withContext(dispatcher) {
-            suspendCancellableCoroutine<Interpreter> { cont ->
-                val task = Native.initInterpreterFromAsset(
-                    context.assets,
-                    modelAssetName,
-                    BaseCallback(cont)
-                )
-
-                cont.invokeOnCancellation { task.cancel() }
-            }
+        suspendTask<Interpreter> { callback ->
+            Native.initInterpreterFromAsset(
+                context.assets,
+                modelAssetName,
+                callback
+            )
         }
 
     override suspend fun initTesseractFromAsset(tessDataName: String, tessDataLang: String) =
-        withContext(dispatcher) {
-            suspendCancellableCoroutine<Tesseract> { cont ->
-                val task = Native.initTesseractFromAsset(
-                    context.assets,
-                    tessDataName,
-                    tessDataLang,
-                    BaseCallback(cont)
-                )
-
-                cont.invokeOnCancellation { task.cancel() }
-            }
+        suspendTask<Tesseract> { callback ->
+            Native.initTesseractFromAsset(
+                context.assets,
+                tessDataName,
+                tessDataLang,
+                callback
+            )
         }
 
     override suspend fun getComicsMetadata(
@@ -171,17 +162,15 @@ internal class NativeSourceImpl(
     ): ComicBook {
         require(!interpreter.closed) { "Interpreter cannot be closed" }
 
-        return withContext(dispatcher) {
-            cancellableTask(path) { fd, cont ->
-                Native.openComicBook(
-                    fd,
-                    path.toString(),
-                    initName,
-                    direction,
-                    interpreter,
-                    BaseCallback(cont)
-                )
-            }
+        return suspendTask { callback ->
+            Native.openComicBook(
+                path.detachFd(),
+                path.toString(),
+                initName,
+                direction,
+                interpreter,
+                callback
+            )
         }
     }
 
@@ -191,14 +180,12 @@ internal class NativeSourceImpl(
         }
 
     override suspend fun getPageImageData(path: Uri, position: Long): ComicPageImageData =
-        withContext(dispatcher) {
-            cancellableTask(path) { fd, cont ->
-                Native.getPageImageData(
-                    fd,
-                    position,
-                    BaseCallback(cont)
-                )
-            }
+        suspendTask { callback ->
+            Native.getPageImageData(
+                path.detachFd(),
+                position,
+                callback
+            )
         }
 
     override suspend fun decodePage(
@@ -206,19 +193,17 @@ internal class NativeSourceImpl(
         bitmap: Bitmap,
         crop: Rect?,
         resizeFast: Boolean
-    ) = withContext(dispatcher) {
+    ) {
         require(!pageImageData.closed) { "Comic book page image data cannot be closed" }
 
-        suspendCancellableCoroutine<Unit> { cont ->
-            val task = Native.decodePage(
+        return suspendTask { callback ->
+            Native.decodePage(
                 pageImageData,
                 bitmap,
                 crop?.let { intArrayOf(it.left, it.top, it.width(), it.height()) },
                 resizeFast,
-                BaseCallback(cont)
+                callback
             )
-
-            cont.invokeOnCancellation { task.cancel() }
         }
     }
 
@@ -230,31 +215,45 @@ internal class NativeSourceImpl(
         require(!tesseract.closed) { "Tesseract cannot be closed" }
         require(!bitmap.isRecycled) { "Text cannot be recognized on already recycled bitmap" }
 
-        return suspendCancellableCoroutine { cont ->
-            val task = Native.recogniseText(
+        return suspendTask { callback ->
+            Native.recogniseText(
                 tesseract,
                 bitmap,
                 wordMinConf,
-                BaseCallback(cont)
+                callback
             )
-
-            cont.invokeOnCancellation { task.cancel() }
         }
     }
 
     /**
-     * Create cancellable native task
-     * @param path path to a comic book to open
-     * @param f function used to work with received file descriptor
+     * Suspend while provided [TaskHandler] is not completed (success or failure)
+     * @param f provide a native [TaskHandler] using [Native.Callback]
      */
-    private suspend inline fun <T> cancellableTask(
-        path: Uri,
-        crossinline f: (fd: Int, cont: Continuation<T>) -> Task
+    private suspend inline fun <T> suspendTask(
+        crossinline f: (callback: Native.Callback<T>) -> TaskHandler
     ): T {
-        return suspendCancellableCoroutine { cont ->
-            val task = f(path.detachFd(), cont)
+        var task: TaskHandler? = null
 
-            cont.invokeOnCancellation { task.cancel() }
+        return withContext(dispatcher) {
+            try {
+                suspendCancellableCoroutine { cont ->
+                    val callback = object : Native.Callback<T> {
+                        override fun taskResult(result: T) {
+                            cont.resume(result)
+                        }
+
+                        override fun taskError(error: Throwable) {
+                            Logger.error(error, "Task error")
+                            cont.resumeWithException(error)
+                        }
+                    }
+
+                    task = f(callback)
+                }
+            } finally {
+                // We should always clear task resources!
+                task?.close()
+            }
         }
     }
 
@@ -271,16 +270,5 @@ internal class NativeSourceImpl(
         return requireNotNull(
             context.contentResolver.openFileDescriptor(this, "r")
         ) { "Can't open Android file descriptor" }
-    }
-
-    private class BaseCallback<T>(private val cont: Continuation<T>) : Native.Callback<T> {
-        override fun taskResult(result: T) {
-            cont.resume(result)
-        }
-
-        override fun taskError(error: Throwable) {
-            Logger.error(error, "Task error")
-            cont.resumeWithException(error)
-        }
     }
 }
