@@ -46,7 +46,7 @@ internal object Native {
      * @param assetManager Android asset manager
      * @param modelAssetName ML model asset name
      * @param callback result callback
-     * @return return task which can be used for [Task.cancel]
+     * @return return task which can be used for [TaskHandler.close]
      */
     @AnyThread
     @JvmStatic
@@ -54,7 +54,7 @@ internal object Native {
         assetManager: AssetManager,
         modelAssetName: String,
         callback: Callback<Interpreter>
-    ): Task
+    ): TaskHandler
 
     /**
      * Native call to init Tesseract from Android assets by [tessDataName]
@@ -65,7 +65,7 @@ internal object Native {
      * @param tessDataName Tesseract data asset name
      * @param tessDataLang Tesseract data language
      * @param callback result callback
-     * @return return task which can be used for [Task.cancel]
+     * @return return task which can be used for [TaskHandler.close]
      */
     @AnyThread
     @JvmStatic
@@ -74,7 +74,7 @@ internal object Native {
         tessDataName: String,
         tessDataLang: String,
         callback: Callback<Tesseract>
-    ): Task
+    ): TaskHandler
 
     /**
      * Native call to open comic book by provided file descriptor
@@ -87,7 +87,7 @@ internal object Native {
      * @param direction comic book read direction
      * @param interpreter ML interpreter
      * @param callback result callback
-     * @return return task which can be used for [Task.cancel]
+     * @return return task which can be used for [TaskHandler.close]
      */
     @AnyThread
     @JvmStatic
@@ -98,7 +98,7 @@ internal object Native {
         direction: Int,
         interpreter: Interpreter,
         callback: Callback<ComicBook>
-    ): Task
+    ): TaskHandler
 
     /**
      * Native call to get comic book file data
@@ -115,7 +115,7 @@ internal object Native {
      * @param fd file descriptor of comic book file
      * @param position position of image in the comic book container
      * @param callback result callback
-     * @return return task which can be used for [Task.cancel]
+     * @return return task which can be used for [TaskHandler.close]
      */
     @AnyThread
     @JvmStatic
@@ -123,7 +123,7 @@ internal object Native {
         fd: Int,
         position: Long,
         callback: Callback<ComicPageImageData>
-    ): Task
+    ): TaskHandler
 
     /**
      * Decode image received using [getPageImageData].
@@ -137,7 +137,7 @@ internal object Native {
      * * pass 4 values to crop image [x, y, width, height]
      * @param resizeFast pass true to enable fast resizing. But output image can be less accurate
      * @param callback result callback
-     * @return return task which can be used for [Task.cancel]
+     * @return return task which can be used for [TaskHandler.close]
      */
     @AnyThread
     @JvmStatic
@@ -147,7 +147,7 @@ internal object Native {
         crop: IntArray?,
         resizeFast: Boolean,
         callback: Callback<Unit>
-    ): Task
+    ): TaskHandler
 
     /**
      * Recognise text on provided [Bitmap]. Will return empty [String] in case if no text was found
@@ -156,7 +156,7 @@ internal object Native {
      * @param bitmap source bitmap where text should be recognised
      * @param wordMinConf minimal confidence for each recognised word
      * @param callback result callback
-     * @return return task which can be used for [Task.cancel]
+     * @return return task which can be used for [TaskHandler.close]
      */
     @AnyThread
     @JvmStatic
@@ -165,7 +165,7 @@ internal object Native {
         bitmap: Bitmap,
         @FloatRange(from = 0.0, to = 1.0) wordMinConf: Float,
         callback: Callback<String>
-    ): Task
+    ): TaskHandler
 
     /**
      * Callback for native functions which proceed on background thread
@@ -193,51 +193,55 @@ internal object Native {
     }
 
     /**
-     * Native task. Used primary for cancellation
+     * Native task handler. Used primary for cancellation.
+     * Should always be closed after a usage by calling [close] to free native resources.
      */
-    class Task @Keep private constructor() {
+    class TaskHandler @Keep private constructor() {
         /**
-         * Set from JNI. Pointer to the native object that used to [cancel]
+         * Set from JNI. Pointer to the native object that used to [close] the object
          */
         @Suppress("unused")
         @Keep
-        private var id: Long = NULL_PTR
+        private var ptr: Long = NULL_PTR
 
-        private val cancelled = AtomicBoolean(false)
+        private val _closed = AtomicBoolean(false)
+
+        val closed: Boolean
+            get() = _closed.get()
 
         /**
-         * Call to cancel this task
+         * Call it to cancel the task and clear native resources
          *
-         * @return is task was cancelled. false may indicate empty task or if cancellation is already in progress
+         * @return is task was closed. false may indicate empty task or if closing is already in progress
          * @throws app.seeneva.reader.data.NativeFatalError in case of any native error
          */
         @AnyThread
-        fun cancel(): Boolean {
-            return if (cancelled.compareAndSet(false, true)) {
-                cancelNative()
+        fun close(): Boolean {
+            return if (_closed.compareAndSet(false, true)) {
+                closeNative()
             } else {
                 false
             }
         }
 
         @AnyThread
-        private external fun cancelNative(): Boolean
+        private external fun closeNative(): Boolean
 
-        override fun toString() = "Task(id=$id, cancelled=${cancelled.get()})"
+        override fun toString() = "TaskHandler(ptr=$ptr, closed=${_closed.get()})"
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
 
-            other as Task
+            other as TaskHandler
 
-            if (id != other.id) return false
+            if (ptr != other.ptr) return false
 
             return true
         }
 
         override fun hashCode(): Int {
-            return id.hashCode()
+            return ptr.hashCode()
         }
 
         private companion object {

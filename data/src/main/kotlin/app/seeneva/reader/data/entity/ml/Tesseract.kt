@@ -68,8 +68,6 @@ class Tesseract @Keep private constructor() : Closeable {
         return "Tesseract(ptr=$ptr, closed=$_closed)"
     }
 
-
-
     private companion object {
         private const val NULL_PTR = 0L
     }

@@ -29,12 +29,12 @@ import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import app.seeneva.reader.common.coroutines.Dispatchers
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import org.koin.core.context.GlobalContext
-import app.seeneva.reader.common.coroutines.Dispatchers
 import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
 
@@ -103,12 +103,14 @@ suspend fun View.waitAttachChange(attached: Boolean = true) {
                 val listener = object : View.OnAttachStateChangeListener {
                     override fun onViewDetachedFromWindow(v: View) {
                         if (!attached) {
+                            removeOnAttachStateChangeListener(this)
                             cont.resume(Unit)
                         }
                     }
 
                     override fun onViewAttachedToWindow(v: View) {
                         if (attached) {
+                            removeOnAttachStateChangeListener(this)
                             cont.resume(Unit)
                         }
                     }
