@@ -1,2 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="add_mode_link">Lien</string>
+    <string name="filter_comic_file_status_title">Statut du fichier</string>
+    <string name="filter_comic_completed_not">Inachevé</string>
+    <string name="filter_comic_completed_only">Achevé</string>
+    <string name="filter_comic_completed_any">N’importe</string>
+    <string name="filter_comic_completed_title">État d’achèvement</string>
+    <string name="sort_comic_list_name_desc">Titre (Z-A)</string>
+    <string name="sort_comic_list_name_asc">Titre (A-Z)</string>
+    <string name="sort_comic_list_time_desc">Plus récent en premier</string>
+    <string name="sort_comic_list_time_asc">Plus récent en dernier</string>
+</resources>
