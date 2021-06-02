@@ -120,7 +120,7 @@
   
 ## Перевод
 
-[![Translation status](https://hosted.weblate.org/widgets/seeneva/-/android/287x66-grey.png)](https://hosted.weblate.org/engage/seeneva/)
+[![Состояние перевода](https://hosted.weblate.org/widgets/seeneva/-/287x66-grey.png)](https://hosted.weblate.org/engage/seeneva/)
 
 ## Донат
 

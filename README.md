@@ -116,7 +116,7 @@ Stay tuned!
 
 ## Translation
 
-[![Translation status](https://hosted.weblate.org/widgets/seeneva/-/android/287x66-grey.png)](https://hosted.weblate.org/engage/seeneva/)
+[![Translation status](https://hosted.weblate.org/widgets/seeneva/-/287x66-grey.png)](https://hosted.weblate.org/engage/seeneva/)
 
 ## Donate
 
