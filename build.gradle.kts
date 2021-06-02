@@ -88,6 +88,9 @@ subprojects {
                 )
             }
 
+            resConfigs("en", "ru")
+            vectorDrawables.useSupportLibrary = true
+
             multiDexEnabled = true
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
@@ -107,6 +110,13 @@ subprojects {
         packagingOptions {
             pickFirst("META-INF/AL2.0")
             pickFirst("META-INF/LGPL2.1")
+        }
+
+        lintOptions {
+            // Translations can miss some strings especially after Weblate pull request
+            // Lets consider this as a warning to finish 'lintRelease' Gradle task
+            // Update defaultConfig.resConfigs to add new supported translations
+            warning("MissingTranslation")
         }
     }
 
