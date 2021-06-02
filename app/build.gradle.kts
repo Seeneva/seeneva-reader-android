@@ -64,9 +64,6 @@ android {
     defaultConfig {
         applicationId = "app.seeneva.reader"
 
-        resConfigs("en", "ru")
-        vectorDrawables.useSupportLibrary = true
-
         missingDimensionStrategy(RustBuildTypeFlavor.NAME, RustBuildTypeFlavor.RUST_RELEASE)
     }
 
