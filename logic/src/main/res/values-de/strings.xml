@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="comic_script_direction_rtl">Von rechts nach links</string>
+    <string name="comic_script_direction_ltr">Von links nach rechts</string>
+    <string name="comic_tag_corrupted">Beschädigt</string>
+    <string name="comic_tag_removed">Entfernt</string>
+    <string name="comic_tag_completed">Abgeschlossen</string>
+    <string name="add_mode_link_descr">Ein Comicbuch wird ohne Kopieren hinzugefügt. Wenn du aber die Anwendung, mit der es geöffnet wurde, löschen, dann wird das Comicbuch zum Lesen unzugänglich.</string>
+    <string name="add_mode_link">Link</string>
+    <string name="add_mode_import_descr">Eine Comicdatei wird in den inneren Ordner der Anwendung kopiert</string>
+    <string name="add_mode_import">Importieren</string>
+    <string name="filter_comic_file_status_corrupted">Beschädigt</string>
+    <string name="filter_comic_file_status_any">Irgendein</string>
+    <string name="filter_comic_file_status_title">Dateistatus</string>
+    <string name="filter_comic_completed_not">Nicht abgeschlossen</string>
+    <string name="filter_comic_completed_only">Abgeschlossen</string>
+    <string name="filter_comic_completed_any">Irgendein</string>
+    <string name="filter_comic_completed_title">Abschlussstatus</string>
+    <string name="sort_comic_list_name_desc">Titel (Z-A)</string>
+    <string name="sort_comic_list_name_asc">Titel (A-Z)</string>
+    <string name="sort_comic_list_time_desc">Neueste zuerst</string>
+    <string name="sort_comic_list_time_asc">Neueste zuletzt</string>
+</resources>
