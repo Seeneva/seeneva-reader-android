@@ -10,4 +10,14 @@
     <string name="sort_comic_list_name_asc">Titre (A-Z)</string>
     <string name="sort_comic_list_time_desc">Plus récent en premier</string>
     <string name="sort_comic_list_time_asc">Plus récent en dernier</string>
+    <string name="comic_tag_corrupted">Endommagé</string>
+    <string name="filter_comic_file_status_corrupted">Endommagé</string>
+    <string name="comic_script_direction_rtl">Droite à gauche</string>
+    <string name="comic_script_direction_ltr">Gauche à droite</string>
+    <string name="comic_tag_removed">Retiré</string>
+    <string name="comic_tag_completed">Achevé</string>
+    <string name="add_mode_link_descr">Une BD sera ajoutée sans être copiée. Mais si vous supprimez l’appli avec laquelle elle a été ouverte, la bande dessinée deviendra inaccessible à la lecture.</string>
+    <string name="add_mode_import_descr">Un fichier de BD sera copié dans le dossier interne de l’appli</string>
+    <string name="add_mode_import">Importer</string>
+    <string name="filter_comic_file_status_any">N’importe</string>
 </resources>
