@@ -50,7 +50,7 @@
     <string name="open_comic_service_descr">Extrait les métadonnées de BD</string>
     <string name="rename_err_empty_title">Ne peut pas être vide</string>
     <string name="comic_info_err">Oups. Une erreur s’est produite 😨</string>
-    <string name="comic_info_plot_locations">Emplacement</string>
+    <string name="comic_info_plot_locations">Emplacements</string>
     <string name="comic_info_plot_teams">Équipes</string>
     <string name="comic_info_plot_characters">Personnages</string>
     <string name="comic_info_plot_summary">Résumé</string>
