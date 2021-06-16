@@ -97,7 +97,7 @@
     <string name="comic_list_edit_title">Nouveau titre</string>
     <string name="comic_list_search_hint">Titre</string>
     <string name="comic_list_error_view_non_existed">Oups. La BD est introuvable 😨</string>
-    <string name="comic_list_error_view_corrupted">Oups. Le fichier de la BD est corrompu 😨</string>
+    <string name="comic_list_error_view_corrupted">Oups. Le fichier de la BD est endommagé 😨</string>
     <string name="comic_list_error_no_file_manager">Un gestionnaire de fichiers est nécessaire</string>
     <string name="comic_list_message_not_found">Aucune BD n\'a été trouvée ☹️</string>
     <string name="comic_list_message_empty">Votre bibliothèque est vide ☹️</string>
