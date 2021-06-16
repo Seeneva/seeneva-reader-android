@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="comic_script_direction_rtl">Da destra a sinistra</string>
+    <string name="comic_script_direction_ltr">Da sinistra a destra</string>
+    <string name="comic_tag_corrupted">Danneggiato</string>
+    <string name="comic_tag_removed">Rimosso</string>
+    <string name="comic_tag_completed">Completato</string>
+    <string name="add_mode_link_descr">Un fumetto verrà aggiunto senza essere copiato. Ma se elimini l\'applicazione con cui è stato aperto, allora il fumetto diventerà inaccessibile per la lettura.</string>
+    <string name="add_mode_link">Collegamento</string>
+    <string name="add_mode_import_descr">Un file di fumetto sarà copiato nella cartella interna dell\'app</string>
+    <string name="add_mode_import">Importa</string>
+    <string name="filter_comic_file_status_corrupted">Danneggiato</string>
+    <string name="filter_comic_file_status_any">Qualsiasi</string>
+    <string name="filter_comic_file_status_title">Stato del file</string>
+    <string name="filter_comic_completed_not">Non completato</string>
+    <string name="filter_comic_completed_only">Completato</string>
+    <string name="filter_comic_completed_any">Qualsiasi</string>
+    <string name="filter_comic_completed_title">Stato di completamento</string>
+    <string name="sort_comic_list_name_desc">Titolo (Z-A)</string>
+    <string name="sort_comic_list_name_asc">Titolo (A-Z)</string>
+    <string name="sort_comic_list_time_asc">Il più recente alla fine</string>
+    <string name="sort_comic_list_time_desc">Il più recente prima</string>
+</resources>
