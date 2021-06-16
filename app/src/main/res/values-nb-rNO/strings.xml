@@ -2,11 +2,11 @@
 <resources>
     <string name="comic_info_title">\@string/comic_list_info</string>
     <string name="comic_info_general_info_title">Navn</string>
-    <string name="about_app_libraries_txt">Takk til vedkommende.</string>
+    <string name="about_app_libraries_txt">Takk til vedkommende!</string>
     <string name="about_app_description">%1$s er gemenhetslig fri programvare, lisensiert GPLv3+. Du kan i henhold til lisensen bruke, studere, endre, og dele det fritt; med alle.</string>
     <string name="viewer_tts_error_language">Installer språket %1$s for valgt talesyntese-motor.</string>
     <string name="viewer_tts_error_not_installed">Installer en talesyntesemotor og sett opp %1$s språk.</string>
-    <string name="viewer_txt_recognize_process">Gjenkjenner tekst …</string>
+    <string name="viewer_txt_recognize_process">Gjenkjenner tekst … 👀</string>
     <string name="viewer_txt_recognize_empty">Gjenkjente ikke noe tekst 😨</string>
     <string name="viewer_cover_changed">Omslag satt</string>
     <string name="notification_open_metatada_error_no_pages_short">«%1$s» har ingen sider</string>
@@ -25,7 +25,7 @@
         <item quantity="one">Tegneserien ble fjernet</item>
         <item quantity="other">%1$d tegneserier ble fjernet</item>
     </plurals>
-    <string name="about_app_gratitude_txt">Jeg ønsker å rette en takk til min kone, foreldre, slektninger, og venner for deres støtte.</string>
+    <string name="about_app_gratitude_txt">Jeg ønsker å rette en takk til min kone, foreldre, slektninger, og venner for deres støtte!</string>
     <string name="about_app_gratitude">Takknemlighet</string>
     <string name="about_app_source_code_txt">Vis programkodelager</string>
     <string name="third_parties_summary">Sammendrag</string>
