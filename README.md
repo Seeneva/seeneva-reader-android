@@ -12,6 +12,7 @@
 [**•** *Speech balloons zooming*](#speech-balloons-zooming)
 [**•** *OCR and TTS*](#ocr-and-tts)
 [**•** *Performance*](#performance)
+[**•** *Permissions*](#permissions)
 [**•** *Screenshots*](#screenshots)
 [**•** *What's next?*](#whats-next)
 [**•** *Developing*](docs/DEVELOPING.md)
@@ -83,6 +84,14 @@ Smart adding new comic book into the library might take a while. It is depends o
 | *Pixel 2 XL*             | ~15s                  | ~75s                   |
 | *Nexus 5*                | ~60s                  | ~190s                  |
 | *Ainol Novo 7 Aurora II* | ~180s                 | ~600s                  |
+
+## Permissions
+
+*Seeneva* requires some Android permissions to run properly:
+
+- `android.permission.READ_EXTERNAL_STORAGE`: required on Android up to 4.3. This permission allows to add into the library comic book files located on device external storage (like SD card).
+- `android.permission.FOREGROUND_SERVICE`: required to process comic book adding inside a [foreground Service](https://developer.android.com/guide/components/foreground-services). Each comic book goes through a ML model which can take up to a few minutes. The foreground Service allows *Seeneva* to keep adding comics without the risk of being killed by the OS when the user has placed the app in the background.
+- `android.permission.WAKE_LOCK`, `android.permission.RECEIVE_BOOT_COMPLETED`: required by [AndroidX WorkManager](https://developer.android.com/reference/androidx/work/package-summary) library. *Seeneva* uses that library to periodically sync added comic book files to determine their status (e.g. comic book file was removed, renamed or corrupted) and display that status to the user. These permissions allow to start that periodical task after the device has been rebooted.
 
 ## Screenshots
 
