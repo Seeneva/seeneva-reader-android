@@ -19,7 +19,7 @@
 object Version {
     const val ANDROID_JAVA8_DESUGAR = "1.1.5"
 
-    const val KOTLIN = "1.5.10"
+    const val KOTLIN = "1.5.20"
     const val KOTLINX_COROUTINES = "1.5.0"
     const val KOTLINX_SERIALIZATION_JSON = "1.2.1"
 

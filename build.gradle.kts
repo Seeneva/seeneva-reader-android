@@ -78,7 +78,7 @@ subprojects {
                 )
             }
 
-            resConfigs("en", "ru")
+            resConfigs("en", "ru", "nb-rNO", "fr", "de", "it")
             vectorDrawables.useSupportLibrary = true
 
             multiDexEnabled = true
