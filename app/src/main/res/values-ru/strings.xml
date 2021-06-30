@@ -163,6 +163,8 @@
     <string name="about_app_web">Веб-сайт</string>
     <string name="about_app_source_code">Исходный код</string>
     <string name="about_app_source_code_txt">Посмотреть репозиторий приложения</string>
+    <string name="about_app_donate">Пожертвовать</string>
+    <string name="about_app_donate_txt">Поддержать разработчика</string>
     <string name="about_app_libraries">Сторонние библиотеки</string>
     <string name="about_app_libraries_txt">Давайте поблагодарим их авторов!</string>
     <string name="about_app_gratitude">Благодарность</string>

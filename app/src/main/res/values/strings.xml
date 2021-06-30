@@ -166,6 +166,9 @@
     <string name="about_app_source_code">Source code</string>
     <string name="about_app_source_code_txt">View app repository</string>
     <string name="about_app_source_code_link" translatable="false">https://github.com/Seeneva/seeneva-reader-android</string>
+    <string name="about_app_donate">Donate</string>
+    <string name="about_app_donate_txt">Support the developer</string>
+    <string name="about_app_donate_link" translatable="false">https://seeneva.app/#donate</string>
     <string name="about_app_web">Website</string>
     <string name="about_app_web_txt" translatable="false">https://seeneva.app</string>
     <string name="about_app_license" translatable="false">@string/third_parties_license</string>
