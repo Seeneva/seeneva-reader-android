@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import com.android.build.api.dsl.VariantDimension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApkVariantOutput
 import com.android.build.gradle.api.ApplicationVariant
@@ -61,6 +62,8 @@ android {
     defaultConfig {
         applicationId = "app.seeneva.reader"
 
+        enableShowDonate(true)
+
         missingDimensionStrategy(RustBuildTypeFlavor.NAME, RustBuildTypeFlavor.RUST_RELEASE)
     }
 
@@ -100,13 +103,14 @@ android {
     productFlavors {
         register(AppStoreFlavor.GOOGLE_PLAY) {
             dimension = AppStoreFlavor.NAME
+
+            enableShowDonate(false)
         }
 
         register(AppStoreFlavor.FDROID) {
             dimension = AppStoreFlavor.NAME
 
             versionNameSuffix = "-fdroid"
-            //TODO This will be used in future releases (e.g show donate button in the application)
         }
         register(AppStoreFlavor.GITHUB) {
             dimension = AppStoreFlavor.NAME
@@ -191,6 +195,14 @@ fun SigningConfig.applyPropertiesSigning(propertiesFileName: String = "keystore.
     storePassword = signProperties[extension.PROP_STORE_PASS] as String
     keyAlias = signProperties[extension.PROP_KEY_ALIAS] as String
     keyPassword = signProperties[extension.PROP_KEY_PASS] as String
+}
+
+/**
+ * Change is donate button enabled
+ * @param enable true if donate button enabled
+ */
+fun VariantDimension.enableShowDonate(enable: Boolean) {
+    buildConfigField("boolean", "DONATE_ENABLED", "$enable")
 }
 
 /**

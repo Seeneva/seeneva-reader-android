@@ -22,6 +22,7 @@
     <item name="scale_image_view_event_listener" type="id" />
 
     <item name="about_app_web_group" type="id" />
+    <item name="about_app_donate_group" type="id" />
     <item name="about_app_source_code_group" type="id" />
     <item name="about_app_license_group" type="id" />
     <item name="about_app_third_party_group" type="id" />

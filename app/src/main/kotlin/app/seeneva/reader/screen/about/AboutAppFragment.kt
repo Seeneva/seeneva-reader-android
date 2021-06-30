@@ -47,6 +47,8 @@ class AboutAppFragment : Fragment(R.layout.fragment_about_app) {
         when (it.id) {
             R.id.about_app_web_group ->
                 viewUri(getString(R.string.about_app_web_txt).toUri())
+            R.id.about_app_donate_group ->
+                viewUri(getString(R.string.about_app_donate_link).toUri())
             R.id.about_app_source_code_group ->
                 viewUri(getString(R.string.about_app_source_code_link).toUri())
             R.id.about_app_license_group ->
@@ -74,6 +76,16 @@ class AboutAppFragment : Fragment(R.layout.fragment_about_app) {
             R.string.about_app_web_txt,
             onClickListener
         )
+
+        if (BuildConfig.DONATE_ENABLED) {
+            newCard(
+                R.id.about_app_donate_group,
+                R.drawable.ic_hand_holding_usd_solid,
+                R.string.about_app_donate,
+                R.string.about_app_donate_txt,
+                onClickListener
+            )
+        }
 
         newCard(
             R.id.about_app_source_code_group,
