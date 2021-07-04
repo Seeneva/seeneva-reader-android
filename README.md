@@ -1,7 +1,19 @@
 <p align="center"><img src="docs/img/icon/seeneva_icon.png"></p>
 <h1 align="center"><b><a href="https://seeneva.app">Seeneva</a></b></h1>
 <h4 align="center">A libre smart powered comic book reader for Android.</h4>
-<p align="center"><a href="https://play.google.com/store/apps/details?id=app.seeneva.reader"><img src="docs/img/en/icon/google-play-badge.png" width=180></a></p>
+
+<p align="center">
+
+<a href="https://play.google.com/store/apps/details?id=app.seeneva.reader">
+<img src="docs/img/en/icon/google-play-badge.png" alt="Get it on Google Play" width=180>
+</a>
+
+<a href="https://f-droid.org/packages/app.seeneva.reader">
+<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" width="180">
+</a>
+
+</p>
+
 <div align="center">
 
 **Translation**: [*Русский*](README-ru.md)
