@@ -1,7 +1,19 @@
 <p align="center"><img src="docs/img/icon/seeneva_icon.png"></p>
 <h1 align="center"><b><a href="https://seeneva.app">Seeneva</a></b></h1>
 <h4 align="center">Свободное Android смарт приложение для чтения комиксов.</h4>
-<p align="center"><a href="https://play.google.com/store/apps/details?id=app.seeneva.reader"><img src="docs/img/ru/icon/google-play-badge.png" width=180></a></p>
+
+<p align="center">
+
+<a href="https://play.google.com/store/apps/details?id=app.seeneva.reader">
+<img src="docs/img/ru/icon/google-play-badge.png" alt="Доступно в Google Play" width=180>
+</a>
+
+<a href="https://f-droid.org/packages/app.seeneva.reader">
+<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on-ru.png" alt="Доступно в F-Droid" width="180">
+</a>
+
+</p>
+
 <div align="center">
 
 **Перевод**: [*English*](README.md)
@@ -12,6 +24,7 @@
 [**•** *Увеличение речевых балунов*](#увеличение-речевых-балунов)
 [**•** *OCR и TTS*](#ocr-и-tts)
 [**•** *Производительность*](#производительность)
+[**•** *Разрешения*](#разрешения)
 [**•** *Скриншоты*](#скриншоты)
 [**•** *Что дальше?*](#что-дальше)
 [**•** *Разработка*](docs/DEVELOPING-ru.md)
@@ -83,6 +96,14 @@
 | *Pixel 2 XL*             | ~15 сек                 | ~75 сек                  |
 | *Nexus 5*                | ~60 сек                 | ~190 сек                 |
 | *Ainol Novo 7 Aurora II* | ~180 сек                | ~600 сек                 |
+
+## Разрешения
+
+*Seeneva* запрашивает следующие Android разрешения для обеспечения корректной работы:
+
+- `android.permission.READ_EXTERNAL_STORAGE`: необходимо на Android версиях вплоть до 4.3. Это разрешение позволяет добавлять в библиотеку файлы комиксов на внешнем хранилище устройства (например SD карта).
+- `android.permission.FOREGROUND_SERVICE`: необходимо для обработки добавления комиксов в [foreground Service](https://developer.android.com/guide/components/foreground-services). Каждый комикс проходит через модель машинного обучения, что может занять несколько минут. Foreground Service позволяет *Seeneva* продолжить процесс добавления комиксов без риска быть остановленным системой как только пользователь переведёт приложение в фон.
+- `android.permission.WAKE_LOCK`, `android.permission.RECEIVE_BOOT_COMPLETED`: необходимы для библиотеки [AndroidX WorkManager](https://developer.android.com/reference/androidx/work/package-summary). *Seeneva* использует эту библиотеку для периодической синхронизации файлов добавленных комиксов, чтобы определить их статус (например, файл комикса был удалён, переименован или повреждён) и отобразить этот статус пользователю. Эти разрешения позволяют запустить периодическую синхронизацию после того как устройство было перезапущено.
 
 ## Скриншоты
 
