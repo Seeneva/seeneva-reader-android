@@ -104,7 +104,7 @@ jobs:
           o=($(bundle exec fastlane run release_version_calc token:"${{ secrets.GITHUB_TOKEN }}" tag:"v${version_tag}"))
 
           name="pr-${{ github.event.number }}-${{ steps.short-sha.outputs.sha }}"
-          code=$((${o[-1]}+1))
+          code=$((${o[-1]}))
 
           echo "Output app name: $name, code: $code"
 
