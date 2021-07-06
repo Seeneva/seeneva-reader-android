@@ -60,7 +60,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             //DO NOTHING for now...
         }
 
-        viewBinding.bottomNavigationView.setOnNavigationItemSelectedListener { onBottomMenuSelect(it.itemId) }
+        viewBinding.bottomNavigationView.setOnNavigationItemSelectedListener {
+            // without it the AppBar may remain hidden without possibility to show
+            expandAppBar()
+
+            onBottomMenuSelect(it.itemId)
+        }
 
         if (savedInstanceState == null) {
             onBottomMenuSelect(viewBinding.bottomNavigationView.selectedItemId)
@@ -151,10 +156,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
                                 viewBinding.toolbar += it
                             }
-                    })
+                    }, ::expandAppBar)
                 }
                 else -> defaultFactory.instantiate(classLoader, className)
             }
+    }
+
+    private fun expandAppBar() {
+        viewBinding.appBarLayout.setExpanded(true)
     }
 
     private fun requireActionBar() =

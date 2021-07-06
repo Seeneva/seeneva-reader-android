@@ -149,8 +149,14 @@ interface ComicsListView : PresenterStatefulView {
     }
 }
 
-class ComicsListFragment(_searchView: Lazy<SearchView>) :
-    Fragment(R.layout.fragment_comic_list),
+/**
+ * @param _searchView inflated search view
+ * @param expandAppBar called to expand [AppBarLayout] if any
+ */
+class ComicsListFragment(
+    _searchView: Lazy<SearchView>,
+    private val expandAppBar: () -> Unit = {}
+) : Fragment(R.layout.fragment_comic_list),
     ComicsListView,
     ComicsSortDialog.Callback,
     ComicRenameDialog.Callback,
@@ -363,64 +369,36 @@ class ComicsListFragment(_searchView: Lazy<SearchView>) :
         listSelectionTracker.onRestoreInstanceState(savedInstanceState)
 
         // listen to screen state change
-        flow {
-            var oldState: ScreenState? = null
-
-            currentListScreenState.collect {
-                emit(oldState to it)
-
-                oldState = it
-            }
-        }.conflate()
-            .observe(viewLifecycleOwner) { (oldState, newState) ->
-                //if parent view has scrolling behavior it needs to change nested scrolling
-                if (isRootParentScrollingView(requireView()) != null) {
-                    //if list is empty than fling list to show toolbar
-                    if (oldState == ScreenState.STATE_DEFAULT) {
-                        viewBinding.recyclerView.addOnScrollListener(object :
-                            RecyclerView.OnScrollListener() {
-                            override fun onScrollStateChanged(
-                                recyclerView: RecyclerView,
-                                newState: Int
-                            ) {
-                                super.onScrollStateChanged(recyclerView, newState)
-                                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                                    recyclerView.suppressLayout(true)
-                                    recyclerView.removeOnScrollListener(this)
-
-                                    showCurrentState()
-                                }
-                            }
-                        })
-
-                        //fling to restore appbarLayout visibility
-                        viewBinding.recyclerView.fling(
-                            0,
-                            -viewBinding.recyclerView.maxFlingVelocity
-                        )
-                    } else {
-                        viewBinding.recyclerView.suppressLayout(false)
-
-                        showCurrentState()
-                    }
+        currentListScreenState.observe(viewLifecycleOwner) { newState ->
+            when (newState) {
+                ScreenState.STATE_DEFAULT -> {
+                    viewBinding.recyclerView.suppressLayout(false)
                 }
+                else -> {
+                    // disable scrolling and force show AppBarLayout
+                    viewBinding.recyclerView.suppressLayout(true)
+                    expandAppBar()
+                }
+            }
 
-                searchView.also { searchView ->
-                    fun setViewEnabled(v: View, enabled: Boolean) {
-                        if (v is ViewGroup) {
-                            v.forEach {
-                                setViewEnabled(it, enabled)
-                            }
+            showCurrentState()
+
+            searchView.also { searchView ->
+                fun setViewEnabled(v: View, enabled: Boolean) {
+                    if (v is ViewGroup) {
+                        v.forEach {
+                            setViewEnabled(it, enabled)
                         }
-                        v.isEnabled = enabled
                     }
-
-                    //need to change enabled state of all children
-                    setViewEnabled(searchView, newState.menuEnabled)
+                    v.isEnabled = enabled
                 }
 
-                requireActivity().invalidateOptionsMenu()
+                //need to change enabled state of all children
+                setViewEnabled(searchView, newState.menuEnabled)
             }
+
+            requireActivity().invalidateOptionsMenu()
+        }
 
         // Here we set every loaded paging data to the Adapter
         presenter.pagingState
