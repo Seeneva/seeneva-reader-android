@@ -14,6 +14,11 @@ module Fastlane
 
         releases = client.releases(params[:repo])
 
+        UI.message("Releases:")
+        releases.each do |r|
+          UI.message("#{r.tag_name}")
+        end
+
         version_tag = params[:tag]
 
         # If there is not tag was provided we will try to get it from last release
@@ -21,7 +26,7 @@ module Fastlane
           # Take last release
           current_release = releases.find(&repo_filter)
 
-          UI.user_error!("There is no proper GH release") if current_release.nil?
+          UI.user_error!('There is no proper GH release') if current_release.nil?
 
           version_tag = current_release.tag_name
         end
