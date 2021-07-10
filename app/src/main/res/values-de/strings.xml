@@ -17,8 +17,8 @@
     <string name="viewer_help_hold">Halten</string>
     <string name="viewer_help_tap">Tippen</string>
     <string name="viewer_help_title">Tipp</string>
-    <string name="viewer_tts_error_language">Bitte installiere „%1$s“ für die gewählte TzS-Programm.</string>
-    <string name="viewer_tts_error_not_installed">Bitte installiere ein beliebiges verfügbares Text-zu-Sprache-Programm auf dem Gerät und konfiguriere die Sprache „%1$s“.</string>
+    <string name="viewer_tts_error_language">Bitte installiere %1$s für die gewählte TzS-Programm.</string>
+    <string name="viewer_tts_error_not_installed">Bitte installiere ein beliebiges verfügbares Text-zu-Sprache-Programm auf dem Gerät und konfiguriere die Sprache %1$s.</string>
     <string name="viewer_tts_error_title">TzS nicht verfügbar</string>
     <string name="viewer_settings_tts">Text-zu-Sprache (nur Englisch)</string>
     <string name="viewer_settings_system_brightness">Systemhelligkeit</string>
@@ -29,16 +29,16 @@
     <string name="viewer_swap_read_direction">Leserichtung vertauschen</string>
     <string name="viewer_set_cover">Als Deckblatt festlegen</string>
     <string name="viewer_preview_page_counter">Seite: %1$d von %2$d</string>
-    <string name="notification_open_metatada_error_no_pages_short">„%1$s“: hat keine Seiten</string>
+    <string name="notification_open_metatada_error_no_pages_short">%1$s: hat keine Seiten</string>
     <string name="notification_open_metatada_error_no_pages">Die bereitgestellte Comicbuchdatei hat keine Seiten</string>
-    <string name="notification_open_metatada_error_open_container_unsupported_short">„%1$s“: wird nicht unterstützt</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">%1$s: wird nicht unterstützt</string>
     <string name="notification_open_metatada_error_open_container_unsupported">Bereitgestellte Datei wird nicht unterstützt</string>
-    <string name="notification_open_metatada_error_read_container_short">„%1$s“: kann nicht gelesen werden</string>
+    <string name="notification_open_metatada_error_read_container_short">%1$s: kann nicht gelesen werden</string>
     <string name="notification_open_metatada_error_read_container">Kann die bereitgestellte Comicdatei nicht lesen</string>
     <string name="notification_open_metatada_error_title">Fehler beim Öffnen</string>
-    <string name="notification_open_metatada_already_opened_short">„%1$s“: ist bereits in deiner Bibliothek vorhanden</string>
+    <string name="notification_open_metatada_already_opened_short">%1$s: ist bereits in deiner Bibliothek vorhanden</string>
     <string name="notification_open_metatada_already_opened">Das Comicbuch ist bereits in deiner Bibliothek</string>
-    <string name="notification_open_metatada_success_short">„%1$s“: zu deiner Bibliothek hinzugefügt</string>
+    <string name="notification_open_metatada_success_short">%1$s: zu deiner Bibliothek hinzugefügt</string>
     <string name="notification_open_metatada_success">Das Comicbuch, das deiner Bibliothek hinzugefügt wurde</string>
     <string name="notification_open_metatada_success_title">Hinzugefügt</string>
     <plurals name="notification_open_metadata_text">
@@ -121,4 +121,7 @@
     <string name="search">Suchen</string>
     <string name="all_cancel">Abbrechen</string>
     <string name="all_ok">OK</string>
+    <string name="about_app_donate_txt">Unterstützen Sie den Entwickler</string>
+    <string name="about_app_donate">Spenden</string>
+    <string name="comic_list_message_add_progress">Verarbeitung. Es kann ein paar Minuten dauern.️</string>
 </resources>
