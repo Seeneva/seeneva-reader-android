@@ -60,7 +60,7 @@ fun ViewerConfig.applyToWindow(window: Window) {
         attrs.screenBrightness = if (systemBrightness) {
             WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         } else {
-            brightness
+            brightness.coerceIn(.0f, 1.0f)
         }
     }
 }

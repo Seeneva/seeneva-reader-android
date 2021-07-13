@@ -24,9 +24,12 @@ import app.seeneva.reader.logic.entity.configuration.ViewerConfig
 import app.seeneva.reader.logic.text.tts.TTS
 import app.seeneva.reader.presenter.BasePresenter
 import app.seeneva.reader.presenter.Presenter
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 sealed interface ChangeTtsEvent {
     object Idle : ChangeTtsEvent
@@ -175,6 +178,10 @@ class ViewerConfigPresenterImpl(
     }
 
     private fun observeSystemBrightness() {
+        if (systemBrightnessJob?.isActive == true) {
+            return
+        }
+
         systemBrightnessJob = viewModel.systemBrightnessFlow
             .observe(view) { brightness ->
                 view.showBrightness(brightness)

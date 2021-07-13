@@ -63,7 +63,7 @@ class ViewerConfigViewModelImpl(
     override val configState = MutableStateFlow<ConfigState>(ConfigState.Idle)
 
     override val systemBrightnessFlow =
-        systemBrightnessFlow(context.contentResolver).map { it / 255f }
+        systemBrightnessFlow(context.contentResolver).map { it / 255.0f }
 
     private var saveConfigJob: Job? = null
 
