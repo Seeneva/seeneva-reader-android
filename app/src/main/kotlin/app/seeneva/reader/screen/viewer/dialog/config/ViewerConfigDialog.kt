@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.core.scope.KoinScopeComponent
 import org.koin.core.scope.inject
+import org.tinylog.kotlin.Logger
 import java.text.Format
 import java.text.NumberFormat
 
@@ -104,7 +105,7 @@ class ViewerConfigDialog : BaseDraggableDialog(), ViewerConfigView, KoinScopeCom
                     .apply { maximumFractionDigits = 1 }
 
             override fun getFormattedValue(value: Float) =
-                formatter.format(value * 0.01f)
+                formatter.format(value)
         })
 
         viewBinding.systemBrightnessSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -140,6 +141,8 @@ class ViewerConfigDialog : BaseDraggableDialog(), ViewerConfigView, KoinScopeCom
     }
 
     override fun showConfig(config: ViewerConfig) {
+        Logger.debug { "Show new viewer config $config" }
+
         if (!requireView().isEnabled) {
             enableView(requireView(), true)
         }
@@ -161,7 +164,13 @@ class ViewerConfigDialog : BaseDraggableDialog(), ViewerConfigView, KoinScopeCom
     }
 
     override fun showBrightness(@FloatRange(from = .0, to = 1.0) brightness: Float) {
-        viewBinding.brightnessSlider.value = brightness * 100.0f
+        Logger.debug { "Required brightness is $brightness" }
+
+        viewBinding.brightnessSlider.also { slider ->
+            slider.value = brightness.coerceIn(slider.valueFrom, slider.valueTo).also {
+                Logger.debug { "Actual brightness is $it" }
+            }
+        }
     }
 
     private fun enableView(view: View, enable: Boolean = true) {
@@ -206,7 +215,7 @@ class ViewerConfigDialog : BaseDraggableDialog(), ViewerConfigView, KoinScopeCom
         callbackFlow {
             val changeListener = Slider.OnChangeListener { _, value, fromUser ->
                 if (fromUser) {
-                    trySend(value * 0.01f)
+                    trySend(value)
                 }
             }
 
