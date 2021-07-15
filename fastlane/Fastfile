@@ -68,7 +68,8 @@ platform :android do
         build_type: (options[:build_type] || 'Debug'),
         properties: {
           'seeneva.disableSplitApk': '',
-          'seeneva.noDebSymbols': ''
+          'seeneva.noDebSymbols': '',
+          'seeneva.applicationIdSuffix': '.pr'
         }
       )
     end
@@ -84,7 +85,8 @@ platform :android do
       properties: {
         'seeneva.disableSplitApk': '',
         'seeneva.noDebSymbols': '',
-        'seeneva.unsigned': ''
+        'seeneva.unsigned': '',
+        'seeneva.applicationIdSuffix': '.pr'
       }
     )
   end

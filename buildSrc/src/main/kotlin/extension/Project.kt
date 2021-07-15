@@ -65,6 +65,11 @@ const val PROP_NO_DEB_SYMBOLS = "seeneva.noDebSymbols"
  */
 const val PROP_BUILD_UNSIGNED = "seeneva.unsigned"
 
+/**
+ * Property: append additional application id suffix
+ */
+const val PROP_APP_ID_SUFFIX = "seeneva.applicationIdSuffix"
+
 
 /**
  * Env variable: path to a keystore
@@ -95,6 +100,11 @@ const val ENV_VERSION_CODE = "SEENEVA_VERSION_CODE"
  * Env variable: version name of the app
  */
 const val ENV_VERSION_NAME = "SEENEVA_VERSION_NAME"
+
+/**
+ * Env variable: append additional application id suffix
+ */
+const val ENV_APP_ID_SUFFIX = "SEENEVA_APP_ID_SUFFIX"
 
 /**
  * @param envName env variable name
