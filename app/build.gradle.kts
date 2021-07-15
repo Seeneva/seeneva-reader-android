@@ -21,6 +21,7 @@ import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApkVariantOutput
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.internal.dsl.SigningConfig
+import extension.envOrProperty
 import extension.signProperties
 
 plugins {
@@ -61,6 +62,9 @@ android {
 
     defaultConfig {
         applicationId = "app.seeneva.reader"
+        // allow to set app id suffix from properties. It is required by CI.
+        applicationIdSuffix =
+            envOrProperty(extension.ENV_APP_ID_SUFFIX, extension.PROP_APP_ID_SUFFIX)
 
         enableShowDonate(true)
 
