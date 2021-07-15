@@ -16,8 +16,8 @@
     <string name="viewer_help_hold">Tieni</string>
     <string name="viewer_help_tap">Tocca</string>
     <string name="viewer_help_title">Suggerimento</string>
-    <string name="viewer_tts_error_language">Si prega di installare la lingua «%1$s» per il motore di sintesi vocale selezionato.</string>
-    <string name="viewer_tts_error_not_installed">Installa qualsiasi motore di sintesi vocale disponibile sul dispositivo e configura la lingua «%1$s».</string>
+    <string name="viewer_tts_error_language">Si prega di installare la lingua %1$s per il motore di sintesi vocale selezionato.</string>
+    <string name="viewer_tts_error_not_installed">Installa qualsiasi motore di sintesi vocale disponibile sul dispositivo e configura la lingua %1$s.</string>
     <string name="viewer_tts_error_title">Sintesi vocale non disponibile</string>
     <string name="viewer_settings_tts">Sintesi vocale (solo in inglese)</string>
     <string name="viewer_settings_system_brightness">Luminosità del sistema</string>
@@ -28,16 +28,16 @@
     <string name="viewer_swap_read_direction">Cambia la direzione di lettura</string>
     <string name="viewer_set_cover">Imposta come copertina</string>
     <string name="viewer_preview_page_counter">Pagina: %1$d di %2$d</string>
-    <string name="notification_open_metatada_error_no_pages_short">«%1$s»: non ha pagine</string>
+    <string name="notification_open_metatada_error_no_pages_short">%1$s: non ha pagine</string>
     <string name="notification_open_metatada_error_no_pages">Il file del fumetto fornito non ha pagine</string>
-    <string name="notification_open_metatada_error_open_container_unsupported_short">«%1$s»: non è supportato</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">%1$s: non è supportato</string>
     <string name="notification_open_metatada_error_open_container_unsupported">Il file fornito non è supportato</string>
-    <string name="notification_open_metatada_error_read_container_short">«%1$s»: lettura impossibile</string>
+    <string name="notification_open_metatada_error_read_container_short">%1$s: lettura impossibile</string>
     <string name="notification_open_metatada_error_read_container">Impossibile leggere il file del fumetto fornito</string>
     <string name="notification_open_metatada_error_title">Errore di apertura</string>
-    <string name="notification_open_metatada_already_opened_short">«%1$s»: è già nella tua raccolta</string>
+    <string name="notification_open_metatada_already_opened_short">%1$s: è già nella tua raccolta</string>
     <string name="notification_open_metatada_already_opened">Il fumetto è già nella tua raccolta</string>
-    <string name="notification_open_metatada_success_short">«%1$s»: aggiunto alla tua raccolta</string>
+    <string name="notification_open_metatada_success_short">%1$s: aggiunto alla tua raccolta</string>
     <string name="notification_open_metatada_success">Il fumetto aggiunto alla tua raccolta</string>
     <string name="notification_open_metatada_success_title">Aggiunto</string>
     <plurals name="notification_open_metadata_text">
@@ -121,4 +121,7 @@
     <string name="search">Cerca</string>
     <string name="all_cancel">Annulla</string>
     <string name="all_ok">OK</string>
+    <string name="about_app_donate_txt">Sostieni lo sviluppatore</string>
+    <string name="about_app_donate">Dona</string>
+    <string name="comic_list_message_add_progress">Elaborazione. Potrebbero volerci alcuni minuti.</string>
 </resources>

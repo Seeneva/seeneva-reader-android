@@ -17,8 +17,8 @@
     <string name="viewer_help_hold">Maintenir</string>
     <string name="viewer_help_tap">Appuyer</string>
     <string name="viewer_help_title">Astuce</string>
-    <string name="viewer_tts_error_language">Veuillez installer la langue « %1$s » pour le moteur synthèse vocale sélectionné.</string>
-    <string name="viewer_tts_error_not_installed">Veuillez installer un moteur de synthèse vocale disponible sur l’appareil et configurer la langue « %1$s ».</string>
+    <string name="viewer_tts_error_language">Veuillez installer la langue %1$s pour le moteur synthèse vocale sélectionné.</string>
+    <string name="viewer_tts_error_not_installed">Veuillez installer un moteur de synthèse vocale disponible sur l’appareil et configurer la langue %1$s.</string>
     <string name="viewer_tts_error_title">Synthèse vocale indisponible</string>
     <string name="viewer_settings_tts">Synthèse vocale (anglais uniquement)</string>
     <string name="viewer_settings_system_brightness">Luminosité du système</string>
@@ -29,15 +29,15 @@
     <string name="viewer_swap_read_direction">Permuter le sens de lecture</string>
     <string name="viewer_set_cover">Définir comme couverture</string>
     <string name="viewer_preview_page_counter">Page : %1$d sur %2$d</string>
-    <string name="notification_open_metatada_error_no_pages_short">« %1$s » : n’a pas de pages</string>
-    <string name="notification_open_metatada_error_open_container_unsupported_short">« %1$s » : n’est pas pris en charge</string>
+    <string name="notification_open_metatada_error_no_pages_short">%1$s : n’a pas de pages</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">%1$s : n’est pas pris en charge</string>
     <string name="notification_open_metatada_error_open_container_unsupported">Le fichier fourni n\'est pas pris en charge</string>
-    <string name="notification_open_metatada_error_read_container_short">« %1$s » : lecture impossible</string>
+    <string name="notification_open_metatada_error_read_container_short">%1$s  : lecture impossible</string>
     <string name="notification_open_metatada_error_read_container">Impossible de lire le fichier de la BD fournie</string>
     <string name="notification_open_metatada_error_title">Erreur d’ouverture</string>
-    <string name="notification_open_metatada_already_opened_short">« %1$s » : se trouve déjà dans votre bibliothèque</string>
+    <string name="notification_open_metatada_already_opened_short">%1$s : se trouve déjà dans votre bibliothèque</string>
     <string name="notification_open_metatada_already_opened">La BD est déjà dans votre bibliothèque</string>
-    <string name="notification_open_metatada_success_short">« %1$s » : ajouté à votre bibliothèque</string>
+    <string name="notification_open_metatada_success_short">%1$s : ajouté à votre bibliothèque</string>
     <string name="notification_open_metatada_success">La bande dessinée ajoutée à votre bibliothèque</string>
     <string name="notification_open_metatada_success_title">Ajouté</string>
     <plurals name="notification_open_metadata_text">
@@ -121,4 +121,7 @@
     <string name="search">Chercher</string>
     <string name="all_cancel">Annuler</string>
     <string name="all_ok">OK</string>
+    <string name="about_app_donate_txt">Soutenir le développeur</string>
+    <string name="about_app_donate">Faire un don</string>
+    <string name="comic_list_message_add_progress">En cours de traitement. Cela peut prendre quelques minutes.️</string>
 </resources>
