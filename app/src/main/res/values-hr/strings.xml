@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="install">Instaliraj</string>
+    <string name="copy">Kopiraj</string>
+    <string name="settings">Postavke</string>
+    <string name="search">Traži</string>
+    <string name="all_cancel">Odustani</string>
+    <string name="all_ok">U redu</string>
+</resources>
