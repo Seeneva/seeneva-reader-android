@@ -1,2 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="sort_comic_list_name_desc">Tytuł (Z..A)</string>
+    <string name="filter_comic_completed_title">Status ukończenia</string>
+    <string name="comic_script_direction_rtl">Od prawej do lewej</string>
+    <string name="comic_script_direction_ltr">Od lewej do prawej</string>
+    <string name="comic_tag_corrupted">Uszkodzony</string>
+    <string name="comic_tag_removed">Usunięty</string>
+    <string name="comic_tag_completed">Ukończony</string>
+    <string name="add_mode_link">Link</string>
+    <string name="add_mode_import_descr">Plik komiksu zostanie skopiowany do wewnętrznego folderu aplikacji</string>
+    <string name="add_mode_import">Importuj</string>
+    <string name="filter_comic_file_status_corrupted">Uszkodzony</string>
+    <string name="filter_comic_file_status_any">Dowolny</string>
+    <string name="filter_comic_file_status_title">Status pliku</string>
+    <string name="filter_comic_completed_not">Nieukończone</string>
+    <string name="filter_comic_completed_only">Ukończone</string>
+    <string name="filter_comic_completed_any">Dowolny</string>
+    <string name="sort_comic_list_name_asc">Tytuł (A..Z)</string>
+</resources>
