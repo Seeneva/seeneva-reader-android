@@ -1,2 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="comic_list_add">Dodaj</string>
+    <string name="comic_list_not_completed">Nieukończone</string>
+    <string name="comic_list_completed">Ukończone</string>
+    <string name="comic_list_as_grid">Kafelki</string>
+    <string name="comic_list_as_list">Lista</string>
+    <string name="about_app">O aplikacji</string>
+    <string name="library">Biblioteka</string>
+    <string name="install">Instaluj</string>
+    <string name="copy">Kopiuj</string>
+    <string name="settings">Ustawienia</string>
+    <string name="search">Szukaj</string>
+    <string name="all_cancel">Anuluj</string>
+    <string name="all_ok">OK</string>
+</resources>
