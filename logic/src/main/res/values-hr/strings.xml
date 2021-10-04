@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="sort_comic_list_time_asc">Najnoviji na kraj</string>
+    <string name="sort_comic_list_time_desc">Najnoviji na početak</string>
+    <string name="sort_comic_list_name_asc">Naslov (A..Z)</string>
+    <string name="sort_comic_list_name_desc">Naslov (Z..A)</string>
+    <string name="filter_comic_completed_title">Stanje završetka</string>
+    <string name="filter_comic_completed_any">Bilo koje</string>
+    <string name="filter_comic_completed_only">Završeno</string>
+    <string name="filter_comic_completed_not">Nezavršeno</string>
+    <string name="filter_comic_file_status_title">Stanje datoteke</string>
+    <string name="filter_comic_file_status_any">Bilo koje</string>
+    <string name="filter_comic_file_status_corrupted">Oštećeno</string>
+    <string name="add_mode_import">Uvoz</string>
+    <string name="add_mode_import_descr">Datoteka stripa kopirat će se u unutarnju mapu programa</string>
+    <string name="add_mode_link">Poveznica</string>
+    <string name="add_mode_link_descr">Strip će se dodati bez kopiranja. No, ako izbrišeš program s kojim je otvoren, strip više neće biti dostupan za čitanje.</string>
+    <string name="comic_tag_completed">Završeno</string>
+    <string name="comic_tag_removed">Uklonjeno</string>
+    <string name="comic_tag_corrupted">Oštećeno</string>
+    <string name="comic_script_direction_ltr">Lijevo na desno</string>
+    <string name="comic_script_direction_rtl">Desno na lijevo</string>
+</resources>
