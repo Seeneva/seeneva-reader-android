@@ -63,7 +63,7 @@
     <string name="comic_info_pencillers">Crtači</string>
     <string name="comic_info_colorists">Koloristi</string>
     <string name="comic_info_inkers">Crtači tintom</string>
-    <string name="comic_info_cover_artists">Umjetnici omota</string>
+    <string name="comic_info_cover_artists">Umjetnici naslovnice</string>
     <string name="comic_info_release">Izdanje</string>
     <string name="comic_info_publisher">Izdavač</string>
     <string name="comic_info_imprint">Impresum</string>
@@ -98,9 +98,9 @@
     <string name="notification_open_metatada_error_no_pages">Pružena datoteka stripa nema nijednu stranicu</string>
     <string name="notification_open_metatada_error_no_pages_short">%1$s: nema stranica</string>
     <string name="viewer_preview_page_counter">Stranica: %1$d od %2$d</string>
-    <string name="viewer_set_cover">Postavi kao omot</string>
+    <string name="viewer_set_cover">Postavi kao naslovnicu</string>
     <string name="viewer_swap_read_direction">Zamijeni smjer čitanja</string>
-    <string name="viewer_cover_changed">Omot je postavljen</string>
+    <string name="viewer_cover_changed">Naslovnica je postavljena</string>
     <string name="viewer_txt_recognize_empty">Nijedan tekst nije prepoznat 😨</string>
     <string name="viewer_txt_recognize_process">Prepoznavanje teksta u tijeku 👀</string>
     <string name="viewer_settings_keep_screen_on">Ostavi ekran uključen</string>
@@ -122,7 +122,7 @@
     <string name="about_app_donate">Doniraj</string>
     <string name="about_app_donate_txt">Podrži programera</string>
     <string name="about_app_web">Web-stranica</string>
-    <string name="about_app_libraries">Strane biblioteke</string>
+    <string name="about_app_libraries">Strane skriptoteke</string>
     <string name="about_app_libraries_txt">Zahvalimo se njihovim autorima!</string>
     <string name="about_app_gratitude">Zahvalnost</string>
     <string name="about_app_gratitude_txt">Želim izraziti veliku zahvalnost svojoj supruzi, roditeljima, rodbini i prijateljima na podršci!</string>
