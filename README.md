@@ -75,7 +75,7 @@ Now you can easily zooming and navigate through comic book speech balloons no ma
 
 ## OCR and TTS
 
-*Seeneva* comic book reader make it possible to use [**O**ptical **C**haracter **R**ecognition](https://en.wikipedia.org/wiki/Optical_character_recognition) (based on [Tesseract](https://github.com/tesseract-ocr/tesseract)) on all founded speech balloons to extract text from them. This will allow you to easily copy speech balloon's text and for example translate it using any available translator.
+*Seeneva* comic book reader make it possible to use [**O**ptical **C**haracter **R**ecognition](https://en.wikipedia.org/wiki/Optical_character_recognition) (based on [Tesseract](https://github.com/tesseract-ocr/tesseract)) on all found speech balloons to extract text from them. This will allow you to easily copy speech balloon's text and for example translate it using any available translator.
 
 ![OCR](docs/img/en/gif/ocr.gif)
 
