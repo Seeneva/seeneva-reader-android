@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="add_mode_import_descr">Um arquivo de quadrinhos será copiado para a pasta interna do aplicativo</string>
+    <string name="sort_comic_list_time_asc">Mais recente por último</string>
+    <string name="sort_comic_list_time_desc">Mais recente primeiro</string>
+    <string name="sort_comic_list_name_asc">Título (A..Z)</string>
+    <string name="sort_comic_list_name_desc">Título (Z..A)</string>
+    <string name="filter_comic_completed_title">Status de conclusão</string>
+    <string name="filter_comic_completed_any">Qualquer</string>
+    <string name="filter_comic_completed_only">Concluído</string>
+    <string name="filter_comic_completed_not">Não completo</string>
+    <string name="filter_comic_file_status_title">Status do arquivo</string>
+    <string name="filter_comic_file_status_corrupted">Corrompido</string>
+    <string name="add_mode_import">Importar</string>
+    <string name="add_mode_link">Link</string>
+    <string name="comic_tag_completed">Concluído</string>
+    <string name="comic_tag_removed">Removido</string>
+    <string name="comic_tag_corrupted">Corrompido</string>
+    <string name="comic_script_direction_ltr">Da esquerda para direita</string>
+    <string name="comic_script_direction_rtl">Direita para esquerda</string>
+    <string name="add_mode_link_descr">Uma história em quadrinhos será adicionada sem cópia. Mas se você excluir o aplicativo com o qual foi aberto, a história em quadrinhos ficará inacessível para leitura.</string>
+    <string name="filter_comic_file_status_any">Qualquer</string>
+</resources>
