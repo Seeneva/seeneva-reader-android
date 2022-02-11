@@ -29,7 +29,7 @@
         <item quantity="other">删除了 %1$d 本漫画</item>
     </plurals>
     <string name="comic_info_general_information">总体信息</string>
-    <string name="comic_list_message_add_progress">正在处理，可能要用几分钟的时间。</string>
+    <string name="comic_list_message_add_progress">正在处理。可能要用几分钟的时间。</string>
     <string name="comic_info_general_info_series">系列</string>
     <string name="comic_info_general_info_title">标题</string>
     <string name="comic_info_general_info_volume">音量</string>
@@ -67,7 +67,7 @@
     <string name="viewer_tts_error_title">语音合成不好使</string>
     <string name="viewer_tts_error_not_installed">请在设备上安一个能用的文字转语音引擎然后配置好 %1$s。</string>
     <string name="viewer_tts_error_language">请给所选的语音合成引擎安装上 %1$s。</string>
-    <string name="viewer_help_title"/>
+    <string name="viewer_help_title">诀窍</string>
     <string name="third_parties_version">版本</string>
     <string name="third_parties_authors">作者</string>
     <string name="third_parties_license">许可协议</string>
