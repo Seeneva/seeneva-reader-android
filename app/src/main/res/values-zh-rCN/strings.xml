@@ -67,7 +67,7 @@
     <string name="viewer_tts_error_title">语音合成不好使</string>
     <string name="viewer_tts_error_not_installed">请在设备上安一个能用的文字转语音引擎然后配置好 %1$s。</string>
     <string name="viewer_tts_error_language">请给所选的语音合成引擎安装上 %1$s。</string>
-    <string name="viewer_help_title"></string>
+    <string name="viewer_help_title">提示</string>
     <string name="third_parties_version">版本</string>
     <string name="third_parties_authors">作者</string>
     <string name="third_parties_license">许可协议</string>
