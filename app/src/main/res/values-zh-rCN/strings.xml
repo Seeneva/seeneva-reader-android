@@ -34,7 +34,7 @@
     <string name="comic_info_general_info_title">标题</string>
     <string name="comic_info_general_info_volume">卷次</string>
     <string name="comic_info_general_info_issue">期号</string>
-    <string name="comic_info_general_info_issue_of">%2$d 刊中的 %1$d 个</string>
+    <string name="comic_info_general_info_issue_of">第 %1$d 期，共 %2$d 期</string>
     <string name="comic_info_plot">剧情</string>
     <string name="comic_info_plot_summary">摘要</string>
     <string name="comic_info_plot_teams">队伍</string>
