@@ -67,12 +67,12 @@
     <string name="viewer_tts_error_title">语音合成不好使</string>
     <string name="viewer_tts_error_not_installed">请在设备上安一个能用的文字转语音引擎然后配置好 %1$s。</string>
     <string name="viewer_tts_error_language">请给所选的语音合成引擎安装上 %1$s。</string>
-    <string name="viewer_help_title">提示</string>
+    <string name="viewer_help_title">使用提示</string>
     <string name="third_parties_version">版本</string>
     <string name="third_parties_authors">作者</string>
     <string name="third_parties_license">许可协议</string>
     <string name="third_parties_homepage">主页</string>
-    <string name="comic_info_general_info_issues_count">总刊号</string>
+    <string name="comic_info_general_info_issues_count">总期号</string>
     <string name="search">搜索</string>
     <string name="comic_info_plot_characters">人物</string>
     <string name="library">书库</string>
@@ -87,7 +87,7 @@
     <string name="comic_info_general_info_language">语言</string>
     <string name="comic_info_general_info_notes">备注</string>
     <string name="comic_info_general_info_hash">哈希码</string>
-    <string name="comic_info_general_info_size">大小</string>
+    <string name="comic_info_general_info_size">数据大小</string>
     <string name="comic_info_writets">作家</string>
     <string name="comic_info_colorists">上色师</string>
     <string name="comic_info_inkers">扫图员</string>
@@ -95,7 +95,7 @@
     <string name="comic_info_cover_artists">封面艺术设计者</string>
     <string name="comic_info_release">发行</string>
     <string name="comic_info_publisher">出版者</string>
-    <string name="comic_info_format">排版</string>
+    <string name="comic_info_format">开本</string>
     <string name="comic_info_pages_color">页面颜色</string>
     <string name="comic_info_colorful">彩色</string>
     <string name="about_app_source_code">源代码</string>
@@ -117,4 +117,7 @@
     <string name="comic_info_general_info_source">文件来源</string>
     <string name="viewer_help_tap">按一下</string>
     <string name="third_parties_summary">概要</string>
+    <string name="comic_info_credits">制作名单</string>
+    <string name="viewer_help_hold">按住别放</string>
+    <string name="about_app_source_code_txt">查看软件存储数据的位置</string>
 </resources>
