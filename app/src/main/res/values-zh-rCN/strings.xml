@@ -119,5 +119,6 @@
     <string name="third_parties_summary">概要</string>
     <string name="comic_info_credits">制作名单</string>
     <string name="viewer_help_hold">按住别放</string>
-    <string name="about_app_source_code_txt">查看软件存储数据的位置</string>
+    <string name="about_app_source_code_txt">查看应用存储库</string>
+    <string name="notification_channel_foreground_task">用户任务</string>
 </resources>
