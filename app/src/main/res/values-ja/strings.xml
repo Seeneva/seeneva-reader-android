@@ -1,2 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="all_ok">OK</string>
+    <string name="all_cancel">キャンセル</string>
+    <string name="search">検索</string>
+    <string name="settings">設定</string>
+    <string name="copy">コピー</string>
+    <string name="install">インストール</string>
+    <string name="library">ライブラリー</string>
+    <string name="about_app">この本の詳細</string>
+    <string name="comic_list_as_list">リストビュー</string>
+    <string name="comic_list_as_grid">グリッドビュー</string>
+    <string name="comic_list_completed">完了</string>
+</resources>
