@@ -10,4 +10,14 @@
     <string name="filter_comic_completed_title">完了の状況</string>
     <string name="filter_comic_completed_any">任意</string>
     <string name="filter_comic_file_status_title">ファイルの状態</string>
+    <string name="add_mode_import_descr">アプリの内部フォルダに漫画ファイルがコピーされます</string>
+    <string name="add_mode_link">リンク</string>
+    <string name="add_mode_link_descr">漫画がコピーされずに追加されます。ただし、開いていたアプリケーションを削除すると、その漫画は読めなくなります。</string>
+    <string name="comic_tag_completed">完了</string>
+    <string name="comic_tag_removed">削除</string>
+    <string name="comic_tag_corrupted">破損</string>
+    <string name="comic_script_direction_ltr">左から右へ</string>
+    <string name="comic_script_direction_rtl">右から左</string>
+    <string name="add_mode_import">インポート</string>
+    <string name="filter_comic_file_status_corrupted">破損</string>
 </resources>
