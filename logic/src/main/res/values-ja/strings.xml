@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="sort_comic_list_time_asc">最新の最後</string>
+    <string name="sort_comic_list_time_desc">直近のファースト</string>
+    <string name="sort_comic_list_name_asc">タイトル (A..Z)</string>
+    <string name="sort_comic_list_name_desc">タイトル (Z..A)</string>
+    <string name="filter_comic_completed_only">完了</string>
+    <string name="filter_comic_completed_not">未完了</string>
+    <string name="filter_comic_file_status_any">任意の</string>
+    <string name="filter_comic_completed_title">完了の状況</string>
+    <string name="filter_comic_completed_any">任意</string>
+    <string name="filter_comic_file_status_title">ファイルの状態</string>
 </resources>
