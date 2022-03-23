@@ -31,7 +31,7 @@
     <string name="comic_info_general_information">一般情報</string>
     <string name="comic_info_general_info_story_arc">ストーリーアーク</string>
     <string name="comic_info_general_info_genre">ジャンル</string>
-    <string name="comic_info_title">\@string/comic_list_info</string>
+    <string name="comic_info_title">\@string/コミックリスト情報</string>
     <string name="comic_list_message_empty">あなたのライブラリは空っぽです☹️</string>
     <string name="comic_info_general_info_language">言語</string>
     <string name="comic_info_general_info_notes">備考</string>
