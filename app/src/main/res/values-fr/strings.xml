@@ -3,7 +3,7 @@
     <string name="notification_open_metatada_error_no_pages">Le fichier de BD fourni n’a pas de pages</string>
     <string name="about_app_gratitude_txt">Je tiens à exprimer ma grande gratitude à ma femme, mes parents, mes proches et mes amis pour leur soutien !</string>
     <string name="about_app_gratitude">Reconnaissance</string>
-    <string name="about_app_libraries_txt">Remercions leurs auteurs!</string>
+    <string name="about_app_libraries_txt">Remercions leurs auteurs !</string>
     <string name="about_app_libraries">Bibliothèques tierces</string>
     <string name="about_app_web">Site web</string>
     <string name="about_app_source_code_txt">Voir le dépôt de l’application</string>
