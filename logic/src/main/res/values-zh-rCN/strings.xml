@@ -1,2 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="comic_script_direction_rtl">从右向左</string>
+    <string name="sort_comic_list_name_asc">按标题（A→Z）</string>
+    <string name="sort_comic_list_name_desc">按标题（Z→A）</string>
+    <string name="filter_comic_completed_title">是否完结</string>
+    <string name="filter_comic_completed_any">不筛选</string>
+    <string name="filter_comic_file_status_title">文件状况</string>
+    <string name="filter_comic_file_status_any">不筛选</string>
+    <string name="filter_comic_file_status_corrupted">文件损坏</string>
+    <string name="add_mode_import">导入文件</string>
+    <string name="add_mode_import_descr">把漫画书复制到本应用的内部文件夹里</string>
+    <string name="comic_tag_completed">完成</string>
+    <string name="comic_tag_removed">已经移走了</string>
+    <string name="comic_tag_corrupted">文件损坏了</string>
+    <string name="comic_script_direction_ltr">从左向右</string>
+    <string name="add_mode_link_descr"></string>
+    <string name="sort_comic_list_time_asc"></string>
+    <string name="filter_comic_completed_only">完结</string>
+    <string name="filter_comic_completed_not">未完结</string>
+    <string name="add_mode_link">链接</string>
+</resources>
