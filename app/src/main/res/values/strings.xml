@@ -60,7 +60,7 @@
         <item quantity="other">%1$d comics were removed</item>
     </plurals>
 
-    <string name="comic_info_title">@string/comic_list_info</string>
+    <string name="comic_info_title" translatable="false">@string/comic_list_info</string>
 
     <string name="comic_info_general_information">General information</string>
     <string name="comic_info_general_info_series">Series</string>
