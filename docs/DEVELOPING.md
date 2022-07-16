@@ -12,20 +12,21 @@ Use Android Studio and Gradle to build *Seeneva* apk/bundle.
 - [CMake](https://developer.android.com/ndk/guides/cmake). Can be installed using Android Studio.
 - [Autotools](https://www.gnu.org/software/automake/faq/autotools-faq.html).
 - [Kotlin](https://developer.android.com/kotlin). Can be installed using Android Studio.
-- [Rust](https://www.rust-lang.org/tools/install). Rustup will automatically install all required toolchain and targets using [rust-toolchain](rust-toolchain) file.
+- [Rust](https://www.rust-lang.org/tools/install). Rustup will automatically install all required
+  toolchain and targets using [rust-toolchain](../rust-toolchain) file.
 
-  - Android targets manual setup:
+    - Android targets manual setup:
 
-    ```console
-    # Android arm64-v8a
-    rustup target add aarch64-linux-android
-    # Android armeabi-v7a
-    rustup target add armv7-linux-androideabi
-    # Android x86
-    rustup target add i686-linux-android
-    # Android x86_64
-    rustup target add x86_64-linux-android
-    ```
+      ```console
+      # Android arm64-v8a
+      rustup target add aarch64-linux-android
+      # Android armeabi-v7a
+      rustup target add armv7-linux-androideabi
+      # Android x86
+      rustup target add i686-linux-android
+      # Android x86_64
+      rustup target add x86_64-linux-android
+      ```
 
 ## Gradle build variants
 
@@ -34,7 +35,10 @@ Use Android Studio and Gradle to build *Seeneva* apk/bundle.
 
 Usually you should use `rustRelease` build flavor for better ML performance.
 
-Output shared library will always include debug symbols (`-g` cflag). That's why shared library can have size 200+MB. But do not worry about it, Android Gradle plugin will strip debug symbols before pack the shared library into the output apk. These debug symbols will allow you to [debug](#native-debug) native code.
+Output shared library will always include debug symbols (`-g` cflag). That's why shared library can
+have size 200+MB. But do not worry about it, Android Gradle plugin will strip debug symbols before
+pack the shared library into the output apk. These debug symbols will allow you
+to [debug](#native-debug) native code.
 
 ## Gradle properties
 
@@ -44,13 +48,21 @@ You can set these Gradle properties:
 - `seeneva.noDebSymbols`: do not generate native debug symbols.
 - `seeneva.unsigned`: build unsigned APK/AAB outputs.
 
+If your system's default JDK is not compatible with the project, you can pass a correct version (
+e.g. version shipped with Android Studio) using Gradle *system* property.
+
+- `org.gradle.java.home`
+
 ## Native debug
 
 Your apk should be debaggable.
 
-:exclamation:**Note:** Native part of `Seeneva` was written using Rust language. You can't debug it using Android Studio or Intellij IDEA Community edition GUI.
+:exclamation:**Note:** Native part of `Seeneva` was written using Rust language. You can't debug it
+using Android Studio or Intellij IDEA Community edition GUI.
 
-You can use [Visual Studio Code](https://code.visualstudio.com) with [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) extension to debug Rust code.
+You can use [Visual Studio Code](https://code.visualstudio.com)
+with [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) extension
+to debug Rust code.
 
 You have two options to start debugger:
 
@@ -126,7 +138,11 @@ The project uses [Fastlane](https://fastlane.tools) to automate build and deploy
 
 ### Preparation
 
-Install [Bundler](https://bundler.io) and check Fastlane's [setup](https://docs.fastlane.tools/getting-started/android/setup) instruction. You should ensure that you use supported Ruby version. Remember that Fastlane [doesn't support Ruby 3.0](https://github.com/fastlane/fastlane/issues/17931) right now. You can use [rbenv](https://github.com/rbenv/rbenv) or other tools to bypass this. Use Ruby version described in the `.ruby-version` file.
+Install [Bundler](https://bundler.io) and check
+Fastlane's [setup](https://docs.fastlane.tools/getting-started/android/setup) instruction. You
+should ensure that you use supported Ruby version. You can
+use [rbenv](https://github.com/rbenv/rbenv) to use Ruby version described in the `.ruby-version`
+file.
 
 After that you can install all required Ruby gems by calling:
 
@@ -136,7 +152,9 @@ bundle install
 
 ### Sensitive data
 
-Use [dotenv](https://github.com/bkeepers/dotenv) files to pass env variables to Fastlane actions. These files should always be ignored by git.
+Use [dotenv](https://github.com/bkeepers/dotenv) files
+to [pass](https://docs.fastlane.tools/advanced/other/) env variables to Fastlane actions. These
+files should always be ignored by git.
 
 Example:
 
@@ -144,6 +162,8 @@ Example:
 
   ```text
   SUPPLY_JSON_KEY="fastlane_google_play_credentials.json"
+  // Override JDK path during build using Fastlane
+  FL_GRADLE_SYSTEM_PROPERTIES={"org.gradle.java.home":"/android_studio/jre"}
   ```
 
 - `.env.dev` and `.env.gplay` describes debug and upload keystores credentials:
@@ -152,6 +172,7 @@ Example:
   SEENEVA_STORE_FILE="seeneva.keystore"
   SEENEVA_KEY_ALIAS="key"
   SEENEVA_STORE_PASS="android"
+  SEENEVA_KEY_PASS="android"
   ```
 
 Now you can specify which configuration to use:

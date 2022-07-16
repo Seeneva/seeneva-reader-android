@@ -1,5 +1,5 @@
 New:
-- Added Norwegian (Bokmål), French, German and Italian translations. Thanks to contributors!
+- Added Norwegian (Bokmål), French, German, Italian, Spanish, Basque, Croatian, Polish, Portuguese, Chinese (Simplified) and Japanese translations. Thanks to contributors!
 
 Fix:
 - Crash on opening the settings screen.

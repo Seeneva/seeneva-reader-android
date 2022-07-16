@@ -12,45 +12,59 @@
 - [CMake](https://developer.android.com/ndk/guides/cmake). Может быть установлен с помощью Android Studio.
 - [Autotools](https://www.gnu.org/software/automake/faq/autotools-faq.html).
 - [Kotlin](https://developer.android.com/kotlin). Может быть установлен с помощью Android Studio.
-- [Rust](https://www.rust-lang.org/tools/install). Rustup сам установит необходимые toolchain и цели для кросс компиляции, используя файл [rust-toolchain](rust-toolchain).
-  
-  - Установка Android целей вручную:
+- [Rust](https://www.rust-lang.org/tools/install). Rustup сам установит необходимые toolchain и цели
+  для кросс компиляции, используя файл [rust-toolchain](../rust-toolchain).
 
-    ```console
-    # Android arm64-v8a
-    rustup target add aarch64-linux-android
-    # Android armeabi-v7a
-    rustup target add armv7-linux-androideabi
-    # Android x86
-    rustup target add i686-linux-android
-    # Android x86_64
-    rustup target add x86_64-linux-android
-    ```
+    - Установка Android целей вручную:
+
+      ```console
+      # Android arm64-v8a
+      rustup target add aarch64-linux-android
+      # Android armeabi-v7a
+      rustup target add armv7-linux-androideabi
+      # Android x86
+      rustup target add i686-linux-android
+      # Android x86_64
+      rustup target add x86_64-linux-android
+      ```
 
 ## Варианты сборки Gradle
 
 - `rustDubug`: собрать debug динамическую библиотеку.
 - `rustRelease`: собрать release динамическую библиотеку.
 
- Обычно вы должны использовать `rustRelease` build flavor для лучшей производительности ML.
+Обычно вы должны использовать `rustRelease` build flavor для лучшей производительности ML.
 
-Полученная динамическая библиотека всегда будет содержать дебаг символы (`-g` cflag). Поэтому динамическая библиотека может достигать 200+ MБ. Но не волнуйтесь об этом, Android Gradle плагин уберёт дебаг символы прежде чем упаковать динамическую библиотеку в apk приложения. Эти дебаг символы помогут при [дебаге](#дебаг-нативного-кода) нативного кода.
+Полученная динамическая библиотека всегда будет содержать дебаг символы (`-g` cflag). Поэтому
+динамическая библиотека может достигать 200+ MБ. Но не волнуйтесь об этом, Android Gradle плагин
+уберёт дебаг символы прежде чем упаковать динамическую библиотеку в apk приложения. Эти дебаг
+символы помогут при [дебаге](#дебаг-нативного-кода) нативного кода.
 
 ## Gradle свойства
 
 Вы можете использовать следующие свойства:
 
-- `seeneva.disableSplitApk`: отключает деление apk. Будет сгенерирован только один универсальный apk.
+- `seeneva.disableSplitApk`: отключает деление apk. Будет сгенерирован только один универсальный
+  apk.
 - `seeneva.noDebSymbols`: отключает генерацию дебаг символов для нативного кода.
 - `seeneva.unsigned`: собрать неподписанные APK/AAB.
+
+Если версия JDK по умолчанию на вашей системе не совместима с проектом, то вы можете передать
+необходимую версию (наприммер которая идет вместе с Android Studio), используя Gradle *системное*
+свойство.
+
+- `org.gradle.java.home`
 
 ## Дебаг нативного кода
 
 Ваша apk должна поддерживать дебаг (debaggable).
 
-:exclamation:**Примечание:** Нативная часть приложения `Seeneva` была написана, используя язык Rust. Дебаг Rust кода в Android Studio или Intellij IDEA Community edition GUI невозможен.
+:exclamation:**Примечание:** Нативная часть приложения `Seeneva` была написана, используя язык Rust.
+Дебаг Rust кода в Android Studio или Intellij IDEA Community edition GUI невозможен.
 
-Для дебага вы можете использовать [Visual Studio Code](https://code.visualstudio.com) с установленным расширением [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb).
+Для дебага вы можете использовать [Visual Studio Code](https://code.visualstudio.com) с
+установленным
+расширением [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb).
 
 У вас есть две возможности начать дебаг:
 
@@ -126,7 +140,11 @@
 
 ### Подготовка
 
-Установите [Bundler](https://bundler.io) и следуйте [инструкции](https://docs.fastlane.tools/getting-started/android/setup) по установке Fastlane. Убедитесь, что вы используете поддерживаемую версию Ruby. Помните, что в данный момент Fastlane [не поддерживает Ruby 3.0](https://github.com/fastlane/fastlane/issues/17931). Вы можете использовать [rbenv](https://github.com/rbenv/rbenv) или схожие инструменты, чтобы обойти это ограничение. Используйте версию Ruby, указанную в файле `.ruby-version`.
+Установите [Bundler](https://bundler.io) и
+следуйте [инструкции](https://docs.fastlane.tools/getting-started/android/setup) по установке
+Fastlane. Убедитесь, что вы используете поддерживаемую версию Ruby. Вы можете
+использовать [rbenv](https://github.com/rbenv/rbenv) или схожие инструменты, чтобы использовать
+версию Ruby, указанную в файле `.ruby-version`.
 
 Теперь вы можете установить все требуемые Ruby gems:
 
@@ -136,7 +154,9 @@ bundle install
 
 ### Конфиденциальные данные
 
-Используйте файлы формата [dotenv](https://github.com/bkeepers/dotenv), чтобы передать переменные окружения в Fastlane. Эти файлы всегда должны быть исключены из системы контроля версий git.
+Используйте файлы формата [dotenv](https://github.com/bkeepers/dotenv),
+чтобы [передать](https://docs.fastlane.tools/advanced/other/) переменные окружения в Fastlane. Эти
+файлы всегда должны быть исключены из системы контроля версий git.
 
 Пример:
 
@@ -144,6 +164,8 @@ bundle install
 
   ```text
   SUPPLY_JSON_KEY="fastlane_google_play_credentials.json"
+  // Переопределить путь к JDK во время сборки, используя Fastlane
+  FL_GRADLE_SYSTEM_PROPERTIES={"org.gradle.java.home":"/android_studio/jre"}
   ```
 
 - файлы `.env.dev` и `.env.gplay` описывают реквизиты для debug и upload связок ключей:
@@ -152,6 +174,7 @@ bundle install
   SEENEVA_STORE_FILE="seeneva.keystore"
   SEENEVA_KEY_ALIAS="key"
   SEENEVA_STORE_PASS="android"
+  SEENEVA_KEY_PASS="android"
   ```
 
 Теперь вы можете указать какую конфигурацию использовать:
