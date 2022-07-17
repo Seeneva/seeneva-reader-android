@@ -153,7 +153,7 @@ jobs:
           submodules: recursive
 
       - name: Setup required Ruby
-        uses: ruby/setup-ruby@v1.70.1
+        uses: ruby/setup-ruby@v1.111.0
         with:
           bundler-cache: true
 
@@ -201,7 +201,7 @@ jobs:
           submodules: recursive
 
       - name: Setup required Ruby
-        uses: ruby/setup-ruby@v1.70.1
+        uses: ruby/setup-ruby@v1.111.0
         with:
           bundler-cache: true
 
