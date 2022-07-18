@@ -1,11 +1,8 @@
 New:
-- Added Norwegian (Bokmål), French, German, Italian, Spanish, Basque, Croatian, Polish, Portuguese, Chinese (Simplified) and Japanese translations. Thanks to contributors!
+- Added new translations. Thanks to contributors!
 
 Fix:
 - Crash on opening the settings screen.
 - Crash when trying to add an empty file to the library.
 - Crash when adding a new comic book on some Huawei devices.
 - Crash when quickly opening/closing the comics viewer screen on Android 9.
-
-Read more:
-https://github.com/Seeneva/seeneva-reader-android/milestone/1

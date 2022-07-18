@@ -181,6 +181,11 @@ Now you can specify which configuration to use:
 bundle exec fastlane gplay_publish_internal --env gplay
 ```
 
+### Metadata limitations
+
+- `changelogs`: max 500 characters
+- `title`: max 30 characters
+
 ## Git workflow
 
 Based on well known [Github flow](https://guides.github.com/introduction/flow).
