@@ -29,7 +29,7 @@
         <item quantity="other">删除了 %1$d 本漫画</item>
     </plurals>
     <string name="comic_info_general_information">总体信息</string>
-    <string name="comic_list_message_add_progress">正在处理。可能要用几分钟的时间。</string>
+    <string name="comic_list_message_add_progress">正在处理。可能要用几分钟的时间</string>
     <string name="comic_info_general_info_series">系列</string>
     <string name="comic_info_general_info_title">标题</string>
     <string name="comic_info_general_info_volume">卷次</string>
