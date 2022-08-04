@@ -14,9 +14,10 @@
     <string name="comic_tag_removed">已经移走了</string>
     <string name="comic_tag_corrupted">文件损坏了</string>
     <string name="comic_script_direction_ltr">从左向右</string>
-    <string name="add_mode_link_descr"></string>
-    <string name="sort_comic_list_time_asc"></string>
+    <string name="add_mode_link_descr">应用将不进行复制就添加漫画书。 但如果你删除用于打开它的应用，那么漫画书将无法阅读。</string>
+    <string name="sort_comic_list_time_asc">最近的在后</string>
     <string name="filter_comic_completed_only">完结</string>
     <string name="filter_comic_completed_not">未完结</string>
     <string name="add_mode_link">链接</string>
+    <string name="sort_comic_list_time_desc">最近的在前</string>
 </resources>
