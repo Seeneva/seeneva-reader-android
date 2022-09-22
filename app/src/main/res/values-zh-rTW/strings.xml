@@ -1,2 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="notification_open_metatada_error_open_container_unsupported">所提供的文件不被支持</string>
+    <string name="comic_list_message_empty">你的图书馆是空的 ☹️</string>
+    <string name="all_ok">认可</string>
+    <string name="all_cancel">增 编</string>
+    <string name="search">搜索</string>
+    <string name="settings">設置</string>
+    <string name="copy">拷贝</string>
+    <string name="install">安装</string>
+    <string name="library">图书馆</string>
+    <string name="about_app">关于</string>
+    <string name="comic_list_as_list">列表查看</string>
+    <string name="comic_list_as_grid">网格视图</string>
+    <string name="comic_list_completed">已完成</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">%1$s不支持：不支持</string>
+    <string name="viewer_preview_page_counter">頁面： %1$d 的 %2$d</string>
+    <string name="viewer_txt_recognize_empty">没有识别出任何文本 😨</string>
+    <string name="comic_list_error_no_file_manager">需要文件管理器</string>
+    <string name="notification_open_metatada_already_opened_short">%1$s：已经在你的图书馆中</string>
+    <string name="notification_open_metatada_error_no_pages_short">%1$s: 没有任何页面</string>
+    <string name="viewer_txt_recognize_process">正在进行文本识别 👀</string>
+    <string name="open_comic_service_descr">提取漫画书元数据</string>
+</resources>
