@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="all_ok">Tamam</string>
+    <string name="all_cancel">İptal et</string>
+    <string name="search">Ara</string>
+    <string name="settings">Ayarlar</string>
+    <string name="copy">Kopyala</string>
+    <string name="install">Yükle</string>
+</resources>
