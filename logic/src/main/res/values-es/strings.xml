@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="add_mode_link_descr">Se añadirá un cómic sin copiar. Pero si elimina la aplicación con la que se abrió, el cómic quedará inaccesible para leer.</string>
+    <string name="add_mode_import_descr">Se copiará un archivo de cómic en la carpeta interna de la aplicación</string>
+    <string name="sort_comic_list_time_asc">Último más reciente</string>
+    <string name="sort_comic_list_time_desc">El más reciente primero</string>
+    <string name="sort_comic_list_name_asc">Título (A..Z)</string>
+    <string name="sort_comic_list_name_desc">Título (Z..A)</string>
+    <string name="filter_comic_completed_title">Estado de la finalización</string>
+    <string name="filter_comic_completed_any">Ningún</string>
+    <string name="filter_comic_completed_only">Terminado</string>
+    <string name="filter_comic_completed_not">Sin completar</string>
+    <string name="filter_comic_file_status_title">Estado del archivo</string>
+    <string name="filter_comic_file_status_any">Ningún</string>
+    <string name="filter_comic_file_status_corrupted">Dañado</string>
+    <string name="add_mode_import">Importar</string>
+    <string name="add_mode_link">Enlace</string>
+    <string name="comic_tag_completed">Completado</string>
+    <string name="comic_tag_removed">Remoto</string>
+    <string name="comic_tag_corrupted">Dañado</string>
+    <string name="comic_script_direction_ltr">De izquierda a derecha</string>
+    <string name="comic_script_direction_rtl">De derecha a izquierda</string>
+</resources>
