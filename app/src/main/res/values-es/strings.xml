@@ -76,7 +76,7 @@
     <string name="comic_list_rename">Renombrar</string>
     <string name="comic_list_sync">Sincronización</string>
     <string name="comic_list_filter">Filtrar</string>
-    <string name="comic_list_sort">Ordenar por</string>
+    <string name="comic_list_sort">clasificación de la lista de los cómics</string>
     <string name="comic_list_add">Añadir</string>
     <string name="comic_list_not_completed">Sin completar</string>
     <string name="comic_list_completed">Completado</string>
@@ -123,5 +123,5 @@
     <string name="comic_list_error_view_non_existed">Ups. No se encuentra el cómic 😨</string>
     <string name="comic_list_error_view_corrupted">Ups. El archivo del cómic está corrupto 😨</string>
     <string name="comic_list_error_no_file_manager">Se requiere el administrador de archivos</string>
-    <string name="comic_list_message_add_progress">Procesando. Esto podría tardar unos minutos.</string>
+    <string name="comic_list_message_add_progress">Procesando. Puede tardar unos minutos.️</string>
 </resources>
