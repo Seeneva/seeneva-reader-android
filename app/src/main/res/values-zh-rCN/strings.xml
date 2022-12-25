@@ -11,7 +11,7 @@
     <string name="comic_list_completed">完成</string>
     <string name="comic_list_not_completed">未完成</string>
     <string name="comic_list_add">添加</string>
-    <string name="comic_list_sort">排序方式</string>
+    <string name="comic_list_sort">漫画书列表顺序</string>
     <string name="comic_list_filter">筛选</string>
     <string name="comic_list_sync">同步</string>
     <string name="comic_list_rename">重命名</string>
