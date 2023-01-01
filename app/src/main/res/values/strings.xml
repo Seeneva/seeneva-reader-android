@@ -30,7 +30,7 @@
     <string name="comic_list_completed">Completed</string>
     <string name="comic_list_not_completed">Not completed</string>
     <string name="comic_list_add">Add</string>
-    <string name="comic_list_sort">çizgi roman listesi sıralaması</string>
+    <string name="comic_list_sort">Sort by</string>
     <string name="comic_list_filter">Filter</string>
     <string name="comic_list_sync">Sync</string>
     <string name="comic_list_rename">Rename</string>
