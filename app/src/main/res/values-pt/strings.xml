@@ -20,8 +20,8 @@
     <string name="comic_list_undo_delete">Desfazer</string>
     <string name="comic_list_message_empty">Sua biblioteca está vazia ☹️</string>
     <string name="comic_list_message_add_progress">Em processamento. Pode demorar alguns minutos.️</string>
-    <string name="comic_list_error_no_file_manager">O gerenciador de arquivos é obrigatório</string>
-    <string name="comic_list_error_view_corrupted">Oops. O arquivo de quadrinhos está corrompido 😨</string>
+    <string name="comic_list_error_no_file_manager">O gestor de ficheiros é obrigatório</string>
+    <string name="comic_list_error_view_corrupted">Oops. O ficheiro de banda desenhada está corrompido 😨</string>
     <string name="comic_list_error_view_non_existed">Oops. A história em quadrinhos não pode ser encontrada 😨</string>
     <string name="comic_list_search_hint">Título</string>
     <string name="comic_list_edit_title">Novo título</string>
@@ -59,9 +59,9 @@
     </plurals>
     <string name="notification_open_metatada_already_opened_short">%1$s: já está na sua biblioteca</string>
     <string name="notification_open_metatada_error_title">Erro de abertura</string>
-    <string name="notification_open_metatada_error_read_container">Não é possível ler o arquivo de quadrinhos fornecido</string>
+    <string name="notification_open_metatada_error_read_container">Não é possível ler o ficheiro de banda desenhada fornecido</string>
     <string name="notification_open_metatada_error_read_container_short">%1$s: não consegue ler</string>
-    <string name="notification_open_metatada_error_open_container_unsupported">O arquivo fornecido não é compatível</string>
+    <string name="notification_open_metatada_error_open_container_unsupported">O ficheiro fornecido não é compatível</string>
     <string name="notification_open_metatada_error_open_container_unsupported_short">%1$s: não é suportado</string>
     <string name="notification_open_metatada_error_no_pages_short">%1$s: não tem nenhuma página</string>
     <string name="viewer_preview_page_counter">Página: %1$d de %2$d</string>
@@ -121,7 +121,7 @@
     <string name="comic_info_plot_characters">Personagens</string>
     <string name="notification_open_metatada_success_title">Adicionado</string>
     <string name="notification_open_metatada_success_short">%1$s: adicionado à sua biblioteca</string>
-    <string name="notification_open_metatada_error_no_pages">O arquivo de quadrinhos fornecido não tem páginas</string>
+    <string name="notification_open_metatada_error_no_pages">O ficheiro de banda desenhada fornecido não tem páginas</string>
     <string name="about_app_libraries">Bibliotecas de terceiros</string>
     <string name="about_app_description">%1$s é um software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da GNU General Public License conforme publicada pela Free Software Foundation, seja a versão 3 da Licença, ou (a seu critério) qualquer versão posterior.</string>
 </resources>
