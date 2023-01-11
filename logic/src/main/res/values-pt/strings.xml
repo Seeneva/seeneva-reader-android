@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="add_mode_import_descr">Um arquivo de quadrinhos será copiado para a pasta interna do aplicativo</string>
+    <string name="add_mode_import_descr">Um ficheiro de banda desenhada será copiado para a pasta interna da app</string>
     <string name="sort_comic_list_time_asc">Mais recente por último</string>
     <string name="sort_comic_list_time_desc">Mais recente primeiro</string>
     <string name="sort_comic_list_name_asc">Título (A..Z)</string>
