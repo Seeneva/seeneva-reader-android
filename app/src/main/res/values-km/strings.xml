@@ -1,2 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="comic_list_as_grid">រាយតារាង</string>
+    <string name="all_ok">យល់ព្រម</string>
+    <string name="comic_list_filter">ច្រោះ</string>
+    <string name="settings">ការកំណត់</string>
+    <string name="comic_list_as_list">រាយបញ្ជី</string>
+    <string name="all_cancel">បិទ</string>
+    <string name="install">តម្លើង</string>
+    <string name="search">ស្វែងរក</string>
+    <string name="library">បណ្ណាល័យ</string>
+    <string name="copy">ចម្លង</string>
+    <string name="about_app">អំពីយើង</string>
+    <string name="comic_list_completed">បានបញ្ចប់</string>
+    <string name="comic_list_not_completed">មិនទាន់បញ្ចប់</string>
+    <string name="comic_list_add">បន្ថែម</string>
+    <string name="comic_list_sort">តំរៀបតាម</string>
+</resources>
