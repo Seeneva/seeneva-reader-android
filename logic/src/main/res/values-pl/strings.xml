@@ -17,4 +17,5 @@
     <string name="filter_comic_completed_only">Ukończone</string>
     <string name="filter_comic_completed_any">Dowolny</string>
     <string name="sort_comic_list_name_asc">Tytuł (A..Z)</string>
+    <string name="add_mode_link_descr">Komiks zostanie dodany bez kopiowania, lecz jeżeli odinstalujesz aplikację, w której został otwarty, będzie on niedostępny do przeczytania.</string>
 </resources>
