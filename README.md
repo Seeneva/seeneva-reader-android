@@ -227,31 +227,31 @@ Please remember that donations are totally voluntary. There is no any bonuses ri
 
 ## FAQ
 
-**Q**: What does the *Seeneva* mean?
+**Q**: What does *Seeneva* mean?
 
 **A**: It is a modified Russian word ["синева"](https://en.wiktionary.org/wiki/%D1%81%D0%B8%D0%BD%D0%B5%D0%B2%D0%B0). Or this is a strange reference to [Evangelion](https://en.wikipedia.org/wiki/Evangelion_(mecha)).
 
-**Q**: Where can I download ML dataset?
+**Q**: Where can I download the ML dataset?
 
 **A**: You can't because of legal issues. Maybe there will be a way in the future.
 
-**Q**: Why my comic book [speech balloons zooming](#speech-balloons-zooming) or [OCR](#ocr-and-tts) recognition results so poor?
+**Q**: Why are the results of my comic book [speech balloons zooming](#speech-balloons-zooming) and [OCR](#ocr-and-tts) recognition so poor?
 
-**A**: Please try to use high resolution images. If it doesn't help then your comic book has unsupported speech balloon's shapes or fonts. This usually can be fixed by adding this comic book into ML training process. Also manga recognition is worse than comic book right now.
+**A**: Please try to use high resolution images. If it doesn't help then your comic book has unsupported speech balloon shapes or fonts. This usually can be fixed by adding this comic book into the ML training process. Also manga recognition is worse than that of comic books right now.
 
-**Q**: What is the difference between **Import** and **Link** adding options?
+**Q**: What is the difference between the **Import** and **Link** adding options?
 
-**A**: Current adding process is not very clear and can confuse. It should be improved in future versions.
+**A**: Current adding process is not very clear and can be confusing. It should be improved in future versions.
 
 To clarify the difference:
 
-- **Import** - a comic book will be copied into app's internal folder. If you have a 100MB comic book and import it, you will have two identical files of 100MB each. The imported comic book is always available for the app.
+- **Import** - a comic book will be copied into the app's internal folder. If you have a 100MB comic book and import it, you will have two identical files of 100MB each. The imported comic book is always available for the app.
 
-- **Link** - the app will request permanent read link to a comic book using Android's [storage access framework](https://developer.android.com/guide/topics/providers/document-provider). The requested comic book will be read from its source folder without any copy. This will help to save free space on a device. **But**. If you uninstall your file manager app which provided this permanent link, *Seeneva* will lose that link as result. Your comic book file won't be corrupted by *Seeneva*.
+- **Link** - the app will request a permanent read link to a comic book using Android's [storage access framework](https://developer.android.com/guide/topics/providers/document-provider). The requested comic book will be read from its source folder without any copying. This will help to save free space on a device. **But**. If you uninstall your file manager app which provided this permanent link, *Seeneva* will lose that link as a result. Your comic book file won't be corrupted or moved by *Seeneva*.
 
-**Q**: Where I have to get digital comic books?
+**Q**: Where can I get digital comic books?
 
-**A**: You can buy them, some comic books like [Pepper&Carrot](https://www.peppercarrot.com/) are libre. Anyway you can open any comic book by the app while its format is supported. Sorry, but *Seeneva* app ships without prebuild comic books.
+**A**: You can buy them, some comic books like [Pepper&Carrot](https://www.peppercarrot.com/) are libre. You can open any comic book with the app, no matter its provenance, as long as its format is supported. Sorry, but the *Seeneva* app ships without any prebuilt comic books.
 
 ## Privacy Policy
 
