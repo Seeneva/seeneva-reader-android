@@ -28,6 +28,7 @@ import app.seeneva.reader.R
 import app.seeneva.reader.di.parentFragmentScope
 import app.seeneva.reader.extension.inflate
 import app.seeneva.reader.logic.comic.AddComicBookMode
+import app.seeneva.reader.logic.R as LogicR
 
 class AddModeSelectorDialog : BaseDraggableDialog() {
     private val addModes = AddComicBookMode.values()
@@ -79,13 +80,13 @@ class AddModeSelectorDialog : BaseDraggableDialog() {
             return when (this) {
                 AddComicBookMode.Import ->
                     AddModeData(
-                        getString(R.string.add_mode_import),
-                        getString(R.string.add_mode_import_descr)
+                        getString(LogicR.string.add_mode_import),
+                        getString(LogicR.string.add_mode_import_descr)
                     )
                 AddComicBookMode.Link ->
                     AddModeData(
-                        getString(R.string.add_mode_link),
-                        getString(R.string.add_mode_link_descr)
+                        getString(LogicR.string.add_mode_link),
+                        getString(LogicR.string.add_mode_link_descr)
                     )
             }
         }

@@ -16,5 +16,4 @@
   ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="app.seeneva.reader.common" />
+<manifest />

@@ -211,7 +211,7 @@ class PageViewer(
     ) : DecoderFactory<T> {
         private val scope = Job(parent)
 
-        override fun make(): T {
+        override fun make(): T & Any {
             // cancel all decoded tasks before create new decoder
             scope.cancelChildren()
 
@@ -228,7 +228,7 @@ class PageViewer(
             pageSrc: PageSrc,
             imageLoader: ImageLoader,
             scope: Job
-        ): T
+        ): T & Any
     }
 
     private class PageDecoderFactory(

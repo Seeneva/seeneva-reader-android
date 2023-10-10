@@ -19,8 +19,10 @@
 object Plugin {
     const val ANDROID_APPLICATION = "com.android.application"
     const val ANDROID_LIBRARY = "com.android.library"
+    const val KSP = "com.google.devtools.ksp"
 }
 
 object PluginVersion {
-    const val ANDROID = "4.2.2"
+    const val ANDROID = "8.1.2"
+    const val KSP = "${Version.KOTLIN}-1.0.13"
 }

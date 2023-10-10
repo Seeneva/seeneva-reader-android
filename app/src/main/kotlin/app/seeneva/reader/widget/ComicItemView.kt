@@ -53,6 +53,7 @@ import app.seeneva.reader.logic.image.target.ImageLoaderTarget
 import com.google.android.material.card.MaterialCardView
 import kotlin.math.roundToInt
 import app.seeneva.reader.logic.image.target.ImageLoaderTarget.State as CoverState
+import com.google.android.material.R as MaterialR
 
 /**
  * Used to show comic book thumbnail on lists
@@ -64,7 +65,7 @@ class ComicItemView : MaterialCardView, ImageLoaderTarget<DrawablePalette> {
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
-        R.attr.materialCardViewStyle
+        MaterialR.attr.materialCardViewStyle
     )
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
@@ -233,6 +234,7 @@ class ComicItemView : MaterialCardView, ImageLoaderTarget<DrawablePalette> {
 
                             backgroundColor = swatch?.rgb ?: defaultBackgroundColor
                         }
+
                         ComicDisplayType.CORRUPTED -> {
                             controlColor = defaultCorruptedColor
                             backgroundColor = Color.WHITE
@@ -241,6 +243,7 @@ class ComicItemView : MaterialCardView, ImageLoaderTarget<DrawablePalette> {
 
                     cover = resultCover
                 }
+
                 is CoverState.WithPlaceholder -> {
                     cover = state.placeholder
 
@@ -249,12 +252,14 @@ class ComicItemView : MaterialCardView, ImageLoaderTarget<DrawablePalette> {
                             controlColor = Color.WHITE
                             backgroundColor = Color.TRANSPARENT
                         }
+
                         ComicDisplayType.CORRUPTED -> {
                             controlColor = defaultCorruptedColor
                             backgroundColor = Color.TRANSPARENT
                         }
                     }
                 }
+
                 else -> throw IllegalArgumentException("Unknown cover state $state")
             }
 
@@ -572,7 +577,7 @@ class ComicItemView : MaterialCardView, ImageLoaderTarget<DrawablePalette> {
             //Create drawable from code to support pre Lollipop devices
 
             val backgroundDrawable =
-                context.theme.obtainStyledAttributes(intArrayOf(R.attr.colorPrimary))
+                context.theme.obtainStyledAttributes(intArrayOf(MaterialR.attr.colorPrimary))
                     .use { it.getColorOrThrow(0) }.toDrawable()
 
             val scaledIconDrawable =

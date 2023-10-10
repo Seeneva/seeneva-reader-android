@@ -49,7 +49,8 @@ import org.koin.core.scope.KoinScopeComponent
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoField
-import java.util.*
+import java.util.Locale
+import com.google.android.material.R as MaterialR
 
 interface ComicInfoView : PresenterView
 
@@ -67,7 +68,7 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
     private val presenter by lifecycleScope.autoInit<ComicInfoPresenter>()
 
     private val bottomSheetBehavior by lazy {
-        requireNotNull(dialog).findViewById<View>(R.id.design_bottom_sheet)
+        requireNotNull(dialog).findViewById<View>(MaterialR.id.design_bottom_sheet)
             .also {
                 it.updateLayoutParams<ViewGroup.LayoutParams> {
                     height = ViewGroup.LayoutParams.MATCH_PARENT
@@ -92,11 +93,13 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
                         R.string.comic_info_err_cant_find,
                         0
                     )
+
                     is ComicInfoState.Success -> {
                         viewBinding.contentMessageView.showContent()
 
                         inflateInfo(it.comicInfo)
                     }
+
                     is ComicInfoState.Error -> {
                         viewBinding.contentMessageView
                             .showMessage(
@@ -224,6 +227,7 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
                         dateAccessor.isSupported(ChronoField.DAY_OF_MONTH) -> DateTimeFormatter.ofLocalizedDate(
                             FormatStyle.MEDIUM
                         )
+
                         dateAccessor.isSupported(ChronoField.YEAR) -> DateTimeFormatter.ofPattern("[LLL] uuuu")
                         else -> null
                     }?.format(dateAccessor)

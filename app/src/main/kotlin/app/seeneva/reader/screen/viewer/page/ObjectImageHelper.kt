@@ -38,6 +38,7 @@ import app.seeneva.reader.logic.image.ImageLoader
 import app.seeneva.reader.logic.image.ImageLoadingTask
 import app.seeneva.reader.screen.viewer.page.entity.SelectedPageObject
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+import com.google.android.material.R as MaterialR
 
 /**
  * Helper to show comic book objects as pop in images
@@ -74,7 +75,7 @@ class ObjectImageHelper(
      * Display it in case of loading image error
      */
     private val error =
-        context.obtainStyledAttributes(intArrayOf(R.attr.colorError))
+        context.obtainStyledAttributes(intArrayOf(MaterialR.attr.colorError))
             .use { it.getColor(0, ContextCompat.getColor(context, R.color.red_800)) }
             .toDrawable()
 
@@ -401,9 +402,11 @@ class ObjectImageHelper(
             bboxMinEdge < min -> {
                 bboxMinEdge * sign
             }
+
             bboxMaxEdge > max -> {
                 (bboxMaxEdge - max) * sign
             }
+
             else -> {
                 //case there both left/top and right/bottom are outside of visible area is not possible by current logic
                 .0f

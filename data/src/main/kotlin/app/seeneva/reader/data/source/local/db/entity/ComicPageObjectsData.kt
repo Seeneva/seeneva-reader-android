@@ -35,7 +35,7 @@ import app.seeneva.reader.data.entity.ComicPageObject
  * @param bookPath source book path
  * @param objects founded ML objects
  */
-data class ComicPageObjectsData @JvmOverloads constructor(
+data class ComicPageObjectsData @Ignore constructor(
     @ColumnInfo(name = ComicBookPage.COLUMN_ID)
     val id: Long,
     @ColumnInfo(name = ComicBookPage.COLUMN_POSITION)
@@ -50,5 +50,17 @@ data class ComicPageObjectsData @JvmOverloads constructor(
     )
     val bookPath: Uri,
     @Ignore
-    val objects: List<ComicPageObject> = emptyList(),
-)
+    val objects: List<ComicPageObject>,
+) {
+    // for some reason @kotlin.jvm.JvmOverloads doesn't work anymore
+    // https://issuetracker.google.com/issues/70762008
+    /**
+     * Used by room
+     */
+    internal constructor(
+        id: Long,
+        position: Long,
+        bookId: Long,
+        bookPath: Uri,
+    ) : this(id, position, bookId, bookPath, emptyList())
+}

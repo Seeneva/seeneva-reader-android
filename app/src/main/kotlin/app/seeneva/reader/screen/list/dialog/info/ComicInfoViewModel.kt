@@ -61,10 +61,15 @@ class ComicInfoViewModelImpl(
                     return
                 }
             }
+
             is ComicInfoState.Success -> {
                 if (currentState.comicInfo.id == id) {
                     return
                 }
+            }
+
+            is ComicInfoState.Error, is ComicInfoState.NotFound, is ComicInfoState.Idle -> {
+                //DO_NOTHING
             }
         }
 

@@ -17,7 +17,7 @@
  */
 
 plugins {
-    kotlin("kapt")
+    id(Plugin.KSP)
 }
 
 android {
@@ -30,16 +30,12 @@ android {
     }
 
     defaultConfig {
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments(
-                    mapOf(
-                        "room.schemaLocation" to "${projectDir.resolve("schemas")}",
-                        "room.incremental" to "true",
-                        "room.expandProjection" to "true"
-                    )
-                )
-            }
+        namespace = "app.seeneva.reader.data"
+
+        ksp {
+            arg("room.schemaLocation", "${projectDir.resolve("schemas")}")
+            arg("room.incremental", true.toString())
+            arg("room.expandProjection", true.toString())
         }
 
         ndk {
@@ -53,7 +49,7 @@ android {
         }
     }
 
-    flavorDimensions(RustBuildTypeFlavor.NAME)
+    flavorDimensions += RustBuildTypeFlavor.NAME
 
     productFlavors {
         register(RustBuildTypeFlavor.RUST_DEBUG) {
@@ -92,5 +88,5 @@ dependencies {
 
     implementation(Deps.ANDROIDX_ROOM_KTX)
 
-    kapt(Deps.ANDROIDX_ROOM_COMPILER)
+    ksp(Deps.ANDROIDX_ROOM_COMPILER)
 }

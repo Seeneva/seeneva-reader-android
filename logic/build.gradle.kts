@@ -17,11 +17,13 @@
  */
 
 plugins {
-    kotlin("kapt")
+
 }
 
 android {
-    defaultConfig{
+    defaultConfig {
+        namespace = "app.seeneva.reader.logic"
+
         missingDimensionStrategy(RustBuildTypeFlavor.NAME, RustBuildTypeFlavor.RUST_RELEASE)
     }
 

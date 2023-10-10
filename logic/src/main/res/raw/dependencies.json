@@ -11,8 +11,8 @@
     },
     {
         "name": "Kotlin",
-        "version": "1.5.20",
-        "authors": "Copyright © 2010-2020 JetBrains s.r.o and respective authors and developers",
+        "version": "1.9.10",
+        "authors": "Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.",
         "summary": "It is an open-source, statically typed programming language supported and developed by JetBrains and open-source contributors.",
         "homepage": "https://github.com/JetBrains/kotlin",
         "license": {
@@ -191,7 +191,7 @@
     },
     {
         "name": "Androidx room-ktx",
-        "version": "2.3.0",
+        "version": "2.5.2",
         "authors": "Copyright © The Android Open Source Project (AOSP)",
         "summary": "The Room persistence library provides an abstraction layer over SQLite to allow for more robust database access while harnessing the full power of SQLite.",
         "homepage": "https://github.com/androidx/androidx",
@@ -201,7 +201,7 @@
     },
     {
         "name": "Androidx room-compiler",
-        "version": "2.3.0",
+        "version": "2.5.2",
         "authors": "Copyright © The Android Open Source Project (AOSP)",
         "summary": "The Room persistence library provides an abstraction layer over SQLite to allow for more robust database access while harnessing the full power of SQLite.",
         "homepage": "https://github.com/androidx/androidx",
@@ -231,9 +231,19 @@
     },
     {
         "name": "Androidx work-runtime-ktx",
-        "version": "2.5.0",
+        "version": "2.7.1",
         "authors": "Copyright © The Android Open Source Project (AOSP)",
         "summary": "The WorkManager API makes it easy to schedule deferrable, asynchronous tasks that must be run reliably. These APIs let you create a task and hand it off to WorkManager to run when the work constraints are met.",
+        "homepage": "https://github.com/androidx/androidx",
+        "license": {
+            "type": "Apache-2.0"
+        }
+    },
+    {
+        "name": "Androidx multidex",
+        "version": "2.0.1",
+        "authors": "Copyright © The Android Open Source Project (AOSP)",
+        "summary": "Deploy applications with multiple dex files on pre-Android 5 devices.",
         "homepage": "https://github.com/androidx/androidx",
         "license": {
             "type": "Apache-2.0"

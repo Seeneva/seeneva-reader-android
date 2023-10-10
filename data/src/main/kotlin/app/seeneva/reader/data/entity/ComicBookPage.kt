@@ -42,7 +42,7 @@ import androidx.room.*
         unique = true
     )]
 )
-data class ComicBookPage @JvmOverloads constructor(
+data class ComicBookPage @Ignore constructor(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = COLUMN_ID)
     val id: Long,
@@ -57,8 +57,21 @@ data class ComicBookPage @JvmOverloads constructor(
     @ColumnInfo(name = COLUMN_HEIGHT)
     val height: Int,
     @Ignore
-    val objects: List<ComicPageObject> = emptyList()
+    val objects: List<ComicPageObject>
 ) {
+    // for some reason @kotlin.jvm.JvmOverloads doesn't work anymore
+    // https://issuetracker.google.com/issues/70762008
+    /**
+     * Used by room
+     */
+    internal constructor(
+        id: Long,
+        bookId: Long,
+        position: Long,
+        name: String,
+        width: Int,
+        height: Int
+    ) : this(id, bookId, position, name, width, height, emptyList())
 
     /**
      * Called from a native side
