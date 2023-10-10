@@ -131,10 +131,15 @@ class BookViewerPageViewModelImpl(
                     currentEncodedState.close()
                 }
             }
+
             is EncodedPageState.Loading -> {
                 if (currentEncodedState.pageId == pageId) {
                     return
                 }
+            }
+
+            is EncodedPageState.Error, EncodedPageState.Idle -> {
+                // DO_NOTHING
             }
         }
 

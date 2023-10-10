@@ -43,7 +43,6 @@ import app.seeneva.reader.logic.entity.FileData
 import app.seeneva.reader.service.BaseForegroundService
 import kotlinx.coroutines.flow.*
 import org.koin.core.scope.KoinScopeComponent
-import java.util.*
 
 class AddComicBookService : BaseForegroundService(), AddComicBookView, KoinScopeComponent {
     private val lifecycleScope = koinLifecycleScope()
@@ -284,7 +283,7 @@ class AddComicBookService : BaseForegroundService(), AddComicBookView, KoinScope
                 Intent(context, AddComicBookService::class.java)
                     .setAction(ACTION_CANCEL)
                     .setData(comicBookUri),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_ONE_SHOT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
             )
 
         /**

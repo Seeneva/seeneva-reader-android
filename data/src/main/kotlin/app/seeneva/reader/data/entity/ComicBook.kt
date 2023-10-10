@@ -50,7 +50,7 @@ import java.time.Instant
         )
     ]
 )
-data class ComicBook @JvmOverloads constructor(
+data class ComicBook @Ignore constructor(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = COLUMN_ID)
     val id: Long,
@@ -71,10 +71,39 @@ data class ComicBook @JvmOverloads constructor(
     @ColumnInfo(name = COLUMN_READ_POSITION)
     val readPosition: Long,
     @Ignore
-    val metadata: ComicRackMetadata? = null,
+    val metadata: ComicRackMetadata?,
     @Ignore
-    val pages: List<ComicBookPage> = emptyList()
+    val pages: List<ComicBookPage>
 ) {
+    // for some reason @kotlin.jvm.JvmOverloads doesn't work anymore
+    // https://issuetracker.google.com/issues/70762008
+    /**
+     * Used by room
+     */
+    internal constructor(
+        id: Long,
+        filePath: Uri,
+        fileSize: Long,
+        fileHash: ByteArray,
+        displayName: String,
+        coverPosition: Long,
+        direction: Int,
+        actionTime: Instant,
+        readPosition: Long,
+    ) : this(
+        id,
+        filePath,
+        fileSize,
+        fileHash,
+        displayName,
+        coverPosition,
+        direction,
+        actionTime,
+        readPosition,
+        null,
+        emptyList()
+    )
+
     /**
      * Called from a native side
      */

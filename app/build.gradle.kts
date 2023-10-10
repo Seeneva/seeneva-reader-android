@@ -16,16 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import com.android.build.api.dsl.SigningConfig
 import com.android.build.api.dsl.VariantDimension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApkVariantOutput
 import com.android.build.gradle.api.ApplicationVariant
-import com.android.build.gradle.internal.dsl.SigningConfig
 import extension.envOrProperty
 import extension.signProperties
 
 plugins {
-    kotlin("kapt")
 }
 
 // True if this build is running in CI
@@ -33,6 +32,7 @@ val buildUsingCI = !System.getenv("CI").isNullOrEmpty()
 
 android {
     buildFeatures {
+        buildConfig = true
         viewBinding = true
     }
 
@@ -62,6 +62,7 @@ android {
 
     defaultConfig {
         applicationId = "app.seeneva.reader"
+        namespace = "app.seeneva.reader"
         // allow to set app id suffix from properties. It is required by CI.
         applicationIdSuffix =
             envOrProperty(extension.ENV_APP_ID_SUFFIX, extension.PROP_APP_ID_SUFFIX)
@@ -101,8 +102,7 @@ android {
             signingConfig = switchableSigningConfig("debug")
         }
     }
-
-    flavorDimensions(AppStoreFlavor.NAME)
+    flavorDimensions += listOf(AppStoreFlavor.NAME)
 
     productFlavors {
         register(AppStoreFlavor.GOOGLE_PLAY) {
@@ -123,11 +123,11 @@ android {
         }
     }
 
-    packagingOptions {
+    packaging {
         // https://github.com/Kotlin/kotlinx.coroutines#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
-        exclude("DebugProbesKt.bin")
+        resources.excludes += "DebugProbesKt.bin"
         // Not needed right now, but should return if I will use web connections
-        exclude("okhttp3/**/publicsuffixes.gz")
+        resources.excludes += "okhttp3/**/publicsuffixes.gz"
     }
 
     if (buildUsingCI) {
@@ -159,6 +159,7 @@ dependencies {
     implementation(Deps.ANDROIDX_CONSTRAINT_LAYOUT)
     implementation(Deps.ANDROIDX_WORK_RUNTIME)
     implementation(Deps.ANDROIDX_SWIPE_REFRESH_LAYOUT)
+    implementation(Deps.ANDROIDX_MULTIDEX)
 
     implementation(Deps.MATERIAL)
 

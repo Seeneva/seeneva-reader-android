@@ -59,7 +59,8 @@ class LicenseDialogFragment : BaseDraggableDialog() {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                 allowUniversalAccessFromFileURLs = false
                 allowFileAccessFromFileURLs = false
-                setAppCacheEnabled(false)
+                // Removed https://developer.android.com/sdk/api_diff/33/changes/android.webkit.WebSettings
+                //setAppCacheEnabled(false)
             }
         }
 

@@ -145,10 +145,15 @@ class BookViewerViewModelImpl(
                     return
                 }
             }
+
             is BookDescriptionState.Loading -> {
                 if (currentState.id == id) {
                     return
                 }
+            }
+
+            is BookDescriptionState.Corrupted, is BookDescriptionState.Idle, is BookDescriptionState.Error, BookDescriptionState.NotFound -> {
+                // DO_NOTHING
             }
         }
 
@@ -157,9 +162,7 @@ class BookViewerViewModelImpl(
 
     override fun setPageAsCover(pagePosition: Int) {
         setCoverJob = startBookPageJob(
-            requireBookDescription(),
-            pagePosition,
-            setCoverJob
+            requireBookDescription(), pagePosition, setCoverJob
         ) { bookId, containerPagePosition ->
             Logger.debug("Set new comic book ($bookId) cover position at $containerPagePosition")
 
@@ -201,9 +204,7 @@ class BookViewerViewModelImpl(
         }
 
         saveReadPositionJob = startBookPageJob(
-            book,
-            pagePosition,
-            saveReadPositionJob
+            book, pagePosition, saveReadPositionJob
         ) { bookId, containerPagePosition ->
             Logger.debug("Save book ($bookId) read position at $containerPagePosition")
 
@@ -228,8 +229,7 @@ class BookViewerViewModelImpl(
 
         currentJob?.also {
             //do not run new job if we already run same
-            if (it.isActive && it.pagePosition == containerPagePosition
-            ) {
+            if (it.isActive && it.pagePosition == containerPagePosition) {
                 return currentJob
             } else {
                 it.cancel()
@@ -263,8 +263,7 @@ class BookViewerViewModelImpl(
             }
 
             bookViewerUseCase.subscribe(bookId)
-                .onStart { bookState.value = BookDescriptionState.Loading(bookId) }
-                .transform {
+                .onStart { bookState.value = BookDescriptionState.Loading(bookId) }.transform {
                     emit(
                         when (it) {
                             null -> BookDescriptionState.NotFound
@@ -275,8 +274,7 @@ class BookViewerViewModelImpl(
                             }
                         }
                     )
-                }
-                .catch {
+                }.catch {
                     emit(
                         if (it is CancellationException) {
                             BookDescriptionState.Idle
@@ -284,8 +282,7 @@ class BookViewerViewModelImpl(
                             BookDescriptionState.Error(it)
                         }
                     )
-                }
-                .collect { bookState.value = it }
+                }.collect { bookState.value = it }
         }
     }
 

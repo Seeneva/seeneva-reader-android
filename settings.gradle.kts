@@ -6,16 +6,17 @@ pluginManagement {
         mavenCentral()
         google()
     }
+}
 
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.namespace == "com.android") {
-                useModule("com.android.tools.build:gradle:${requested.version}")
-            }
-        }
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        google()
     }
 }
 
+rootProject.name = "Seeneva Reader"
 rootProject.buildFileName = "build.gradle.kts"
 
 include(":app", ":common", ":data", ":logic")

@@ -209,6 +209,7 @@ class BookViewerPagePresenterImpl(
             PageObjectDirection.FORWARD -> {
                 readObjectPosition + 1
             }
+
             PageObjectDirection.BACKWARD -> {
                 readObjectPosition - 1
             }
@@ -292,6 +293,10 @@ class BookViewerPagePresenterImpl(
                     //it is the same page object. Do not start a new job
                     return
                 }
+            }
+
+            is TxtRecognitionState.Recognized, TxtRecognitionState.Idle -> {
+                // DO_NOTHING
             }
         }
 

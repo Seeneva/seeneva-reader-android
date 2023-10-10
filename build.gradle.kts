@@ -26,17 +26,13 @@ plugins {
     kotlin("plugin.serialization") version Version.KOTLIN
     kotlin("android") version Version.KOTLIN apply false
 
+    id(Plugin.KSP) version PluginVersion.KSP apply false
     // https://docs.gradle.org/current/userguide/kotlin_dsl.html#sec:plugins_resolution_strategy
     id(Plugin.ANDROID_APPLICATION) version PluginVersion.ANDROID apply false
     id(Plugin.ANDROID_LIBRARY) version PluginVersion.ANDROID apply false
 }
 
 allprojects {
-    repositories {
-        mavenCentral()
-        google()
-    }
-
     // we will use ViewPager2, so remove ViewPager dependency globally
     configurations.configureEach {
         exclude(group = "androidx.viewpager")
@@ -57,12 +53,13 @@ subprojects {
 
     configure<BaseExtension> {
         ndkVersion = "21.4.7075529"
-        buildToolsVersion = "30.0.3"
-        compileSdkVersion(30)
+        buildToolsVersion = "33.0.2"
+
+        compileSdkVersion(33)
 
         defaultConfig {
-            minSdkVersion(16)
-            targetSdkVersion(30)
+            minSdk = 16
+            targetSdk = 33
 
             loadProperties(rootDir.resolve("seeneva.properties")).also { seenevaProperties ->
                 versionCode = requireEnvOrProperty(
@@ -97,8 +94,9 @@ subprojects {
 
         // needed to build tests
         packagingOptions {
-            pickFirst("META-INF/AL2.0")
-            pickFirst("META-INF/LGPL2.1")
+            resources {
+                excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            }
         }
 
         lintOptions {
@@ -108,10 +106,6 @@ subprojects {
             warning("MissingTranslation")
         }
     }
-
-//    extensions.configure(AndroidExtensionsExtension::class) {
-//        isExperimental = true
-//    }
 
     tasks.withType<KotlinCompile> {
         kotlinOptions {

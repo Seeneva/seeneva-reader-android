@@ -24,10 +24,11 @@ import app.seeneva.reader.R
 import app.seeneva.reader.extension.setDraggableBackground
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.R as MaterialR
 
 abstract class BaseDraggableDialog : BottomSheetDialogFragment() {
     private val bottomSheetBehavior by lazy {
-        requireDialog().findViewById<View>(R.id.design_bottom_sheet)
+        requireDialog().findViewById<View>(MaterialR.id.design_bottom_sheet)
             .let { BottomSheetBehavior.from(it) }
     }
 
