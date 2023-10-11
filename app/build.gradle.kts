@@ -1,19 +1,19 @@
 /*
- * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ *  This file is part of Seeneva Android Reader
+ *  Copyright (C) 2021-2023 Sergei Solodovnikov
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import com.android.build.api.dsl.SigningConfig
@@ -34,6 +34,10 @@ android {
     buildFeatures {
         buildConfig = true
         viewBinding = true
+    }
+
+    androidResources {
+        generateLocaleConfig = true
     }
 
     splits {
@@ -124,10 +128,12 @@ android {
     }
 
     packaging {
-        // https://github.com/Kotlin/kotlinx.coroutines#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
-        resources.excludes += "DebugProbesKt.bin"
-        // Not needed right now, but should return if I will use web connections
-        resources.excludes += "okhttp3/**/publicsuffixes.gz"
+        resources.excludes += setOf(
+            // https://github.com/Kotlin/kotlinx.coroutines#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
+            "DebugProbesKt.bin",
+            // Not needed right now, but should return if I will use web connections
+            "okhttp3/**/publicsuffixes.gz"
+        )
     }
 
     if (buildUsingCI) {
