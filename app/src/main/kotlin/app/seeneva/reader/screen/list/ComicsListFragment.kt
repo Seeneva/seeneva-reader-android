@@ -1,34 +1,37 @@
 /*
- * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ *  This file is part of Seeneva Android Reader
+ *  Copyright (C) 2021-2023 Sergei Solodovnikov
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package app.seeneva.reader.screen.list
 
+import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.view.*
 import android.view.animation.AccelerateDecelerateInterpolator
-import androidx.annotation.StringRes
+import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
 import androidx.paging.LoadState
@@ -75,7 +78,7 @@ import kotlinx.coroutines.flow.*
 import org.koin.core.scope.KoinScopeComponent
 import org.koin.core.scope.Scope
 import org.koin.core.scope.get
-import java.util.*
+import java.util.ArrayDeque
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
@@ -190,6 +193,7 @@ class ComicsListFragment(
             ComicListViewType.GRID -> {
                 listLayoutManager.spanCount = gridSpanCount
             }
+
             ComicListViewType.LIST -> {
                 listLayoutManager.spanCount = 1
             }
@@ -305,10 +309,12 @@ class ComicsListFragment(
                     isEnabled = !listSelectionTracker.hasSelection()
                     isRefreshing = true
                 }
+
                 ComicsListView.SyncState.IDLE -> {
                     isEnabled = !listSelectionTracker.hasSelection()
                     isRefreshing = false
                 }
+
                 ComicsListView.SyncState.DISABLED -> {
                     isEnabled = false
                     isRefreshing = false
@@ -319,6 +325,37 @@ class ComicsListFragment(
         //need to update options menu
         requireActivity().invalidateOptionsMenu()
     }
+
+    private val notificationPermissionCallback = object : ActivityResultCallback<Boolean> {
+        // describes comic book to add
+        var addComicBookData: ComicListRouterResult.AddComicBooks? = null
+
+        override fun onActivityResult(result: Boolean?) {
+            val data = addComicBookData ?: return
+
+            addComicBook(data)
+
+            addComicBookData = null
+        }
+
+        fun addComicBook(addComicBookData: ComicListRouterResult.AddComicBooks) {
+            newSnackbar(resources.getString(R.string.comic_list_message_add_progress)).show()
+
+            presenter.addComicBooks(
+                addComicBookData.mode,
+                addComicBookData.result.paths,
+                addComicBookData.result.permissionFlags
+            )
+        }
+    }
+
+    /**
+     * Launch notification permission request dialog
+     */
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+        notificationPermissionCallback
+    )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -374,6 +411,7 @@ class ComicsListFragment(
                 ScreenState.STATE_DEFAULT -> {
                     viewBinding.recyclerView.suppressLayout(false)
                 }
+
                 else -> {
                     // disable scrolling and force show AppBarLayout
                     viewBinding.recyclerView.suppressLayout(true)
@@ -436,24 +474,26 @@ class ComicsListFragment(
             }
 
         router.resultFlow.observe(viewLifecycleOwner) {
-            fun showSnackbar(@StringRes msg: Int) {
-                Snackbar.make(
-                    findSnackBarView(requireView()),
-                    msg,
-                    Snackbar.LENGTH_SHORT
-                ).show()
-            }
-
             when (it) {
                 is ComicListRouterResult.AddComicBooks -> {
-                    showSnackbar(R.string.comic_list_message_add_progress)
-                    presenter.addComicBooks(it.mode, it.result.paths, it.result.permissionFlags)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
+                            requireContext(),
+                            android.Manifest.permission.POST_NOTIFICATIONS
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        notificationPermissionCallback.addComicBookData = it
+                        notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        notificationPermissionCallback.addComicBook(it)
+                    }
                 }
+
                 is ComicListRouterResult.NonExistentBook -> {
-                    showSnackbar(R.string.comic_list_error_view_non_existed)
+                    newSnackbar(resources.getString(R.string.comic_list_error_view_non_existed))
                 }
+
                 is ComicListRouterResult.CorruptedComicBook -> {
-                    showSnackbar(R.string.comic_list_error_view_corrupted)
+                    newSnackbar(resources.getString(R.string.comic_list_error_view_corrupted))
                 }
             }
         }
@@ -493,6 +533,7 @@ class ComicsListFragment(
                         iconResId = R.drawable.ic_round_view_list_24dp
                         titleResId = R.string.comic_list_as_list
                     }
+
                     ComicListViewType.LIST -> {
                         iconResId = R.drawable.ic_round_view_module_24dp
                         titleResId = R.string.comic_list_as_grid
@@ -519,22 +560,27 @@ class ComicsListFragment(
                 onAddComicBookClick()
                 true
             }
+
             R.id.sort -> {
                 presenter.onSortListClick()
                 true
             }
+
             R.id.list_view -> {
                 nextComicListType()
                 true
             }
+
             R.id.filter -> {
                 presenter.onEditFilterClick()
                 true
             }
+
             R.id.sync -> {
                 presenter.onSyncClick()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
 
@@ -605,7 +651,7 @@ class ComicsListFragment(
         val text =
             resources.getQuantityString(R.plurals.comic_list_comic_book_removed, ids.size, ids.size)
 
-        Snackbar.make(findSnackBarView(requireView()), text, Snackbar.LENGTH_LONG).also {
+        newSnackbar(text, Snackbar.LENGTH_LONG).also {
             it.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                 override fun onDismissed(transientBottomBar: Snackbar, event: Int) {
                     super.onDismissed(transientBottomBar, event)
@@ -621,8 +667,7 @@ class ComicsListFragment(
     }
 
     override fun onComicAdded(result: ComicAddResult) {
-        Snackbar.make(
-            findSnackBarView(requireView()),
+        newSnackbar(
             result.humanDescriptionShort(resources),
             if (result.success) {
                 Snackbar.LENGTH_SHORT
@@ -660,9 +705,8 @@ class ComicsListFragment(
             //show install package manager from store message
             val installFileManagerIntent = ComicHelper.installFileManagerIntent
 
-            Snackbar.make(
-                findSnackBarView(requireView()),
-                R.string.comic_list_error_no_file_manager,
+            newSnackbar(
+                resources.getString(R.string.comic_list_error_no_file_manager),
                 Snackbar.LENGTH_SHORT
             ).also {
                 if (installFileManagerIntent.resolveActivity(requireContext().packageManager) != null) {
@@ -723,13 +767,21 @@ class ComicsListFragment(
                 R.string.comic_list_message_not_found,
                 R.drawable.ic_round_search_24dp
             )
+
             ScreenState.STATE_EMPTY -> viewBinding.contentMessageView.showMessage(
                 R.string.comic_list_message_empty,
                 R.drawable.ic_whale_simple
             )
+
             ScreenState.STATE_LOADING -> viewBinding.contentMessageView.showLoading()
         }
     }
+
+    private fun newSnackbar(
+        msg: String,
+        duration: Int = Snackbar.LENGTH_SHORT,
+        view: View = findSnackBarView(requireView()),
+    ) = Snackbar.make(view, msg, duration)
 
     /**
      * Filter list decorator which add margin between items
