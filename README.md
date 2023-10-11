@@ -39,7 +39,7 @@
 
 [![Telegram](https://img.shields.io/static/v1?style=flate&label=Telegram&message=Join&logo=telegram&labelColor=0073A7&color=29A9EB)](https://t.me/joinchat/VqnXJZQlTcpiMGVk)
 [![Twitter](https://img.shields.io/static/v1?style=flate&label=Twitter&message=Follow&logo=twitter&labelColor=0073A7&color=29A9EB)](https://twitter.com/Seeneva_app)
-
+[![Liberapay](https://img.shields.io/static/v1?style=flat&label=Liberapay&message=Donate&logo=liberapay&labelColor=0073A7&color=ECC114)](https://en.liberapay.com/Seeneva/donate)
 </div>
 
 ---
@@ -103,7 +103,14 @@ Smart adding new comic book into the library might take a while. It is depends o
 
 - `android.permission.READ_EXTERNAL_STORAGE`: required on Android up to 4.3. This permission allows to add into the library comic book files located on device external storage (like SD card).
 - `android.permission.FOREGROUND_SERVICE`: required to process comic book adding inside a [foreground Service](https://developer.android.com/guide/components/foreground-services). Each comic book goes through a ML model which can take up to a few minutes. The foreground Service allows *Seeneva* to keep adding comics without the risk of being killed by the OS when the user has placed the app in the background.
-- `android.permission.WAKE_LOCK`, `android.permission.RECEIVE_BOOT_COMPLETED`: required by [AndroidX WorkManager](https://developer.android.com/reference/androidx/work/package-summary) library. *Seeneva* uses that library to periodically sync added comic book files to determine their status (e.g. comic book file was removed, renamed or corrupted) and display that status to the user. These permissions allow to start that periodical task after the device has been rebooted.
+- `android.permission.WAKE_LOCK`, `android.permission.RECEIVE_BOOT_COMPLETED`: required
+  by [AndroidX WorkManager](https://developer.android.com/reference/androidx/work/package-summary)
+  library. *Seeneva* uses that library to periodically sync added comic book files to determine
+  their status (e.g. comic book file was removed, renamed or corrupted) and display that status to
+  the user. These permissions allow to start that periodical task after the device has been
+  rebooted.
+- `android.permission.POST_NOTIFICATIONS`: required to display notifications on Android 13 and up.
+  Notifications are displayed for example when adding a comic book into the library.
 
 ## Screenshots
 
@@ -148,82 +155,6 @@ If you like *Seeneva* comic book reader, you can donate to its future developmen
 So *Seeneva* will be smarter than ever! :brain:
 
 Please remember that donations are totally voluntary. There is no any bonuses right now, except the developer appreciation. :heart_eyes_cat:
-
-<table>
-
-<tbody>
-<tr>
-<td>
-
-[![liberpay_button]][liberpay_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/liberapay_qr.png"><img src="docs/img/donate/liberapay_qr.png" width="170"/></a>
-</p>
-</td>
-</tr>
-<tr>
-
-<td>
-
-[![qiwi_button]][qiwi_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/qiwi_qr.png"><img src="docs/img/donate/qiwi_qr.png" width="170"/></a>
-</p>
-</td>
-</tr>
-<tr>
-
-<td>
-
-[![bitcoin_button]][bitcoin_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/bitcoin_qr.png"><img src="docs/img/donate/bitcoin_qr.png" width="170"/></a>
-    <br>
-    bc1qka05pst7ls9g<br>8fgdx4wvqr8fsjkwjkmj9jtcp0
-</p>
-</td>
-</tr>
-<tr>
-
-<td>
-
-[![nano_button]][nano_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/nano_qr.png"><img src="docs/img/donate/nano_qr.png" width="170"/></a>
-    <br>
-    nano_1oyofpnaacs<br>wu4byr4iiw8uwiqt<br>hhq83w4fkhsaujsm<br>restxnf6mzaby86ig
-</p>
-</td>
-</tr>
-<tr>
-
-<td>
-
-[![ethereum_button]][ethereum_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/ethereum_qr.png"><img src="docs/img/donate/ethereum_qr.png" width="170"/></a>
-    <br>
-    0xdBa3f438107208<br>837491885351deAB<br>00d66c718B
-</p>
-</td>
-</tr>
-</tbody>
-</table>
 
 ## FAQ
 
@@ -289,18 +220,3 @@ Please let me know if any of a licenses has invalid information.
 - Some examples and tests use pages from the great webcomic [Pepper&Carrot](https://www.peppercarrot.com/) licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 - Google Play and the Google Play logo are trademarks of Google LLC.
-
-[liberpay_button]: https://img.shields.io/static/v1?style=flat&label=Liberapay&message=Donate&logo=liberapay&labelColor=0073A7&color=ECC114 "Liberapay Button"
-[liberpay_link]: https://en.liberapay.com/Seeneva/donate
-
-[bitcoin_button]: https://img.shields.io/static/v1?style=flat&label=Bitcoin&message=Donate&logo=bitcoin&labelColor=0073A7&color=F08F19 "bc1qka05pst7ls9g8fgdx4wvqr8fsjkwjkmj9jtcp0"
-[bitcoin_link]: bitcoin:bc1qka05pst7ls9g8fgdx4wvqr8fsjkwjkmj9jtcp0
-
-[ethereum_button]: https://img.shields.io/static/v1?style=flat&label=Ethereum&message=Donate&logo=ethereum&logoColor=A4A5FF&labelColor=0073A7&color=A4A5FF "0xdBa3f438107208837491885351deAB00d66c718B"
-[ethereum_link]: https://etherscan.io/address/0xdBa3f438107208837491885351deAB00d66c718B
-
-[qiwi_button]: https://img.shields.io/static/v1?style=flat&label=Qiwi&message=Donate&logo=qiwi&labelColor=0073A7&color=FF8100 "Qiwi Button"
-[qiwi_link]: https://my.qiwi.com/Sergei-SbvCCGG4D5
-
-[nano_button]: https://img.shields.io/static/v1?style=flat&label=Nano&message=Donate&logo=nano&logoColor=9CE2FF&labelColor=0073A7&color=9CE2FF "nano_1oyofpnaacswu4byr4iiw8uwiqthhq83w4fkhsaujsmrestxnf6mzaby86ig"
-[nano_link]: nano://nano_1oyofpnaacswu4byr4iiw8uwiqthhq83w4fkhsaujsmrestxnf6mzaby86ig
