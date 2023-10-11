@@ -39,7 +39,7 @@
 
 [![Telegram](https://img.shields.io/static/v1?style=flate&label=Telegram&message=Join&logo=telegram&labelColor=0073A7&color=29A9EB)](https://t.me/joinchat/VqnXJZQlTcpiMGVk)
 [![Twitter](https://img.shields.io/static/v1?style=flate&label=Twitter&message=Follow&logo=twitter&labelColor=0073A7&color=29A9EB)](https://twitter.com/Seeneva_app)
-
+[![Liberapay](https://img.shields.io/static/v1?style=flat&label=Liberapay&message=Donate&logo=liberapay&labelColor=0073A7&color=ECC114)](https://ru.liberapay.com/Seeneva/donate)
 </div>
 
 ---
@@ -103,7 +103,14 @@
 
 - `android.permission.READ_EXTERNAL_STORAGE`: необходимо на Android версиях вплоть до 4.3. Это разрешение позволяет добавлять в библиотеку файлы комиксов на внешнем хранилище устройства (например SD карта).
 - `android.permission.FOREGROUND_SERVICE`: необходимо для обработки добавления комиксов в [foreground Service](https://developer.android.com/guide/components/foreground-services). Каждый комикс проходит через модель машинного обучения, что может занять несколько минут. Foreground Service позволяет *Seeneva* продолжить процесс добавления комиксов без риска быть остановленным системой как только пользователь переведёт приложение в фон.
-- `android.permission.WAKE_LOCK`, `android.permission.RECEIVE_BOOT_COMPLETED`: необходимы для библиотеки [AndroidX WorkManager](https://developer.android.com/reference/androidx/work/package-summary). *Seeneva* использует эту библиотеку для периодической синхронизации файлов добавленных комиксов, чтобы определить их статус (например, файл комикса был удалён, переименован или повреждён) и отобразить этот статус пользователю. Эти разрешения позволяют запустить периодическую синхронизацию после того как устройство было перезапущено.
+- `android.permission.WAKE_LOCK`, `android.permission.RECEIVE_BOOT_COMPLETED`: необходимы для
+  библиотеки [AndroidX WorkManager](https://developer.android.com/reference/androidx/work/package-summary).
+  *Seeneva* использует эту библиотеку для периодической синхронизации файлов добавленных комиксов,
+  чтобы определить их статус (например, файл комикса был удалён, переименован или повреждён) и
+  отобразить этот статус пользователю. Эти разрешения позволяют запустить периодическую
+  синхронизацию после того как устройство было перезапущено.
+- `android.permission.POST_NOTIFICATIONS`: необходимо для отображения нотификаций на Android 13 и
+  выше. Нотификации отображаются например во время добавления комикса в библиотеку.
 
 ## Скриншоты
 
@@ -152,82 +159,6 @@
 *Seeneva* станет ещё умнее, как никогда ранее! :brain:
 
 Пожалуйста помните, что донаты полностью добровольны. Сейчас пожертвования не приносят каких-либо бонусов, кроме признательности разработчика приложения. :heart_eyes_cat:
-
-<table>
-
-<tbody>
-<tr>
-<td>
-
-[![liberpay_button]][liberpay_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/liberapay_qr.png"><img src="docs/img/donate/liberapay_qr.png" width="170"/></a>
-</p>
-</td>
-</tr>
-<tr>
-
-<td>
-
-[![qiwi_button]][qiwi_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/qiwi_qr.png"><img src="docs/img/donate/qiwi_qr.png" width="170"/></a>
-</p>
-</td>
-</tr>
-<tr>
-
-<td>
-
-[![bitcoin_button]][bitcoin_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/bitcoin_qr.png"><img src="docs/img/donate/bitcoin_qr.png" width="170"/></a>
-    <br>
-    bc1qka05pst7ls9g<br>8fgdx4wvqr8fsjkwjkmj9jtcp0
-</p>
-</td>
-</tr>
-<tr>
-
-<td>
-
-[![nano_button]][nano_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/nano_qr.png"><img src="docs/img/donate/nano_qr.png" width="170"/></a>
-    <br>
-    nano_1oyofpnaacs<br>wu4byr4iiw8uwiqt<br>hhq83w4fkhsaujsm<br>restxnf6mzaby86ig
-</p>
-</td>
-</tr>
-<tr>
-
-<td>
-
-[![ethereum_button]][ethereum_link]
-
-</td>
-<td>
-<p align="center">
-    <a href="docs/img/donate/ethereum_qr.png"><img src="docs/img/donate/ethereum_qr.png" width="170"/></a>
-    <br>
-    0xdBa3f438107208<br>837491885351deAB<br>00d66c718B
-</p>
-</td>
-</tr>
-</tbody>
-</table>
 
 ## ЧАВО
 
@@ -293,18 +224,3 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 - Некоторые примеры и тесты приложения используют страницы из замечательного веб комикса [Pepper&Carrot](https://www.peppercarrot.com/), распространяющегося под лицензией [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 - Google Play и логотип Google Play являются товарными знаками корпорации Google LLC.
-
-[liberpay_button]: https://img.shields.io/static/v1?style=flat&label=Liberapay&message=Donate&logo=liberapay&labelColor=0073A7&color=ECC114 "Liberapay Button"
-[liberpay_link]: https://en.liberapay.com/Seeneva/donate
-
-[bitcoin_button]: https://img.shields.io/static/v1?style=flat&label=Bitcoin&message=Donate&logo=bitcoin&labelColor=0073A7&color=F08F19 "bc1qka05pst7ls9g8fgdx4wvqr8fsjkwjkmj9jtcp0"
-[bitcoin_link]: bitcoin:bc1qka05pst7ls9g8fgdx4wvqr8fsjkwjkmj9jtcp0
-
-[ethereum_button]: https://img.shields.io/static/v1?style=flat&label=Ethereum&message=Donate&logo=ethereum&logoColor=A4A5FF&labelColor=0073A7&color=A4A5FF "0xdBa3f438107208837491885351deAB00d66c718B"
-[ethereum_link]: https://etherscan.io/address/0xdBa3f438107208837491885351deAB00d66c718B
-
-[qiwi_button]: https://img.shields.io/static/v1?style=flat&label=Qiwi&message=Donate&logo=qiwi&labelColor=0073A7&color=FF8100 "Qiwi Button"
-[qiwi_link]: https://my.qiwi.com/Sergei-SbvCCGG4D5
-
-[nano_button]: https://img.shields.io/static/v1?style=flat&label=Nano&message=Donate&logo=nano&logoColor=9CE2FF&labelColor=0073A7&color=9CE2FF "nano_1oyofpnaacswu4byr4iiw8uwiqthhq83w4fkhsaujsmrestxnf6mzaby86ig"
-[nano_link]: nano://nano_1oyofpnaacswu4byr4iiw8uwiqthhq83w4fkhsaujsmrestxnf6mzaby86ig
