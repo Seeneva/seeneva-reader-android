@@ -12,5 +12,4 @@ gem 'octokit'
 
 group :development do
   gem 'rubocop'
-  gem 'solargraph'
 end
