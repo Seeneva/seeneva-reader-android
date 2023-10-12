@@ -1,8 +1,8 @@
 {
     "recommendations": [
-        "rebornix.ruby",
-        "castwide.solargraph",
         "editorconfig.editorconfig",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "shopify.ruby-extensions-pack",
+        "github.vscode-github-actions"
     ]
 }
