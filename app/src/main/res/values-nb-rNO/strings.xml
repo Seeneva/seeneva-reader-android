@@ -121,4 +121,7 @@
     <string name="search">Søk</string>
     <string name="all_cancel">Avbryt</string>
     <string name="all_ok">OK</string>
+    <string name="about_app_donate">Doner</string>
+    <string name="comic_list_message_add_progress">Behandler … Dette kan ta noen minutter.</string>
+    <string name="about_app_donate_txt">Støtt utvikleren</string>
 </resources>
