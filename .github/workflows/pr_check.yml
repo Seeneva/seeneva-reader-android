@@ -57,6 +57,8 @@ jobs:
     needs: filter_paths
     outputs:
       bumped: ${{ steps.persist_version.outputs.changes_detected || 'false' }}
+      version_name: ${{ steps.bump_version.outputs.VERSION_NAME }}
+      version_code: ${{ steps.bump_version.outputs.VERSION_CODE }}
     steps:
       - uses: actions/checkout@v4
         if: ${{ env.RELEASE_CANDIDATE == 'true' }}
@@ -94,7 +96,7 @@ jobs:
             if [[ ${{ github.head_ref }} =~ /(([0-9]+\.?){3})$ ]]; then
               version_tag=$(echo ${BASH_REMATCH[1]})
             else
-              echo "::error::Invalid branch name. It should contains version name"
+              echo "Invalid branch name. It should contains version name"
               exit 1
             fi
           fi
@@ -104,7 +106,7 @@ jobs:
           name="pr-${{ github.event.number }}-${{ steps.short-sha.outputs.sha }}"
           code=$((${o[-1]}))
 
-          echo "::debug::Output app name: $name, code: $code"
+          echo "Output app name: $name, code: $code"
 
           if [[ ${RELEASE_CANDIDATE} = true ]]; then
             name_to_persist=${o[-2]}
@@ -139,6 +141,9 @@ jobs:
     if: ${{ needs.bump_version.outputs.bumped == 'false' }}
     needs: bump_version
     steps:
+      - name: Install packages
+        run: sudo apt install autopoint
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -152,7 +157,7 @@ jobs:
         
       - name: Setup required Java
         run: |
-          asdf install java
+          asdf install java &&
           echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
 
       - name: Setup required Ruby
@@ -210,7 +215,7 @@ jobs:
         
       - name: Setup required Java
         run: |
-          asdf install java
+          asdf install java &&
           echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
 
       - name: Setup required Ruby
@@ -225,7 +230,7 @@ jobs:
           locales=""
 
           for dir in fastlane/metadata/android/*/; do
-            if [[ ! -f "${dir}/changelogs/${{ needs.bump_version.outputs.VERSION_CODE }}.txt" ]]; then
+            if [[ ! -f "${dir}/changelogs/${{ needs.bump_version.outputs.version_code }}.txt" ]]; then
               locales="${locales}- *$(basename $dir)*\n"
             fi
           done
@@ -263,8 +268,8 @@ jobs:
         run: |
           bundle exec fastlane pr_build_apk build_type:"${APP_BUILD_TYPE}" store_data:"${SEENEVA_STORE_DATA}"
         env:
-          SEENEVA_VERSION_NAME: ${{ needs.bump_version.outputs.VERSION_NAME }}
-          SEENEVA_VERSION_CODE: ${{ needs.bump_version.outputs.VERSION_CODE }}
+          SEENEVA_VERSION_NAME: ${{ needs.bump_version.outputs.version_name }}
+          SEENEVA_VERSION_CODE: ${{ needs.bump_version.outputs.version_code }}
           SEENEVA_STORE_FILE: ${{ github.workspace }}/seeneva.keystore
           SEENEVA_STORE_DATA: ${{ secrets.KEYSTORE }}
           SEENEVA_STORE_PASS: ${{ secrets.KEYSTORE_PASS }}
@@ -277,8 +282,8 @@ jobs:
         run: |
           bundle exec fastlane pr_build_fork_apk build_type:"${APP_BUILD_TYPE}"
         env:
-          SEENEVA_VERSION_NAME: ${{ needs.bump_version.outputs.VERSION_NAME }}
-          SEENEVA_VERSION_CODE: ${{ needs.bump_version.outputs.VERSION_CODE }}
+          SEENEVA_VERSION_NAME: ${{ needs.bump_version.outputs.version_name }}
+          SEENEVA_VERSION_CODE: ${{ needs.bump_version.outputs.version_code }}
 
       - name: Upload APKs
         uses: actions/upload-artifact@v3
