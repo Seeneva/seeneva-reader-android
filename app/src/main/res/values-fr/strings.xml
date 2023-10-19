@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="notification_open_metatada_error_no_pages">Le fichier de BD fourni n’a pas de pages</string>
     <string name="about_app_gratitude_txt">Je tiens à exprimer ma grande gratitude à ma femme, mes parents, mes proches et mes amis pour leur soutien !</string>
     <string name="about_app_gratitude">Reconnaissance</string>
@@ -41,8 +41,8 @@
     <string name="notification_open_metatada_success">La bande dessinée ajoutée à votre bibliothèque</string>
     <string name="notification_open_metatada_success_title">Ajouté</string>
     <plurals name="notification_open_metadata_text">
-        <item quantity="one">Une BD</item>
-        <item quantity="other">%1$d BD</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">Une BD</item>
+        <item quantity="many">%1$d BD</item>
     </plurals>
     <string name="notification_open_metadata_more">Et %1$d de plus</string>
     <string name="notification_open_metadata_title">Ouverture</string>
@@ -91,8 +91,8 @@
     <string name="comic_info_general_information">Informations générales</string>
     <string name="comic_info_title">\@string/comic_list_info</string>
     <plurals name="comic_list_comic_book_removed">
-        <item quantity="one">La BD a été retirée</item>
-        <item quantity="other">%1$d BD ont été retirées</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">La BD a été retirée</item>
+        <item quantity="many">%1$d BD ont été retirées</item>
     </plurals>
     <string name="comic_list_edit_title">Nouveau titre</string>
     <string name="comic_list_search_hint">Titre</string>
