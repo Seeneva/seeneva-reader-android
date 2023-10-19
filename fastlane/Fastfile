@@ -34,12 +34,12 @@ platform :android do
 
     if ENV['CI']
       begin
-          store_file_path = ENV['SEENEVA_STORE_FILE']
+        store_file_path = ENV['SEENEVA_STORE_FILE']
 
-          # Decode keystore and save it to the file
-          base64_decode_to_file(data: options[:store_data], path: store_file_path)
+        # Decode keystore and save it to the file
+        base64_decode_to_file(data: options[:store_data], path: store_file_path)
 
-          base_lambda.call
+        base_lambda.call
       ensure
         File.delete(store_file_path)
       end

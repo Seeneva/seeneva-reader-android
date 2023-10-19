@@ -1,0 +1,2 @@
+# https://github.com/nektos/act
+-P ubuntu-latest=catthehacker/ubuntu:act-latest

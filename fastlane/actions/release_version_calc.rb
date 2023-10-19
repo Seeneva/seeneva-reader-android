@@ -21,7 +21,7 @@ module Fastlane
           # Take last release
           current_release = releases.find(&repo_filter)
 
-          UI.user_error!("There is no proper GH release") if current_release.nil?
+          UI.user_error!('There is no proper GH release') if current_release.nil?
 
           version_tag = current_release.tag_name
         end
