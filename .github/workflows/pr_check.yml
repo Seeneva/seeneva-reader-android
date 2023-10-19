@@ -151,7 +151,9 @@ jobs:
         uses: asdf-vm/actions/plugins-add@v3.0.2
         
       - name: Setup required Java
-        run: asdf install java && . ~/.asdf/plugins/java/set-java-home.bash
+        run: |
+          asdf install java
+          echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
 
       - name: Setup required Ruby
         uses: ruby/setup-ruby@v1
@@ -207,7 +209,9 @@ jobs:
         uses: asdf-vm/actions/plugins-add@v3.0.2
         
       - name: Setup required Java
-        run: asdf install java && . ~/.asdf/plugins/java/set-java-home.bash
+        run: |
+          asdf install java
+          echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
 
       - name: Setup required Ruby
         uses: ruby/setup-ruby@v1
