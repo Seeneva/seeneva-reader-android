@@ -35,6 +35,7 @@
     <string name="notification_open_metatada_success_title">Añadidos</string>
     <plurals name="notification_open_metadata_text">
         <item quantity="one">Un cómic</item>
+        <item quantity="many">%1$d cómics</item>
         <item quantity="other">%1$d cómics</item>
     </plurals>
     <string name="notification_open_metadata_more">Y %1$d más</string>
@@ -116,6 +117,7 @@
     <string name="comic_info_title">\@string/comic_list_info</string>
     <plurals name="comic_list_comic_book_removed">
         <item quantity="one">Se ha eliminado un cómic</item>
+        <item quantity="many">Se han eliminado %1$d cómics</item>
         <item quantity="other">Se han eliminado %1$d cómics</item>
     </plurals>
     <string name="comic_list_edit_title">Nuevo título</string>
