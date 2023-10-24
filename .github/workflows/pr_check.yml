@@ -20,6 +20,7 @@ jobs:
     name: Filter changed paths
     runs-on: ubuntu-latest
     outputs:
+      is_release: ${{ env.RELEASE_CANDIDATE }}
       src_changed: ${{ steps.check_files.outputs.src_files }}
     steps:
       - uses: actions/checkout@v4
@@ -53,17 +54,22 @@ jobs:
   bump_version:
     name: PR bump version
     runs-on: ubuntu-latest
-    if: ${{ needs.filter_paths.outputs.src_changed == 'true' }}
+    if: ${{ needs.filter_paths.outputs.src_changed == 'true' || needs.filter_paths.outputs.is_release == 'true' }}
     needs: filter_paths
     outputs:
       bumped: ${{ steps.persist_version.outputs.changes_detected || 'false' }}
       version_name: ${{ steps.bump_version.outputs.VERSION_NAME }}
       version_code: ${{ steps.bump_version.outputs.VERSION_CODE }}
+    permissions:
+      # Required by stefanzweifel/git-auto-commit-action
+      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
+      # I can't use expressions here :(
+      contents: 'write'
     steps:
       - uses: actions/checkout@v4
         if: ${{ env.RELEASE_CANDIDATE == 'true' }}
         with:
-          # Reqyured by stefanzweifel/git-auto-commit-action
+          # Required by stefanzweifel/git-auto-commit-action
           # PR check will stuck on 'waiting for status' without PAT after version bump pushing
           token: ${{ secrets.PAT }}
           ref: ${{ github.head_ref }}
