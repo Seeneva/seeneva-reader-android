@@ -20,6 +20,7 @@ jobs:
     name: Filter changed paths
     runs-on: ubuntu-latest
     outputs:
+      is_release: ${{ env.RELEASE_CANDIDATE }}
       src_changed: ${{ steps.check_files.outputs.src_files }}
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +54,7 @@ jobs:
   bump_version:
     name: PR bump version
     runs-on: ubuntu-latest
-    if: ${{ needs.filter_paths.outputs.src_changed == 'true' }}
+    if: ${{ needs.filter_paths.outputs.src_changed == 'true' || needs.filter_paths.outputs.is_release == 'true' }}
     needs: filter_paths
     outputs:
       bumped: ${{ steps.persist_version.outputs.changes_detected || 'false' }}
