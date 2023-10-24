@@ -63,7 +63,8 @@ jobs:
     permissions:
       # Required by stefanzweifel/git-auto-commit-action
       # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
-      contents: ${{ needs.filter_paths.outputs.is_release == 'true' && 'write' || 'none'}}
+      # I can't use expressions here :(
+      contents: 'write'
     steps:
       - uses: actions/checkout@v4
 
