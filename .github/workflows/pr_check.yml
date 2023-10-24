@@ -67,6 +67,15 @@ jobs:
       contents: 'write'
     steps:
       - uses: actions/checkout@v4
+        if: ${{ env.RELEASE_CANDIDATE == 'true' }}
+        with:
+          # Required by stefanzweifel/git-auto-commit-action
+          # PR check will stuck on 'waiting for status' without PAT after version bump pushing
+          token: ${{ secrets.PAT }}
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/checkout@v4
+        if: ${{ env.RELEASE_CANDIDATE == 'false' }}
 
       - name: Setup required Ruby
         uses: ruby/setup-ruby@v1
