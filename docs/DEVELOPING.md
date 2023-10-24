@@ -9,7 +9,7 @@ Use Android Studio and Gradle to build *Seeneva* apk/bundle.
 - Linux. It might be possible to use macOS, but it has not been tested. Your environment should be able to run shell scripts.
 - Android [SDK](https://developer.android.com/studio).
 - Android [NDK](https://developer.android.com/ndk). Check project's `ndkVersion` to find out which version to install.
-- [CMake](https://developer.android.com/ndk/guides/cmake). Can be installed using Android Studio.
+- [CMake](https://developer.android.com/ndk/guides/cmake). Can be installed using Android Studio. In order to compile the native module, `CMake` must be available via `PATH`.
 - [Autotools](https://www.gnu.org/software/automake/faq/autotools-faq.html).
 - [Kotlin](https://developer.android.com/kotlin). Can be installed using Android Studio.
 - [Rust](https://www.rust-lang.org/tools/install). Rustup will automatically install all required
@@ -141,7 +141,7 @@ The project uses [Fastlane](https://fastlane.tools) to automate build and deploy
 Install [Bundler](https://bundler.io) and check
 Fastlane's [setup](https://docs.fastlane.tools/getting-started/android/setup) instruction. You
 should ensure that you use supported Ruby version. You can
-use [rbenv](https://github.com/rbenv/rbenv) to use Ruby version described in the `.ruby-version`
+use [asdf](https://asdf-vm.com) to use Ruby version described in the `.tool-versions`
 file.
 
 After that you can install all required Ruby gems by calling:
