@@ -60,17 +60,12 @@ jobs:
       bumped: ${{ steps.persist_version.outputs.changes_detected || 'false' }}
       version_name: ${{ steps.bump_version.outputs.VERSION_NAME }}
       version_code: ${{ steps.bump_version.outputs.VERSION_CODE }}
+    permissions:
+      # Required by stefanzweifel/git-auto-commit-action
+      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
+      contents: ${{ needs.filter_paths.outputs.is_release == 'true' && 'write' || 'none'}}
     steps:
       - uses: actions/checkout@v4
-        if: ${{ env.RELEASE_CANDIDATE == 'true' }}
-        with:
-          # Reqyured by stefanzweifel/git-auto-commit-action
-          # PR check will stuck on 'waiting for status' without PAT after version bump pushing
-          token: ${{ secrets.PAT }}
-          ref: ${{ github.head_ref }}
-
-      - uses: actions/checkout@v4
-        if: ${{ env.RELEASE_CANDIDATE == 'false' }}
 
       - name: Setup required Ruby
         uses: ruby/setup-ruby@v1
