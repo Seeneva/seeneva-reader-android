@@ -60,11 +60,6 @@ jobs:
       bumped: ${{ steps.persist_version.outputs.changes_detected || 'false' }}
       version_name: ${{ steps.bump_version.outputs.VERSION_NAME }}
       version_code: ${{ steps.bump_version.outputs.VERSION_CODE }}
-    permissions:
-      # Required by stefanzweifel/git-auto-commit-action
-      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
-      # I can't use expressions here :(
-      contents: 'write'
     steps:
       - uses: actions/checkout@v4
         if: ${{ env.RELEASE_CANDIDATE == 'true' }}
