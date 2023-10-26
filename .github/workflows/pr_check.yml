@@ -104,15 +104,17 @@ jobs:
 
           o=($(bundle exec fastlane run release_version_calc token:"${{ secrets.GITHUB_TOKEN }}" tag:"v${version_tag}"))
 
-          name="pr-${{ github.event.number }}-${{ steps.short-sha.outputs.sha }}"
+          name=''
           code=$((${o[-1]}))
+          
+          if [[ ${RELEASE_CANDIDATE} = true ]]; then
+            name=${o[-2]}
+            bundle exec fastlane run persist_version version_name:"${name}" version_code:"${code}"
+          else
+            name="pr-${{ github.event.number }}-${{ steps.short-sha.outputs.sha }}"
+          fi
 
           echo "Output app name: $name, code: $code"
-
-          if [[ ${RELEASE_CANDIDATE} = true ]]; then
-            name_to_persist=${o[-2]}
-            bundle exec fastlane run persist_version version_name:"${name_to_persist}" version_code:"${code}"
-          fi
 
           echo "VERSION_NAME=${name}" >> "$GITHUB_OUTPUT"
           echo "VERSION_CODE=${code}" >> "$GITHUB_OUTPUT"
