@@ -53,4 +53,27 @@
     <string name="comic_info_general_info_source">Żródło</string>
     <string name="comic_info_general_info_hash">Hash</string>
     <string name="comic_info_general_info_size">Rozmiar</string>
+    <string name="viewer_help_hold">Przytrzymaj</string>
+    <string name="third_parties_license">Licencja</string>
+    <string name="comic_info_editors">Redaktorzy</string>
+    <string name="viewer_help_title">Wskazówka</string>
+    <string name="comic_info_colorful">Kolorowy</string>
+    <string name="about_app_donate">Przekaż darowiznę</string>
+    <string name="comic_info_general_info_web">Strona internetowa</string>
+    <string name="comic_info_writets">Pisarze</string>
+    <string name="comic_info_pencillers">Rysownicy</string>
+    <string name="third_parties_version">Wersja</string>
+    <string name="comic_info_general_info_issues_count">Liczba wydań</string>
+    <string name="comic_info_general_info_issue">Wydanie</string>
+    <string name="viewer_help_tap">Kliknij</string>
+    <string name="comic_info_general_info_volume">Głośność</string>
+    <string name="comic_info_plot_teams">Drużyny</string>
+    <string name="third_parties_summary">Podsumowanie</string>
+    <string name="about_app_web">Strona internetowa</string>
+    <string name="third_parties_homepage">Strona głowna</string>
+    <string name="comic_info_release">Wydanie</string>
+    <string name="comic_info_credits">Twórcy</string>
+    <string name="comic_info_general_info_notes">Uwagi</string>
+    <string name="notification_open_metatada_success_title">Dodano</string>
+    <string name="third_parties_authors">Autorzy</string>
 </resources>
