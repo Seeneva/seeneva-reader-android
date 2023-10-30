@@ -76,4 +76,5 @@
     <string name="comic_info_general_info_notes">Uwagi</string>
     <string name="notification_open_metatada_success_title">Dodano</string>
     <string name="third_parties_authors">Autorzy</string>
+    <string name="comic_info_plot_locations">Lokalizacje</string>
 </resources>
