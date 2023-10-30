@@ -9,7 +9,7 @@
 - Linux. Возможно получится собрать и с помощью macOS, но это не проверялось. Ваша система должна иметь возможность запуска shell скриптов.
 - Android [SDK](https://developer.android.com/studio).
 - Android [NDK](https://developer.android.com/ndk). Проверьте используемый проектом `ndkVersion`, чтобы установить правильную версию.
-- [CMake](https://developer.android.com/ndk/guides/cmake). Может быть установлен с помощью Android Studio.
+- [CMake](https://developer.android.com/ndk/guides/cmake). Может быть установлен с помощью Android Studio. `CMake` должен быть доступен из `PATH` для того чтобы скомпилировать native модуль.
 - [Autotools](https://www.gnu.org/software/automake/faq/autotools-faq.html).
 - [Kotlin](https://developer.android.com/kotlin). Может быть установлен с помощью Android Studio.
 - [Rust](https://www.rust-lang.org/tools/install). Rustup сам установит необходимые toolchain и цели
@@ -143,8 +143,8 @@
 Установите [Bundler](https://bundler.io) и
 следуйте [инструкции](https://docs.fastlane.tools/getting-started/android/setup) по установке
 Fastlane. Убедитесь, что вы используете поддерживаемую версию Ruby. Вы можете
-использовать [rbenv](https://github.com/rbenv/rbenv) или схожие инструменты, чтобы использовать
-версию Ruby, указанную в файле `.ruby-version`.
+использовать [asdf](https://asdf-vm.com), чтобы использовать
+версию Ruby, указанную в файле `.tool-versions`.
 
 Теперь вы можете установить все требуемые Ruby gems:
 
