@@ -1,0 +1,3 @@
+New:
+- Added support for Android 13.
+- New translations added. Thanks to the contributors!

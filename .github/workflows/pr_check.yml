@@ -20,6 +20,7 @@ jobs:
     name: Filter changed paths
     runs-on: ubuntu-latest
     outputs:
+      is_release: ${{ env.RELEASE_CANDIDATE }}
       src_changed: ${{ steps.check_files.outputs.src_files }}
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +54,7 @@ jobs:
   bump_version:
     name: PR bump version
     runs-on: ubuntu-latest
-    if: ${{ needs.filter_paths.outputs.src_changed == 'true' }}
+    if: ${{ needs.filter_paths.outputs.src_changed == 'true' || needs.filter_paths.outputs.is_release == 'true' }}
     needs: filter_paths
     outputs:
       bumped: ${{ steps.persist_version.outputs.changes_detected || 'false' }}
@@ -63,7 +64,7 @@ jobs:
       - uses: actions/checkout@v4
         if: ${{ env.RELEASE_CANDIDATE == 'true' }}
         with:
-          # Reqyured by stefanzweifel/git-auto-commit-action
+          # Required by stefanzweifel/git-auto-commit-action
           # PR check will stuck on 'waiting for status' without PAT after version bump pushing
           token: ${{ secrets.PAT }}
           ref: ${{ github.head_ref }}
@@ -103,15 +104,17 @@ jobs:
 
           o=($(bundle exec fastlane run release_version_calc token:"${{ secrets.GITHUB_TOKEN }}" tag:"v${version_tag}"))
 
-          name="pr-${{ github.event.number }}-${{ steps.short-sha.outputs.sha }}"
+          name=''
           code=$((${o[-1]}))
+          
+          if [[ ${RELEASE_CANDIDATE} = true ]]; then
+            name=${o[-2]}
+            bundle exec fastlane run persist_version version_name:"${name}" version_code:"${code}"
+          else
+            name="pr-${{ github.event.number }}-${{ steps.short-sha.outputs.sha }}"
+          fi
 
           echo "Output app name: $name, code: $code"
-
-          if [[ ${RELEASE_CANDIDATE} = true ]]; then
-            name_to_persist=${o[-2]}
-            bundle exec fastlane run persist_version version_name:"${name_to_persist}" version_code:"${code}"
-          fi
 
           echo "VERSION_NAME=${name}" >> "$GITHUB_OUTPUT"
           echo "VERSION_CODE=${code}" >> "$GITHUB_OUTPUT"
