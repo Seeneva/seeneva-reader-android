@@ -5,6 +5,7 @@ runs:
   using: composite
   steps:
     - name: Install packages
+      shell: bash
       run: sudo apt install autopoint
 
     - name: Setup asdf
@@ -14,6 +15,7 @@ runs:
       uses: asdf-vm/actions/plugins-add@v3.0.2
 
     - name: Setup required Java
+      shell: bash
       run: |
         asdf install java &&
         echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
