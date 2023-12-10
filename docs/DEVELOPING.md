@@ -192,7 +192,16 @@ Based on well known [Github flow](https://guides.github.com/introduction/flow).
 
 ### Branches
 
-- **master**: protected branch. All merges should be done through GitHub Pull Request. GitHub Release with tag name *vX.Y.Z* will start CI job. This job will build and attach APKs to the GH Release and upload AAB to the Google Play using Fastlane.
-- **feature_branch**: can have any name. It is usually created from **master** branch and merged back.
-- **hotfix/x.y.z**: the urgent bug fix. This branch always created from **master**. Bug should be fixed on **master** branch (if related) and cherry-picked to this branch. GitHub Release with tag name *vX.Y.Z* will start CI job to build and upload fixed app version.
-- **release/x.y.z**: new app release is ready. x.y.z should describe new app version name e.g. 0.1.0. This branch created from **master** or **hotfix** branch and merged back. The app version name and code will be calculated and committed by CI during Pull Request.
+- **master**: protected branch. All merges should be done through GitHub Pull Request. GitHub
+  Release with tag name *vX.Y.Z* will start CI job. This job will build and attach APKs to the GH
+  Release and upload AAB to the Google Play using Fastlane.
+- **develop**: protected branch. All merges should be done through GitHub Pull Request. The source
+  branch for all feature branches.
+- **feature_branch**: can have any name. It should be created from **develop** branch and merged
+  back.
+- **hotfix/any_name**: the urgent bug fix. This branch always created from the **master** branch and
+  merged to the **master** and **develop** branches.
+- **release/x.y.z**: new app release is ready. x.y.z should describe new app version name e.g.
+  0.1.0. This branch created from **master** branch and merged to the **master** and **develop**
+  branches. The app version name and code will be calculated and committed by CI during Pull
+  Request.

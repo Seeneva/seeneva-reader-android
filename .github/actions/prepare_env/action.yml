@@ -1,0 +1,51 @@
+name: Prepare environment
+description: Prepare required environment be the Seeneva project
+
+runs:
+  using: composite
+  steps:
+    - name: Install packages
+      shell: bash
+      run: sudo apt install autopoint
+
+    - name: Setup asdf
+      uses: asdf-vm/actions/setup@v3.0.2
+
+    - name: Install asdf plugins
+      uses: asdf-vm/actions/plugins-add@v3.0.2
+
+    - name: Setup required Java
+      shell: bash
+      run: |
+        asdf install java &&
+        echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
+
+    - name: Setup required Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+
+    - name: Cache Rust Cargo
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry
+          ~/.cargo/git
+          ./native/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('./native/**/Cargo.lock', '**/rust-toolchain') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Cache Gradle wrapper
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Validate Gradle Wrapper
+      uses: gradle/wrapper-validation-action@v1
