@@ -4,12 +4,12 @@ on:
   pull_request:
     branches:
       - master
-      - "hotfix/[0-9]+.[0-9]+.[0-9]+"
+      - develop
 
 env:
   FORK: "${{ github.event.pull_request.head.repo.full_name != github.repository }}"
   APP_BUILD_TYPE: Release
-  RELEASE_CANDIDATE: "${{ github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'release/') }}"
+  RELEASE_CANDIDATE: "${{ github.event.pull_request.head.repo.full_name == github.repository && github.base_ref == 'master' && startsWith(github.head_ref, 'release/') }}"
   BUNDLE_WITHOUT: development
   FASTLANE_SKIP_UPDATE_CHECK: true
 
@@ -144,42 +144,13 @@ jobs:
     if: ${{ needs.bump_version.outputs.bumped == 'false' }}
     needs: bump_version
     steps:
-      - name: Install packages
-        run: sudo apt install autopoint
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup asdf
-        uses: asdf-vm/actions/setup@v3.0.2
-        
-      - name: Install asdf plugins
-        uses: asdf-vm/actions/plugins-add@v3.0.2
-        
-      - name: Setup required Java
-        run: |
-          asdf install java &&
-          echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
-
-      - name: Setup required Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Cache Gradle wrapper
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
+      - name: Prepare env
+        uses: ./actions/prepare_env
 
       - name: Run Android tests
         run: |
@@ -202,29 +173,13 @@ jobs:
     if: ${{ needs.bump_version.outputs.bumped == 'false' }}
     needs: bump_version
     steps:
-      - name: Install packages
-        run: sudo apt install autopoint
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup asdf
-        uses: asdf-vm/actions/setup@v3.0.2
-        
-      - name: Install asdf plugins
-        uses: asdf-vm/actions/plugins-add@v3.0.2
-        
-      - name: Setup required Java
-        run: |
-          asdf install java &&
-          echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
-
-      - name: Setup required Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
+      - name: Prepare env
+        uses: ./actions/prepare_env
 
         # Check that fastlane has changelog for the new version
       - name: Check Fastlane changelog
@@ -239,32 +194,14 @@ jobs:
           done
 
           if [[ ! -z "$locales" ]]; then
-            msg=":exclamation: There is no Fastlane changelog for locales:\n\n${locales}\nIs it OK?"
+            msg=":exclamation: There is no Fastlane changelog for locales:\n\n${locales}"
+
+            echo "::error::${msg}"
+
             bundle exec fastlane run issue_comment token:"${{ secrets.GITHUB_TOKEN }}" number:${{ github.event.number }} msg:"$(printf "${msg}")"
+
+            exit 1
           fi
-
-      - name: Cache Rust Cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry
-            ~/.cargo/git
-            ./native/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('./native/**/Cargo.lock', '**/rust-toolchain') }}
-
-      - name: Cache Gradle wrapper
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
 
       - name: Run assemble task
         if: ${{ env.FORK == 'false' }}

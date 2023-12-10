@@ -14,8 +14,7 @@ jobs:
     name: Check release before build
     runs-on: ubuntu-latest
     if: |
-      github.event.release.target_commitish == 'master' ||
-      startsWith(github.event.release.target_commitish, 'hotfix/')
+      github.event.release.target_commitish == 'master'
     outputs:
       valid: ${{ steps.check_tag.outputs.VALID }}
       build_type: ${{ steps.check_tag.outputs.BUILD_TYPE }}
@@ -48,42 +47,13 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.check_release.outputs.gh_envs) }}
     steps:
-      - name: Install packages
-        run: sudo apt install autopoint
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup asdf
-        uses: asdf-vm/actions/setup@v3.0.2
-          
-      - name: Install asdf plugins
-        uses: asdf-vm/actions/plugins-add@v3.0.2
-          
-      - name: Setup required Java
-        run: |
-          asdf install java &&
-          echo "JAVA_HOME=$(asdf where java)" >> "$GITHUB_ENV"
-  
-      - name: Setup required Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-  
-      - name: Cache Gradle wrapper
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-  
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
+      - name: Prepare env
+        uses: ./actions/prepare_env
 
       # Calculate app's version name and code
       # We don't need to do it on 'master' branch because all PR's alredy bumped version name and code
@@ -95,6 +65,7 @@ jobs:
       #     echo "SEENEVA_VERSION_CODE=${o[-1]}" >> $GITHUB_ENV
 
       # Assemble the app. Output APK will be signed using environment's KEYSTORE
+
       - name: Run assemble task
         if: matrix.env != 'upload'
         run: |
