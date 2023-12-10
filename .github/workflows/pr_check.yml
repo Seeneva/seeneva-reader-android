@@ -150,7 +150,7 @@ jobs:
           submodules: recursive
 
       - name: Prepare env
-        uses: ./actions/prepare_env
+        uses: ./.github/actions/prepare_env
 
       - name: Run Android tests
         run: |
@@ -179,7 +179,7 @@ jobs:
           submodules: recursive
 
       - name: Prepare env
-        uses: ./actions/prepare_env
+        uses: ./.github/actions/prepare_env
 
         # Check that fastlane has changelog for the new version
       - name: Check Fastlane changelog

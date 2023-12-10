@@ -53,7 +53,7 @@ jobs:
           submodules: recursive
 
       - name: Prepare env
-        uses: ./actions/prepare_env
+        uses: ./.github/actions/prepare_env
 
       # Calculate app's version name and code
       # We don't need to do it on 'master' branch because all PR's alredy bumped version name and code
