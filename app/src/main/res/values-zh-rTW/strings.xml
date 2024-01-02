@@ -21,4 +21,9 @@
     <string name="notification_open_metatada_error_no_pages_short">%1$s: 没有任何页面</string>
     <string name="viewer_txt_recognize_process">正在进行文本识别 👀</string>
     <string name="open_comic_service_descr">提取漫画书元数据</string>
+    <string name="comic_list_add">加入</string>
+    <string name="comic_list_sync">同步</string>
+    <string name="comic_list_sort">排列方式</string>
+    <string name="comic_list_filter">過濾</string>
+    <string name="comic_list_not_completed">未完成</string>
 </resources>
