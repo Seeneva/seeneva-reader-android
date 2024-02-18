@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Seeneva Android Reader
+  ~ Copyright (C) 2021-2024 Sergei Solodovnikov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  --><resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="app_name" translatable="false">Seeneva</string>
+    <string name="all_ok">OK</string>
+    <string name="all_cancel">Cancel</string>
+    <string name="search">Search</string>
+    <string name="settings">Settings</string>
+    <string name="copy">Copy</string>
+    <string name="install">Install</string>
+    <string name="library">Library</string>
+    <string name="about_app">About</string>
+    <string name="comic_list_as_list">List view</string>
+    <string name="comic_list_as_grid">Grid view</string>
+    <string name="comic_list_completed">Completed</string>
+    <string name="comic_list_not_completed">Not completed</string>
+    <string name="comic_list_add">Add</string>
+    <string name="comic_list_sort">Sort by</string>
+    <string name="comic_list_filter">Filter</string>
+    <string name="comic_list_sync">Sync</string>
+    <string name="comic_list_rename">Rename</string>
+    <string name="comic_list_info">Info</string>
+    <string name="comic_list_remove">Remove</string>
+    <string name="comic_list_undo_delete">Undo</string>
+    <string name="comic_list_message_empty">Your library is empty ☹️</string>
+    <string name="comic_list_message_not_found">No comic books were found ☹️</string>
+    <string name="comic_list_message_add_progress">Processing. It may take a few minutes.️</string>
+    <string name="comic_list_error_no_file_manager">File manager is required</string>
+    <string name="comic_list_error_view_corrupted">Oops. Comic book file is corrupted 😨</string>
+    <string name="comic_list_error_view_non_existed">Oops. Comic book cannot be found 😨</string>
+    <string name="comic_list_search_hint">Title</string>
+    <string name="comic_list_edit_title">New title</string>
+    <plurals name="comic_list_comic_book_removed">
+        <item quantity="one">Comics was removed</item>
+        <item quantity="other">%1$d comics were removed</item>
+    </plurals>
+    <string name="comic_info_title" translatable="false">@string/comic_list_info</string>
+    <string name="comic_info_general_information">General information</string>
+    <string name="comic_info_general_info_series">Series</string>
+    <string name="comic_info_general_info_title">Title</string>
+    <string name="comic_info_general_info_volume">Volume</string>
+    <string name="comic_info_general_info_issue">Issue</string>
+    <string name="comic_info_general_info_issue_of">%1$d of %2$d</string>
+    <string name="comic_info_general_info_issues_count">Issues count</string>
+    <string name="comic_info_general_info_pages">Pages</string>
+    <string name="comic_info_general_info_story_arc">Story arc</string>
+    <string name="comic_info_general_info_genre">Genre</string>
+    <string name="comic_info_general_info_language">Language</string>
+    <string name="comic_info_general_info_notes">Notes</string>
+    <string name="comic_info_general_info_web">Web</string>
+    <string name="comic_info_general_info_tags">Tags</string>
+    <string name="comic_info_general_info_source">Source</string>
+    <string name="comic_info_general_info_hash">Hash</string>
+    <string name="comic_info_general_info_size">Size</string>
+    <string name="comic_info_credits">Credits</string>
+    <string name="comic_info_writets">Writers</string>
+    <string name="comic_info_editors">Editors</string>
+    <string name="comic_info_pencillers">Pencillers</string>
+    <string name="comic_info_colorists">Colorists</string>
+    <string name="comic_info_inkers">Inkers</string>
+    <string name="comic_info_letterers">Letterers</string>
+    <string name="comic_info_cover_artists">Cover artists</string>
+    <string name="comic_info_release">Release</string>
+    <string name="comic_info_publisher">Publisher</string>
+    <string name="comic_info_imprint">Imprint</string>
+    <string name="comic_info_date">Date</string>
+    <string name="comic_info_format">Format</string>
+    <string name="comic_info_age_rating">Age rating</string>
+    <string name="comic_info_pages_color">Pages color</string>
+    <string name="comic_info_colorful">Colorful</string>
+    <string name="comic_info_black_white">Black and white</string>
+    <string name="comic_info_plot">Plot</string>
+    <string name="comic_info_plot_summary">Summary</string>
+    <string name="comic_info_plot_characters">Characters</string>
+    <string name="comic_info_plot_teams">Teams</string>
+    <string name="comic_info_plot_locations">Locations</string>
+    <string name="comic_info_err_cant_find" translatable="false">@string/comic_list_error_view_non_existed</string>
+    <string name="comic_info_err">Oops. Error occurred 😨</string>
+    <string name="rename_err_empty_title">Cannot be empty</string>
+    <string name="open_comic_service_descr">Extracts comic book metadata</string>
+    <string name="notification_channel_foreground_task">User tasks</string>
+    <string name="notification_open_metadata_title">Opening</string>
+    <string name="notification_open_metadata_more">And %1$d more</string>
+    <plurals name="notification_open_metadata_text">
+        <item quantity="one">One comic book</item>
+        <item quantity="other">%1$d comic books</item>
+    </plurals>
+    <string name="notification_open_metatada_success_title">Added</string>
+    <string name="notification_open_metatada_success">The comic book added to your library</string>
+    <string name="notification_open_metatada_success_short">\‘%1$s\’: added to your library</string>
+    <string name="notification_open_metatada_already_opened">The comic book is already in your library</string>
+    <string name="notification_open_metatada_already_opened_short">\‘%1$s\’: is already in your library</string>
+    <string name="notification_open_metatada_error_title">Opening error</string>
+    <string name="notification_open_metatada_error_read_container">Can\'t read provided comic book file</string>
+    <string name="notification_open_metatada_error_read_container_short">\‘%1$s\’: can\'t read</string>
+    <string name="notification_open_metatada_error_open_container_unsupported">Provided file is not supported</string>
+    <string name="notification_open_metatada_error_open_container_unsupported_short">\‘%1$s\’: is not supported</string>
+    <string name="notification_open_metatada_error_no_pages">Provided comic book file doesn\'t have any pages</string>
+    <string name="notification_open_metatada_error_no_pages_short">\‘%1$s\’: doesn\'t have any pages</string>
+    <string name="viewer_preview_page_counter">Page: %1$d of %2$d</string>
+    <string name="viewer_set_cover">Set as cover</string>
+    <string name="viewer_swap_read_direction">Swap read direction</string>
+    <string name="viewer_cover_changed">Cover was set</string>
+    <string name="viewer_txt_recognize_empty">No text was recognized 😨</string>
+    <string name="viewer_txt_recognize_process">Text recognition in progress 👀</string>
+    <string name="viewer_err_mgs_quote" translatable="false">Why are we still here?\nJust to suffer?</string>
+    <string name="viewer_settings_keep_screen_on">Keep screen on</string>
+    <string name="viewer_settings_system_brightness">System brightness</string>
+    <string name="viewer_settings_tts">Text-to-speech (English only)</string>
+    <string name="viewer_tts_error_title">TTS not available</string>
+    <string name="viewer_tts_error_not_installed">Please install any available text-to-speech engine on the device and configure \‘%1$s\’ language.</string>
+    <string name="viewer_tts_error_language">Please install \‘%1$s\’ language for the selected TTS engine.</string>
+    <string name="viewer_help_title">Tip</string>
+    <string name="viewer_help_tap">Tap</string>
+    <string name="viewer_help_hold">Hold</string>
+    <string name="third_parties_version">Version</string>
+    <string name="third_parties_authors">Authors</string>
+    <string name="third_parties_license">License</string>
+    <string name="third_parties_homepage">Homepage</string>
+    <string name="third_parties_summary">Summary</string>
+    <string name="about_app_name" translatable="false">%1$s, %2$s</string>
+    <string name="about_app_copyright" translatable="false">Copyright © 2021-2023 Sergei Solodovnikov</string>
+    <string name="about_app_description">%1$s is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</string>
+    <string name="about_app_source_code">Source code</string>
+    <string name="about_app_source_code_txt">View app repository</string>
+    <string name="about_app_source_code_link" translatable="false">https://github.com/Seeneva/seeneva-reader-android</string>
+    <string name="about_app_donate">Donate</string>
+    <string name="about_app_donate_txt">Support the developer</string>
+    <string name="about_app_donate_link" translatable="false">https://seeneva.app/#donate</string>
+    <string name="about_app_web">Website</string>
+    <string name="about_app_web_txt" translatable="false">https://seeneva.app</string>
+    <string name="about_app_license" translatable="false">@string/third_parties_license</string>
+    <string name="about_app_license_txt" translatable="false">GNU GPLv3 or any later version</string>
+    <string name="about_app_libraries">Third-party libraries</string>
+    <string name="about_app_libraries_txt">Let\'s thank their authors!</string>
+    <string name="about_app_gratitude">Gratitude</string>
+    <string name="about_app_gratitude_txt">I want to express my great gratitude to my wife, parents, relatives and friends for their support!</string>
+</resources>

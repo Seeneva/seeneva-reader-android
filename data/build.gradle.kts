@@ -1,23 +1,70 @@
 /*
- *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    id(Plugin.KSP)
+    kotlin("multiplatform")
+
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.android.library)
+}
+
+kotlin {
+    androidTarget {
+        compilations.all {
+            compilerOptions.configure {
+                jvmTarget.set(JvmTarget.JVM_17)
+            }
+        }
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":common"))
+        }
+
+        androidMain.dependencies {
+            implementation(libs.androidx.annotation)
+            implementation(libs.androidx.core)
+            implementation(libs.androidx.room)
+
+            implementation(libs.koin.androidx)
+
+            implementation(libs.tinylog.api)
+            implementation(libs.tinylog.impl)
+        }
+
+        // val androidInstrumentedTest by getting
+        named("androidInstrumentedTest") {
+            dependencies {
+                implementation(testLibs.android.test.runner)
+                implementation(testLibs.android.test.junit)
+
+                implementation(testLibs.kotlin.test.junit)
+
+                implementation(testLibs.faker)
+                implementation(testLibs.kluent.android.get().toString()) {
+                    exclude("com.nhaarman.mockitokotlin2")
+                }
+            }
+        }
+    }
 }
 
 android {
@@ -25,12 +72,15 @@ android {
     externalNativeBuild {
         cmake {
             path = rootDir.resolve("native/CMakeLists.txt")
-            version = "3.10.2"
+            version = libs.versions.cmake.get()
         }
     }
 
     defaultConfig {
         namespace = "app.seeneva.reader.data"
+
+        multiDexEnabled = true
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ksp {
             arg("room.schemaLocation", "${projectDir.resolve("schemas")}")
@@ -81,12 +131,23 @@ android {
             }
         }
     }
+
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    testOptions.targetSdk = libs.versions.androidTargetSdk.get().toInt()
 }
 
 dependencies {
-    api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    "kspCommonMainMetadata"(libs.androidx.room.compiler)
+    "kspAndroid"(libs.androidx.room.compiler)
+    "kspAndroidTest"(libs.androidx.room.compiler)
 
-    implementation(Deps.ANDROIDX_ROOM_KTX)
-
-    ksp(Deps.ANDROIDX_ROOM_COMPILER)
+    // some Java 8 features
+    // https://developer.android.com/studio/write/java8-support-table
+    "coreLibraryDesugaring"(libs.google.android.java.desugar)
 }

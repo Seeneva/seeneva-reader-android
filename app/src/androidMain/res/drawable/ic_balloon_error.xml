@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Seeneva Android Reader
+  ~ Copyright (C) 2021-2024 Sergei Solodovnikov
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <item>
+        <!--I use inline resources to help parse resource on pre lollipop devices-->
+        <aapt:attr name="android:drawable">
+            <vector
+                android:width="195.33dp"
+                android:height="126.32dp"
+                android:viewportWidth="51.682"
+                android:viewportHeight="33.423">
+                <path
+                    android:fillColor="@color/cerulean"
+                    android:pathData="M14.544 3.73l4.58 1.783 2.074-4.278 2.497 3.037 4.67-4.149 0.52 6.126 3.61-1.836 0.842 2.248 6.304-3.54-2.047 5.638 4.573-0.007-2.44 2.577 9.653-0.324-6.055 4.151 3.373 1.557-2.629 1.633 7.496 3.406-8.996 1.804 2.493 2.181-4.888 0.716 3.48 3.933-8.716-1.153-0.09 2.928-4.435-2.999-3.404 4.15-2.436-4.83-4.964 3.262-1.408-4.058-7.609 5.332 0.041-5.907-7.883 2.277 5.556-4.455-6.023-0.6 5.116-3.087-7.281-1.879 7.242-2.735-4.725-2.212 5.792-0.453L5.336 9.05l6.795 0.614-4.495-5.23 6.936 2.19z"
+                    android:strokeWidth=".26458"
+                    android:strokeColor="#000"
+                    android:strokeLineCap="round"
+                    android:strokeLineJoin="round" />
+            </vector>
+        </aapt:attr>
+    </item>
+    <item
+        android:drawable="@drawable/balloon_error_txt"
+        android:gravity="center" />
+</layer-list>

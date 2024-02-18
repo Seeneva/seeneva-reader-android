@@ -1,19 +1,19 @@
 /*
- *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import com.android.build.api.dsl.SigningConfig
@@ -22,15 +22,81 @@ import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApkVariantOutput
 import com.android.build.gradle.api.ApplicationVariant
 import extension.envOrProperty
+import extension.loadProperties
+import extension.requireEnvOrProperty
 import extension.signProperties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    kotlin("multiplatform")
+
+    alias(libs.plugins.android.application)
 }
 
-// True if this build is running in CI
-val buildUsingCI = !System.getenv("CI").isNullOrEmpty()
+kotlin {
+    androidTarget {
+        compilations.all {
+            compilerOptions.configure {
+                jvmTarget.set(JvmTarget.JVM_17)
+            }
+        }
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":common"))
+
+            implementation(project(":logic"))
+        }
+
+        androidMain.dependencies {
+            implementation(libs.androidx.annotation)
+            implementation(libs.androidx.core)
+            implementation(libs.androidx.appcompat)
+            implementation(libs.androidx.activity)
+            implementation(libs.androidx.viewpager)
+            implementation(libs.androidx.recyclerview)
+            implementation(libs.androidx.recyclerview.selection)
+            implementation(libs.androidx.fragment)
+            implementation(libs.androidx.lifecycle.runtime)
+            implementation(libs.androidx.lifecycle.service)
+            implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.androidx.lifecycle.livedata)
+            implementation(libs.androidx.lifecycle.java8)
+            implementation(libs.androidx.paging.runtime)
+            implementation(libs.androidx.constraintlayout)
+            implementation(libs.androidx.work.runtime)
+            implementation(libs.androidx.swiperefreshlayout)
+            implementation(libs.androidx.multidex)
+
+            implementation(libs.kotlinx.coroutines.android)
+
+            implementation(libs.google.android.material)
+
+            implementation(libs.koin.androidx)
+            implementation(libs.koin.androidx.viewmodel)
+            implementation(libs.koin.androidx.workmanager)
+
+            implementation(libs.scaleImageView)
+
+            implementation(libs.tinylog.api)
+            implementation(libs.tinylog.impl)
+        }
+
+        named("androidUnitTest") {
+            dependencies {
+                implementation(testLibs.kotlin.test.junit)
+
+                implementation(testLibs.kluent.android)
+            }
+        }
+    }
+}
 
 android {
+    // True if this build is running in CI
+    val buildUsingCI = !System.getenv("CI").isNullOrEmpty()
+
     buildFeatures {
         buildConfig = true
         viewBinding = true
@@ -56,6 +122,7 @@ android {
         register("release") {
             applyPropertiesSigning()
         }
+
         named("debug") {
             if (buildUsingCI) {
                 // Allow override signing properties on build started by CI
@@ -67,9 +134,31 @@ android {
     defaultConfig {
         applicationId = "app.seeneva.reader"
         namespace = "app.seeneva.reader"
+
+        targetSdk = libs.versions.androidTargetSdk.get().toInt()
+
+        multiDexEnabled = true
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
         // allow to set app id suffix from properties. It is required by CI.
         applicationIdSuffix =
             envOrProperty(extension.ENV_APP_ID_SUFFIX, extension.PROP_APP_ID_SUFFIX)
+
+        loadProperties(rootDir.resolve("seeneva.properties")).also { seenevaProperties ->
+            versionCode = requireEnvOrProperty(
+                extension.ENV_VERSION_CODE,
+                extension.PROP_VERSION_CODE,
+                seenevaProperties
+            ).toInt()
+
+            versionName = requireEnvOrProperty(
+                extension.ENV_VERSION_NAME,
+                extension.PROP_VERSION_NAME,
+                seenevaProperties
+            )
+        }
+
+        vectorDrawables.useSupportLibrary = true
 
         enableShowDonate(true)
 
@@ -97,6 +186,7 @@ android {
                 }
             }
         }
+
         named("debug") {
             isMinifyEnabled = false
             isDebuggable = true
@@ -104,8 +194,15 @@ android {
             applicationIdSuffix = ".debug"
 
             signingConfig = switchableSigningConfig("debug")
+
+            sourceSets {
+                named("main") {
+                    //setRoot("androidDebug")
+                }
+            }
         }
     }
+
     flavorDimensions += listOf(AppStoreFlavor.NAME)
 
     productFlavors {
@@ -140,39 +237,22 @@ android {
         applicationVariants.configureEach(::configureOutputName)
     }
 
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
 //    testOptions{
 //        unitTests.setIncludeAndroidResources(true)
 //    }
 }
 
 dependencies {
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-
-    implementation(project(":logic"))
-
-    implementation(Deps.ANDROIDX_APPCOMPAT)
-    implementation(Deps.ANDROIDX_ACTIVITY_KTX)
-    implementation(Deps.ANDROIDX_VIEW_PAGER)
-    implementation(Deps.ANDROIDX_RECYCLER_VIEW)
-    implementation(Deps.ANDROIDX_RECYCLER_VIEW_SELECTION)
-    implementation(Deps.ANDROIDX_FRAGMENT_KTX)
-    implementation(Deps.ANDROIDX_LIFECYCLE_RUNTIME)
-    implementation(Deps.ANDROIDX_LIFECYCLE_SERVICE)
-    implementation(Deps.ANDROIDX_LIFECYCLE_VIEWMODEL)
-    implementation(Deps.ANDROIDX_LIFECYCLE_LIVEDATA)
-    implementation(Deps.ANDROIDX_LIFECYCLE_JAVA8)
-    implementation(Deps.ANDROIDX_PAGING_RUNTIME)
-    implementation(Deps.ANDROIDX_CONSTRAINT_LAYOUT)
-    implementation(Deps.ANDROIDX_WORK_RUNTIME)
-    implementation(Deps.ANDROIDX_SWIPE_REFRESH_LAYOUT)
-    implementation(Deps.ANDROIDX_MULTIDEX)
-
-    implementation(Deps.MATERIAL)
-
-    implementation(Deps.KOIN_ANDROIDX_VIEWMODEL)
-    implementation(Deps.KOIN_ANDROIDX_WORKMANAGER)
-
-    implementation(Deps.SCALE_IMAGE_VIEW)
+    // some Java 8 features
+    // https://developer.android.com/studio/write/java8-support-table
+    "coreLibraryDesugaring"(libs.google.android.java.desugar)
 }
 
 /**
