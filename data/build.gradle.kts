@@ -53,13 +53,13 @@ kotlin {
         // val androidInstrumentedTest by getting
         named("androidInstrumentedTest") {
             dependencies {
-                implementation(testLibs.android.test.runner)
-                implementation(testLibs.android.test.junit)
+                implementation(libs.android.test.runner)
+                implementation(libs.android.test.junit)
 
-                implementation(testLibs.kotlin.test.junit)
+                implementation(libs.kotlin.test.junit)
 
-                implementation(testLibs.faker)
-                implementation(testLibs.kluent.android.get().toString()) {
+                implementation(libs.faker)
+                implementation(libs.kluent.android.get().toString()) {
                     exclude("com.nhaarman.mockitokotlin2")
                 }
             }

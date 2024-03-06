@@ -85,9 +85,9 @@ kotlin {
 
         named("androidUnitTest") {
             dependencies {
-                implementation(testLibs.kotlin.test.junit)
+                implementation(libs.kotlin.test.junit)
 
-                implementation(testLibs.kluent.android)
+                implementation(libs.kluent.android)
             }
         }
     }
