@@ -9,7 +9,7 @@
     <string name="filter_comic_completed_any">Qualquer</string>
     <string name="filter_comic_completed_only">Concluído</string>
     <string name="filter_comic_completed_not">Não completo</string>
-    <string name="filter_comic_file_status_title">Status do arquivo</string>
+    <string name="filter_comic_file_status_title">Estado do ficheiro</string>
     <string name="filter_comic_file_status_corrupted">Corrompido</string>
     <string name="add_mode_import">Importar</string>
     <string name="add_mode_link">Link</string>
