@@ -22,7 +22,7 @@ import com.android.build.api.dsl.SettingsExtension
 // https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_management
 pluginManagement {
     // Used versions. Change them to update!
-    val androidVersion = "8.2.2"
+    val androidVersion = "8.3.0"
     val androidMinSdk = 16
     val androidCompileSdk = 33
     val androidTargetSdk = androidCompileSdk
@@ -58,7 +58,7 @@ dependencyResolutionManagement {
             val androidCompileSdk: Int by settings
             val androidTargetSdk: Int by settings
 
-            val kotlinVersion = "1.9.22"
+            val kotlinVersion = "1.9.23"
 
             version("androidGradlePlugin", androidVersion)
             version("androidMinSdk", androidMinSdk.toString())
@@ -80,7 +80,7 @@ dependencyResolutionManagement {
             plugin(
                 "ksp",
                 "com.google.devtools.ksp"
-            ).version("$kotlinVersion-1.0.17")
+            ).version("$kotlinVersion-1.0.20")
 
             library(
                 "kotlin-test-junit",
