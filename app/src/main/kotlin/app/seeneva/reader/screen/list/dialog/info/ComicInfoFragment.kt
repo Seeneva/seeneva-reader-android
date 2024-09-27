@@ -18,10 +18,7 @@
 
 package app.seeneva.reader.screen.list.dialog.info
 
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.text.util.Linkify
 import android.view.LayoutInflater
@@ -324,18 +321,6 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
                     .updateLayoutParams<ViewGroup.MarginLayoutParams> {
                         bottomMargin = 0
                     }
-            }
-
-            //Bug on Material Design library
-            //MaterialCardViewHelper dows not set any color for foreground. It is black by default
-            //https://github.com/material-components/material-components-android/commit/7020b37719fd1ad1ff99396e371cf95232dec4b4
-            //TODO remove it when fix will be released
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                binding.groupCardView.foreground?.also {
-                    if (it is GradientDrawable) {
-                        it.setColor(Color.TRANSPARENT)
-                    }
-                }
             }
 
             return binding.groupLayout

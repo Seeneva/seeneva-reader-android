@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,9 @@
 
 package app.seeneva.reader.logic.comic
 
-import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
@@ -97,9 +95,6 @@ internal class LibraryFileManagerImpl(
     private val contentResolver: ContentResolver
         get() = context.contentResolver
 
-    private val canPersistContentUri: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
-
     override suspend fun remove(paths: Collection<Uri>) {
         mutex.withLock { removeInner(paths) }
     }
@@ -150,26 +145,21 @@ internal class LibraryFileManagerImpl(
     /**
      * @return all current linked comic books (using [android.provider.DocumentsContract.Document])
      */
-    @SuppressLint("NewApi")
     private fun allLinkedComicBooks(): Flow<Uri> =
-        if (canPersistContentUri) {
-            context.contentResolver
-                .persistedUriPermissions
-                .asFlow()
-                .filter {
-                    val isDocumentExists =
-                        requireNotNull(DocumentFile.fromSingleUri(context, it.uri)).exists()
+        context.contentResolver
+            .persistedUriPermissions
+            .asFlow()
+            .filter {
+                val isDocumentExists =
+                    requireNotNull(DocumentFile.fromSingleUri(context, it.uri)).exists()
 
-                    if (!isDocumentExists) {
-                        //remove invalid persisted document
-                        changePersistPermissions(false, it.uri)
-                    }
+                if (!isDocumentExists) {
+                    //remove invalid persisted document
+                    changePersistPermissions(false, it.uri)
+                }
 
-                    isDocumentExists && it.isReadPermission
-                }.map { it.uri }
-        } else {
-            emptyFlow()
-        }
+                isDocumentExists && it.isReadPermission
+            }.map { it.uri }
 
     /**
      * @return all currently added comic books (using file system)
@@ -268,6 +258,7 @@ internal class LibraryFileManagerImpl(
 
                 targetPath.toUri()
             }
+
             AddComicBookMode.Link -> {
                 //it is document. We can link it
                 val success = io {
@@ -292,19 +283,17 @@ internal class LibraryFileManagerImpl(
 
     /**
      * Change persisted permissions from provided [comicBookPaths].
-     * Do nothing on Android prior 4.4
      * @param grant grant or remove permission
      * @param comicBookPaths uris which permissions should be changed
      *
      * @see ContentResolver.releasePersistableUriPermission
      */
     private suspend fun changePersistPermissions(grant: Boolean, vararg comicBookPaths: Uri) {
-        if (!canPersistContentUri || comicBookPaths.isEmpty()) {
+        if (comicBookPaths.isEmpty()) {
             return
         }
 
         io {
-            @SuppressLint("NewApi")
             if (grant) {
                 comicBookPaths.forEach {
                     ensureActive()

@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,10 @@
 
 package app.seeneva.reader.screen.list.adapter
 
-import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -75,15 +73,6 @@ class FiltersAdapter(private val callback: Callback) :
                             R.drawable.bcg_comic_filter
                         )
                     )
-
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                    val tint = AppCompatResources.getColorStateList(
-                        labelView.context,
-                        R.color.app_control_highlight
-                    )
-
-                    ViewCompat.setBackgroundTintList(labelView, tint)
-                }
             }
         }
     }

@@ -22,8 +22,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import java.io.File
 
@@ -63,12 +61,10 @@ object ComicHelper {
             }
 }
 
-@RequiresApi(Build.VERSION_CODES.KITKAT)
 fun ContentResolver.releaseComicPermission(path: Uri) {
     releasePersistableUriPermission(path, ComicHelper.persistPermissions)
 }
 
-@RequiresApi(Build.VERSION_CODES.KITKAT)
 fun ContentResolver.takeComicPermission(path: Uri) {
     takePersistableUriPermission(path, ComicHelper.persistPermissions)
 }

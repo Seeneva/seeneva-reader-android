@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -267,6 +267,7 @@ private class SystemUiManagerLegacy(
                 SystemUiState.SHOWED -> {
                     systemUiVisibility and flags.hide.inv()
                 }
+
                 SystemUiState.HIDDEN -> {
                     systemUiVisibility or flags.hide
                 }
@@ -290,26 +291,17 @@ private class SystemUiManagerLegacy(
 
         companion object {
             operator fun invoke() =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    object : Flags {
-                        override val hide = (View.SYSTEM_UI_FLAG_IMMERSIVE
-                                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                or View.SYSTEM_UI_FLAG_FULLSCREEN)
+                object : Flags {
+                    override val hide = (View.SYSTEM_UI_FLAG_IMMERSIVE
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN)
 
-                        override val layout = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+                    override val layout = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
 
-                        override fun systemUiHidden(flags: Int) =
-                            flags.hasFlag(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN)
-                    }
-                } else {
-                    object : Flags {
-                        override val hide = View.SYSTEM_UI_FLAG_LOW_PROFILE
-                        override val layout = 0
-
-                        override fun systemUiHidden(flags: Int) = flags.hasFlag(hide)
-                    }
+                    override fun systemUiHidden(flags: Int) =
+                        flags.hasFlag(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN)
                 }
 
             private fun Int.hasFlag(flag: Int): Boolean = this and flag == flag

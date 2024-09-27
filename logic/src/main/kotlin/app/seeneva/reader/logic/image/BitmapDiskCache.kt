@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,10 @@ package app.seeneva.reader.logic.image
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
-import coil.bitmap.BitmapPool
 import app.seeneva.reader.common.coroutines.Dispatched
 import app.seeneva.reader.common.coroutines.Dispatchers
 import app.seeneva.reader.common.coroutines.io
+import coil.bitmap.BitmapPool
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -64,11 +64,9 @@ internal class BitmapOkHttpDiskCache(
             when {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ->
                     Bitmap.CompressFormat.WEBP_LOSSLESS
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 ->
+                else ->
                     @Suppress("DEPRECATION")
                     Bitmap.CompressFormat.WEBP
-                else ->
-                    Bitmap.CompressFormat.PNG
             }
 
     override suspend fun get(key: String, config: Bitmap.Config): Bitmap? =

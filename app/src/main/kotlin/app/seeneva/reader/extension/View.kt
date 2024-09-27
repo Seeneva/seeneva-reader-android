@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@ package app.seeneva.reader.extension
 
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
@@ -33,7 +32,10 @@ import app.seeneva.reader.common.coroutines.Dispatchers
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
 import org.koin.core.context.GlobalContext
 import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
@@ -52,7 +54,7 @@ inline fun <reified T : View?> View.findViewByIdCompat(@IdRes id: Int): T =
  */
 suspend fun View.waitLayout() {
     withContext(mainImmediateDispatcher) {
-        if (ViewCompat.isLaidOut(this@waitLayout) && !isLayoutRequested) {
+        if (isLaidOut && !isLayoutRequested) {
             return@withContext
         } else {
             waitNextLayout()
@@ -95,7 +97,7 @@ suspend fun View.waitNextLayout() {
  * @param attached wait for attach or detach state
  */
 suspend fun View.waitAttachChange(attached: Boolean = true) {
-    if (ViewCompat.isAttachedToWindow(this) == attached) {
+    if (isAttachedToWindow == attached) {
         return
     } else {
         withContext(mainImmediateDispatcher) {
@@ -147,25 +149,21 @@ fun View.systemUiVisibilityChange(): Flow<Int> =
  * @see View.OnApplyWindowInsetsListener
  */
 fun View.insetsFlow() =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        singleListenerFlow<WindowInsetsCompat, OnApplyWindowInsetsListener>(
-            initListener = {
-                WeakReference(OnApplyWindowInsetsListener { _, insets ->
-                    trySend(insets)
+    singleListenerFlow<WindowInsetsCompat, OnApplyWindowInsetsListener>(
+        initListener = {
+            WeakReference(OnApplyWindowInsetsListener { _, insets ->
+                trySend(insets)
 
-                    insets
-                })
-            },
-            applyListener = { v, listener ->
-                ViewCompat.setOnApplyWindowInsetsListener(
-                    v,
-                    listener
-                )
-            }
-        )
-    } else {
-        emptyFlow()
-    }
+                insets
+            })
+        },
+        applyListener = { v, listener ->
+            ViewCompat.setOnApplyWindowInsetsListener(
+                v,
+                listener
+            )
+        }
+    )
 
 private inline fun <T, L : Any> View.singleListenerFlow(
     crossinline initListener: ProducerScope<T>.() -> WeakReference<L>,

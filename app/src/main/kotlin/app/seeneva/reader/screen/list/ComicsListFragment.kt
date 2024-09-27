@@ -749,12 +749,7 @@ class ComicsListFragment(
     }
 
     private fun onAddComicBookClick() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            AddModeSelectorDialog.newInstance().show(childFragmentManager, TAG_ADD_MODE_SELECTOR)
-        } else {
-            //we can only import files
-            onAddModeSelected(AddComicBookMode.Import)
-        }
+        AddModeSelectorDialog.newInstance().show(childFragmentManager, TAG_ADD_MODE_SELECTOR)
     }
 
     private fun nextComicListType() {
