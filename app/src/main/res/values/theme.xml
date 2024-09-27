@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ This file is part of Seeneva Android Reader
-  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~ Copyright (C) 2021-2024 Sergei Solodovnikov
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -33,6 +33,8 @@
         <item name="android:colorBackground">@color/grey_50</item>
 
         <item name="windowActionModeOverlay">true</item>
+
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
     </style>
 
     <style name="BaseAppTheme.Viewer">

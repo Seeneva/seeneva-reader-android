@@ -1,6 +1,6 @@
 <!--
   ~ This file is part of Seeneva Android Reader
-  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~ Copyright (C) 2021-2024 Sergei Solodovnikov
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
   -->
 
 <resources>
-
     <style name="ComicListItem">
         <item name="cardForegroundColor">@color/comic_list_foreground</item>
         <item name="cardElevation">10dp</item>
@@ -39,6 +38,6 @@
     </style>
 
     <style name="AppTextAppearance.ViewerHelper" parent="">
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 </resources>

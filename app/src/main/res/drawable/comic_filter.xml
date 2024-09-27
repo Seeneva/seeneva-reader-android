@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ This file is part of Seeneva Android Reader
-  ~ Copyright (C) 2021 Sergei Solodovnikov
+  ~ Copyright (C) 2021-2024 Sergei Solodovnikov
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <!--Theme attributes only available on 21+ devices-->
-    <solid android:color="@color/app_control_highlight" />
+    <solid android:color="?colorAccent" />
     <corners android:radius="16dp" />
 </shape>
