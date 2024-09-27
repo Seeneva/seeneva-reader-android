@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,6 +163,7 @@ class BookViewerActivity :
 
                 viewerStatesBinding.root.isGone = true
             }
+
             ViewState.LOADING -> {
                 viewBinding.pagesPager.isGone = true
 
@@ -172,6 +173,7 @@ class BookViewerActivity :
                     errorLayout.isGone = true
                 }
             }
+
             ViewState.ERROR -> {
                 viewBinding.pagesPager.isGone = true
 
@@ -205,7 +207,7 @@ class BookViewerActivity :
         get() = viewBinding.pagesPreviewList.layoutManager as LinearLayoutManager
 
     private val gestureDetector by lazy {
-        GestureDetectorCompat(
+        GestureDetector(
             applicationContext,
             object : GestureDetector.SimpleOnGestureListener() {
                 private val hitRect = Rect()
@@ -229,14 +231,15 @@ class BookViewerActivity :
                 }
 
                 override fun onScroll(
-                    e1: MotionEvent,
+                    e1: MotionEvent?,
                     e2: MotionEvent,
                     distanceX: Float,
                     distanceY: Float
                 ): Boolean {
-                    if (viewState == ViewState.LOADED && viewBinding.pagesPreviewList.isTouchInside(
-                            e1
-                        )
+                    if (
+                        e1 != null &&
+                        viewState == ViewState.LOADED &&
+                        viewBinding.pagesPreviewList.isTouchInside(e1)
                     ) {
                         systemUiManager.holdShown()
                     }
@@ -245,14 +248,15 @@ class BookViewerActivity :
                 }
 
                 override fun onFling(
-                    e1: MotionEvent,
+                    e1: MotionEvent?,
                     e2: MotionEvent,
                     velocityX: Float,
                     velocityY: Float
                 ): Boolean {
-                    if (viewState == ViewState.LOADED && viewBinding.pagesPreviewList.isTouchInside(
-                            e1
-                        )
+                    if (
+                        e1 != null &&
+                        viewState == ViewState.LOADED &&
+                        viewBinding.pagesPreviewList.isTouchInside(e1)
                     ) {
                         systemUiManager.holdShown()
                     }
@@ -324,14 +328,17 @@ class BookViewerActivity :
                 showSettings()
                 true
             }
+
             R.id.set_cover -> {
                 presenter.setPageAsCover(viewerPager.currentItem)
                 true
             }
+
             R.id.swap_horizontally -> {
                 presenter.swapDirection()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }

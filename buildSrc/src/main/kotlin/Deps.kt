@@ -1,6 +1,6 @@
 /*
  *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ *  Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -8,7 +8,7 @@
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty ofЕ
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
@@ -19,29 +19,29 @@
 object Version {
     const val ANDROID_JAVA8_DESUGAR = "2.0.3"
 
-    const val KOTLIN = "1.9.10"
+    const val KOTLIN = "1.9.25"
     const val KOTLINX_COROUTINES = "1.5.1"
     const val KOTLINX_SERIALIZATION_JSON = "1.2.1"
 
-    const val ANDROIDX_APPCOMPAT = "1.3.0"
-    const val ANDROIDX_ACTIVITY_KTX = "1.2.3"
-    const val ANDROIDX_ANNOTATIONS = "1.2.0"
+    const val ANDROIDX_APPCOMPAT = "1.7.0"
+    const val ANDROIDX_ACTIVITY_KTX = "1.9.2"
+    const val ANDROIDX_ANNOTATIONS = "1.8.2"
     const val ANDROIDX_VIEW_PAGER = "1.0.0"
     const val ANDROIDX_RECYCLER_VIEW = "1.2.0"
     const val ANDROIDX_RECYCLER_VIEW_SELECTION = "1.1.0"
-    const val ANDROIDX_FRAGMENT_KTX = "1.3.4"
+    const val ANDROIDX_FRAGMENT_KTX = "1.8.3"
     const val ANDROIDX_CONSTRAINT_LAYOUT = "2.0.4"
-    const val ANDROIDX_CORE_KTX = "1.5.0"
-    const val ANDROIDX_LIFECYCLE = "2.3.1"
+    const val ANDROIDX_CORE_KTX = "1.13.1"
+    const val ANDROIDX_LIFECYCLE = "2.8.6"
     const val ANDROIDX_PAGING = "3.0.0"
     const val ANDROIDX_PALETTE = "1.0.0"
-    const val ANDROIDX_TEST_CORE_KTX = "1.3.0"
-    const val ANDROIDX_TEST_JUNIT_KTX = "1.1.2"
-    const val ANDROIDX_WORK_RUNTIME = "2.7.1"
-    const val ANDROIDX_ROOM = "2.5.2"
+    const val ANDROIDX_WORK_RUNTIME = "2.9.1"
+    const val ANDROIDX_ROOM = "2.6.1"
     const val ANDROIDX_SWIPE_REFRESH_LAYOUT = "1.1.0"
     const val ANDROIDX_MULTIDEX = "2.0.1"
     const val ANDROIDX_TEST_RUNNER = "1.3.0"
+    const val ANDROIDX_TEST_CORE_KTX = "1.3.0"
+    const val ANDROIDX_TEST_JUNIT_KTX = "1.1.2"
 
     const val MATERIAL = "1.3.0"
 

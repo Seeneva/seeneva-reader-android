@@ -1,6 +1,6 @@
 /*
  *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ *  Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -330,7 +330,7 @@ class ComicsListFragment(
         // describes comic book to add
         var addComicBookData: ComicListRouterResult.AddComicBooks? = null
 
-        override fun onActivityResult(result: Boolean?) {
+        override fun onActivityResult(result: Boolean) {
             val data = addComicBookData ?: return
 
             addComicBook(data)

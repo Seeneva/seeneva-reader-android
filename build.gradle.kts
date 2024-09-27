@@ -1,6 +1,6 @@
 /*
  *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ *  Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -53,13 +53,13 @@ subprojects {
 
     configure<BaseExtension> {
         ndkVersion = "21.4.7075529"
-        buildToolsVersion = "33.0.2"
+        buildToolsVersion = "34.0.0"
 
-        compileSdkVersion(33)
+        compileSdkVersion(34)
 
         defaultConfig {
-            minSdk = 16
-            targetSdk = 33
+            minSdk = 21
+            targetSdk = 34
 
             loadProperties(rootDir.resolve("seeneva.properties")).also { seenevaProperties ->
                 versionCode = requireEnvOrProperty(

@@ -1,19 +1,19 @@
 /*
- *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package app.seeneva.reader.screen.viewer.page
@@ -23,6 +23,7 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.ViewGroup
+import android.view.ViewPropertyAnimator
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.use
@@ -30,7 +31,10 @@ import androidx.core.graphics.component1
 import androidx.core.graphics.component2
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.transform
-import androidx.core.view.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import app.seeneva.reader.R
 import app.seeneva.reader.extension.addOnStateChangedListener
@@ -80,7 +84,7 @@ class ObjectImageHelper(
             .toDrawable()
 
     private val baseAnimator
-        get() = ViewCompat.animate(objectImageView)
+        get() = objectImageView.animate()
             .setDuration(200L)
             .setInterpolator(interpolator)
 
@@ -237,7 +241,7 @@ class ObjectImageHelper(
 
     private fun startBlowingAnimation() {
         if (objectImageView.isVisible && animationState != ObjectAnimState.HIDING) {
-            ViewCompat.animate(objectImageView)
+            objectImageView.animate()
                 .setDuration(150L)
                 .setInterpolator(interpolator)
                 .scaleX(objectImageView.scaleX * 2.0f)
@@ -359,10 +363,10 @@ class ObjectImageHelper(
      * @param bbox object bounding  box
      * @param show is balloon show or hide animation
      */
-    private fun ViewPropertyAnimatorCompat.objectTranslationBy(
+    private fun ViewPropertyAnimator.objectTranslationBy(
         bbox: RectF,
         show: Boolean
-    ): ViewPropertyAnimatorCompat {
+    ): ViewPropertyAnimator {
         translationXBy(fixBboxTranslationX(bbox, show))
 
         translationYBy(fixBboxTranslationY(bbox, show))

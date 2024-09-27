@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,12 @@
 package app.seeneva.reader.service
 
 import android.app.Notification
-import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
 import androidx.annotation.CallSuper
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import app.seeneva.reader.AppNotification
 import app.seeneva.reader.R
@@ -36,9 +38,19 @@ abstract class BaseForegroundService : LifecycleService() {
 
         return when (val result = onStartCommandInner(intent, flags, startId)) {
             is CommandResult.Foreground -> {
-                startForeground(rootNotificationId, result.notification)
+                ServiceCompat.startForeground(
+                    this,
+                    rootNotificationId,
+                    result.notification,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                    } else {
+                        0
+                    },
+                )
                 result.startState
             }
+
             is CommandResult.NonForeground -> result.startState
         }
     }
@@ -47,7 +59,7 @@ abstract class BaseForegroundService : LifecycleService() {
      * Remove notification and stop service
      */
     protected fun fullStop() {
-        stopForeground(true)
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
 
         stopSelf()
     }
@@ -71,10 +83,10 @@ abstract class BaseForegroundService : LifecycleService() {
     protected sealed interface CommandResult {
         data class Foreground(
             val notification: Notification,
-            val startState: Int = Service.START_NOT_STICKY
+            val startState: Int = START_NOT_STICKY
         ) : CommandResult
 
-        data class NonForeground(val startState: Int = Service.START_NOT_STICKY) : CommandResult
+        data class NonForeground(val startState: Int = START_NOT_STICKY) : CommandResult
     }
 }
 

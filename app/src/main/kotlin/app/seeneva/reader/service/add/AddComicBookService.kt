@@ -1,26 +1,25 @@
 /*
- *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package app.seeneva.reader.service.add
 
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -35,6 +34,7 @@ import app.seeneva.reader.R
 import app.seeneva.reader.di.autoInit
 import app.seeneva.reader.di.getValue
 import app.seeneva.reader.di.koinLifecycleScope
+import app.seeneva.reader.extension.getSerializableExtraCompat
 import app.seeneva.reader.extension.humanDescription
 import app.seeneva.reader.extension.success
 import app.seeneva.reader.logic.comic.AddComicBookMode
@@ -66,9 +66,9 @@ class AddComicBookService : BaseForegroundService(), AddComicBookView, KoinScope
                 //will resend every intent which wasn't stopped by startId
                 CommandResult.Foreground(
                     rootForegroundNotification(), if (accepted) {
-                        Service.START_REDELIVER_INTENT
+                        START_REDELIVER_INTENT
                     } else {
-                        Service.START_NOT_STICKY
+                        START_NOT_STICKY
                     }
                 )
             }
@@ -290,7 +290,7 @@ class AddComicBookService : BaseForegroundService(), AddComicBookView, KoinScope
          * Extract open mode from intent
          */
         private fun Intent.extractOpenMode(): AddComicBookMode {
-            return requireNotNull(getSerializableExtra(EXTRA_OPEN_MODE)) as AddComicBookMode
+            return requireNotNull(getSerializableExtraCompat(EXTRA_OPEN_MODE))
         }
 
         private fun NotificationCompat.Builder.addCancelAction(
