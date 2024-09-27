@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,10 @@ package app.seeneva.reader.screen.list
 import android.net.Uri
 import android.os.Bundle
 import androidx.core.os.bundleOf
-import androidx.lifecycle.whenStarted
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.withStarted
 import app.seeneva.reader.common.coroutines.Dispatchers
-import app.seeneva.reader.extension.observe
 import app.seeneva.reader.logic.ComicListViewType
 import app.seeneva.reader.logic.ComicsSettings
 import app.seeneva.reader.logic.comic.AddComicBookMode
@@ -146,29 +147,37 @@ class ComicsListPresenterImpl(
         get() = queryParams.titleQuery
 
     init {
-        viewModel.eventsFlow
-            .observe(view) {
-                when (val content = it) {
-                    is ComicsMarkedAsRemoved -> view.onComicsMarkedRemoved(content.ids)
-                    is ComicsOpened -> view.onComicAdded(content.result)
+        viewScope.launch {
+            view.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.eventsFlow
+                        .collect {
+                            when (val content = it) {
+                                is ComicsMarkedAsRemoved -> view.onComicsMarkedRemoved(content.ids)
+                                is ComicsOpened -> view.onComicAdded(content.result)
+                            }
+                        }
+                }
+
+                launch {
+                    viewModel.libraryState
+                        .collect {
+                            when (it) {
+                                Library.State.IDLE -> ComicsListView.SyncState.IDLE
+                                Library.State.SYNCING -> ComicsListView.SyncState.IN_PROGRESS
+                                Library.State.CHANGING -> ComicsListView.SyncState.DISABLED
+                            }.also { state ->
+                                Logger.debug("Set view sync state to: $state")
+
+                                view.onSyncStateChanged(state)
+                            }
+                        }
                 }
             }
-
-        viewModel.libraryState
-            .observe(view) {
-                when (it) {
-                    Library.State.IDLE -> ComicsListView.SyncState.IDLE
-                    Library.State.SYNCING -> ComicsListView.SyncState.IN_PROGRESS
-                    Library.State.CHANGING -> ComicsListView.SyncState.DISABLED
-                }.also { state ->
-                    Logger.debug("Set view sync state to: $state")
-
-                    view.onSyncStateChanged(state)
-                }
-            }
+        }
 
         presenterScope.launch {
-            view.whenStarted {
+            view.withStarted {
                 showFilters(queryParams)
             }
         }

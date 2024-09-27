@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import app.seeneva.reader.R
 import app.seeneva.reader.binding.config
 import app.seeneva.reader.binding.doOnDestroy
@@ -31,9 +34,9 @@ import app.seeneva.reader.databinding.ActivityThirdPartiesBinding
 import app.seeneva.reader.di.autoInit
 import app.seeneva.reader.di.getValue
 import app.seeneva.reader.di.koinLifecycleScope
-import app.seeneva.reader.extension.observe
 import app.seeneva.reader.presenter.PresenterView
 import app.seeneva.reader.screen.about.licenses.dialog.LicenseDialogFragment
+import kotlinx.coroutines.launch
 import org.koin.core.scope.KoinScopeComponent
 import org.tinylog.kotlin.Logger
 
@@ -62,38 +65,51 @@ class ThirdPartyActivity :
 
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        adapter.clickEvents
-            .observe(this) { position ->
-                when (val thirdPartiesState = presenter.thirdPartyState.value) {
-                    is ThirdPartyState.Success -> {
-                        val clickedLicense = thirdPartiesState.thirdParties[position].license
 
-                        showLicense(clickedLicense.textFileName)
-                    }
-                    else -> Logger.error("Can't process click event. Third parties is not loaded yet.")
-                }
-            }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    adapter.clickEvents
+                        .collect { position ->
+                            when (val thirdPartiesState = presenter.thirdPartyState.value) {
+                                is ThirdPartyState.Success -> {
+                                    val clickedLicense =
+                                        thirdPartiesState.thirdParties[position].license
 
-        presenter.thirdPartyState
-            .observe(this) {
-                when (it) {
-                    is ThirdPartyState.Success -> {
-                        adapter.show(it.thirdParties)
+                                    showLicense(clickedLicense.textFileName)
+                                }
 
-                        if (viewBinding.recyclerView.adapter == null) {
-                            viewBinding.recyclerView.adapter = adapter
+                                else -> Logger.error("Can't process click event. Third parties is not loaded yet.")
+                            }
                         }
+                }
 
-                        viewBinding.contentMessageView.showContent()
-                    }
-                    ThirdPartyState.Idle, is ThirdPartyState.Loading ->
-                        viewBinding.contentMessageView.showLoading()
-                    is ThirdPartyState.Error -> {
-                        // licenses are store locally so in case of error it is a bug
-                        throw  it.t
-                    }
+                launch {
+                    presenter.thirdPartyState
+                        .collect {
+                            when (it) {
+                                is ThirdPartyState.Success -> {
+                                    adapter.show(it.thirdParties)
+
+                                    if (viewBinding.recyclerView.adapter == null) {
+                                        viewBinding.recyclerView.adapter = adapter
+                                    }
+
+                                    viewBinding.contentMessageView.showContent()
+                                }
+
+                                ThirdPartyState.Idle, is ThirdPartyState.Loading ->
+                                    viewBinding.contentMessageView.showLoading()
+
+                                is ThirdPartyState.Error -> {
+                                    // licenses are store locally so in case of error it is a bug
+                                    throw it.t
+                                }
+                            }
+                        }
                 }
             }
+        }
     }
 
     override fun supportNavigateUpTo(upIntent: Intent) {

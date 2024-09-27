@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 
 package app.seeneva.reader.screen.viewer.dialog.config
 
+import androidx.lifecycle.flowWithLifecycle
 import app.seeneva.reader.common.coroutines.Dispatchers
-import app.seeneva.reader.extension.observe
 import app.seeneva.reader.logic.entity.configuration.ViewerConfig
 import app.seeneva.reader.logic.text.tts.TTS
 import app.seeneva.reader.presenter.BasePresenter
@@ -32,8 +32,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 sealed interface ChangeTtsEvent {
-    object Idle : ChangeTtsEvent
-    object Process : ChangeTtsEvent
+    data object Idle : ChangeTtsEvent
+    data object Process : ChangeTtsEvent
     data class Result(val result: TTS.InitResult) : ChangeTtsEvent
 }
 
@@ -83,29 +83,37 @@ class ViewerConfigPresenterImpl(
     override val changeTtsEvents = _changeTtsEvents.asSharedFlow()
 
     init {
-        viewModel.configState.observe(view) {
-            when (it) {
-                is ConfigState.Loaded -> {
-                    view.showConfig(
-                        if (it.config.tts && tts.initAsync().await() != TTS.InitResult.Success) {
-                            //show disabled TTS if it is not available
-                            it.config.copy(tts = false)
-                        } else {
-                            it.config
-                        }
-                    )
+        viewScope.launch {
+            viewModel.configState
+                .flowWithLifecycle(view.lifecycle)
+                .collect {
+                    when (it) {
+                        is ConfigState.Loaded -> {
+                            view.showConfig(
+                                if (it.config.tts && tts.initAsync()
+                                        .await() != TTS.InitResult.Success
+                                ) {
+                                    //show disabled TTS if it is not available
+                                    it.config.copy(tts = false)
+                                } else {
+                                    it.config
+                                }
+                            )
 
-                    //start emit system brightness to the view
-                    if (it.config.systemBrightness) {
-                        observeSystemBrightness()
+                            //start emit system brightness to the view
+                            if (it.config.systemBrightness) {
+                                observeSystemBrightness()
+                            }
+                        }
+
+                        is ConfigState.Loading, is ConfigState.Idle -> {
+                            view.onConfigLoading()
+                            systemBrightnessJob?.cancel()
+                        }
                     }
                 }
-                is ConfigState.Loading, is ConfigState.Idle -> {
-                    view.onConfigLoading()
-                    systemBrightnessJob?.cancel()
-                }
-            }
         }
+
 
         viewModel.loadConfig()
     }
@@ -137,6 +145,7 @@ class ViewerConfigPresenterImpl(
 
                     ChangeTtsEvent.Result(TTS.InitResult.Success)
                 }
+
                 else -> {
                     val initResult = tts.initAsync().let {
                         try {
@@ -182,10 +191,13 @@ class ViewerConfigPresenterImpl(
             return
         }
 
-        systemBrightnessJob = viewModel.systemBrightnessFlow
-            .observe(view) { brightness ->
-                view.showBrightness(brightness)
-            }
+        systemBrightnessJob = viewScope.launch {
+            viewModel.systemBrightnessFlow
+                .flowWithLifecycle(view.lifecycle)
+                .collect { brightness ->
+                    view.showBrightness(brightness)
+                }
+        }
     }
 
     /**

@@ -33,10 +33,7 @@ import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
 import androidx.core.view.*
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import app.seeneva.reader.R
@@ -46,7 +43,6 @@ import app.seeneva.reader.binding.viewBinding
 import app.seeneva.reader.databinding.ActivityBookViewerBinding
 import app.seeneva.reader.databinding.LayoutViewerStatesBinding
 import app.seeneva.reader.di.*
-import app.seeneva.reader.extension.observe
 import app.seeneva.reader.extension.waitLayout
 import app.seeneva.reader.logic.entity.ComicBookDescription
 import app.seeneva.reader.logic.entity.Direction
@@ -353,13 +349,17 @@ class BookViewerActivity :
         @Suppress("ClickableViewAccessibility")
         viewBinding.greyOutView.setOnTouchListener { _, _ -> systemUiManager.stateFlow.value == SystemUiState.SHOWED }
 
-        systemUiManager.stateFlow
-            .shouldAnimate()
-            .observe(this) { (state, animate) ->
-                uiAnimator.showState(state, animate)
+        lifecycle.coroutineScope.launch {
+            systemUiManager.stateFlow
+                .shouldAnimate()
+                .flowWithLifecycle(lifecycle)
+                .collect { (state, animate) ->
+                    uiAnimator.showState(state, animate)
 
-                viewBinding.pagesPager.isUserInputEnabled = state == SystemUiState.HIDDEN
-            }
+                    viewBinding.pagesPager.isUserInputEnabled = state == SystemUiState.HIDDEN
+                }
+        }
+
 
         with(viewBinding.pagesPreviewList) {
             setHasFixedSize(true)

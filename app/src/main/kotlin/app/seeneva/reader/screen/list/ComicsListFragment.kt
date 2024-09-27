@@ -1,19 +1,19 @@
 /*
- *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2024 Sergei Solodovnikov
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package app.seeneva.reader.screen.list
@@ -34,6 +34,9 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
@@ -49,7 +52,6 @@ import app.seeneva.reader.di.autoInit
 import app.seeneva.reader.di.getValue
 import app.seeneva.reader.di.koinLifecycleScope
 import app.seeneva.reader.extension.humanDescriptionShort
-import app.seeneva.reader.extension.observe
 import app.seeneva.reader.extension.success
 import app.seeneva.reader.logic.ComicListViewType
 import app.seeneva.reader.logic.comic.AddComicBookMode
@@ -75,6 +77,7 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import org.koin.core.scope.KoinScopeComponent
 import org.koin.core.scope.Scope
 import org.koin.core.scope.get
@@ -405,95 +408,108 @@ class ComicsListFragment(
         // should be called after setting an adapter to the recyclerview
         listSelectionTracker.onRestoreInstanceState(savedInstanceState)
 
-        // listen to screen state change
-        currentListScreenState.observe(viewLifecycleOwner) { newState ->
-            when (newState) {
-                ScreenState.STATE_DEFAULT -> {
-                    viewBinding.recyclerView.suppressLayout(false)
-                }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    // listen to screen state change
+                    currentListScreenState.collect { newState ->
+                        when (newState) {
+                            ScreenState.STATE_DEFAULT -> {
+                                viewBinding.recyclerView.suppressLayout(false)
+                            }
 
-                else -> {
-                    // disable scrolling and force show AppBarLayout
-                    viewBinding.recyclerView.suppressLayout(true)
-                    expandAppBar()
-                }
-            }
-
-            showCurrentState()
-
-            searchView.also { searchView ->
-                fun setViewEnabled(v: View, enabled: Boolean) {
-                    if (v is ViewGroup) {
-                        v.forEach {
-                            setViewEnabled(it, enabled)
-                        }
-                    }
-                    v.isEnabled = enabled
-                }
-
-                //need to change enabled state of all children
-                setViewEnabled(searchView, newState.menuEnabled)
-            }
-
-            requireActivity().invalidateOptionsMenu()
-        }
-
-        // Here we set every loaded paging data to the Adapter
-        presenter.pagingState
-            .filterIsInstance<ComicsPagingState.Loaded>()
-            .observe(viewLifecycleOwner) { listAdapter.submitData(it.pagingData) }
-
-        // listen to pagination states and update screen state
-        presenter.pagingState
-            .transformLatest {
-                when (it) {
-                    ComicsPagingState.Loading, ComicsPagingState.Idle -> emit(ScreenState.STATE_LOADING)
-                    is ComicsPagingState.Loaded -> {
-                        when (it.totalCount) {
-                            0L -> emit(ScreenState.STATE_EMPTY)
                             else -> {
-                                emitAll(listAdapter.loadStateFlow
-                                    .filter { s ->
-                                        s.refresh is LoadState.NotLoading &&
-                                                s.prepend is LoadState.NotLoading &&
-                                                s.append is LoadState.NotLoading
+                                // disable scrolling and force show AppBarLayout
+                                viewBinding.recyclerView.suppressLayout(true)
+                                expandAppBar()
+                            }
+                        }
+
+                        showCurrentState()
+
+                        searchView.also { searchView ->
+                            fun setViewEnabled(v: View, enabled: Boolean) {
+                                if (v is ViewGroup) {
+                                    v.forEach {
+                                        setViewEnabled(it, enabled)
                                     }
-                                    .map { s ->
-                                        if (listAdapter.itemCount == 0 && s.prepend.endOfPaginationReached && s.append.endOfPaginationReached) {
-                                            ScreenState.STATE_NOTHING_FOUND
-                                        } else {
-                                            ScreenState.STATE_DEFAULT
+                                }
+                                v.isEnabled = enabled
+                            }
+
+                            //need to change enabled state of all children
+                            setViewEnabled(searchView, newState.menuEnabled)
+                        }
+
+                        requireActivity().invalidateOptionsMenu()
+                    }
+                }
+
+                launch {
+                    // Here we set every loaded paging data to the Adapter
+                    presenter.pagingState
+                        .filterIsInstance<ComicsPagingState.Loaded>()
+                        .collect { listAdapter.submitData(it.pagingData) }
+                }
+
+                launch {
+                    // listen to pagination states and update screen state
+                    presenter.pagingState
+                        .transformLatest {
+                            when (it) {
+                                ComicsPagingState.Loading, ComicsPagingState.Idle -> emit(
+                                    ScreenState.STATE_LOADING
+                                )
+
+                                is ComicsPagingState.Loaded -> {
+                                    when (it.totalCount) {
+                                        0L -> emit(ScreenState.STATE_EMPTY)
+                                        else -> {
+                                            emitAll(listAdapter.loadStateFlow
+                                                .filter { s ->
+                                                    s.refresh is LoadState.NotLoading &&
+                                                            s.prepend is LoadState.NotLoading &&
+                                                            s.append is LoadState.NotLoading
+                                                }
+                                                .map { s ->
+                                                    if (listAdapter.itemCount == 0 && s.prepend.endOfPaginationReached && s.append.endOfPaginationReached) {
+                                                        ScreenState.STATE_NOTHING_FOUND
+                                                    } else {
+                                                        ScreenState.STATE_DEFAULT
+                                                    }
+                                                })
                                         }
-                                    })
+                                    }
+                                }
+                            }
+                        }.collect { currentListScreenState.value = it }
+                }
+
+                launch {
+                    router.resultFlow.collect {
+                        when (it) {
+                            is ComicListRouterResult.AddComicBooks -> {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
+                                        requireContext(),
+                                        android.Manifest.permission.POST_NOTIFICATIONS
+                                    ) != PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    notificationPermissionCallback.addComicBookData = it
+                                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                } else {
+                                    notificationPermissionCallback.addComicBook(it)
+                                }
+                            }
+
+                            is ComicListRouterResult.NonExistentBook -> {
+                                newSnackbar(resources.getString(R.string.comic_list_error_view_non_existed))
+                            }
+
+                            is ComicListRouterResult.CorruptedComicBook -> {
+                                newSnackbar(resources.getString(R.string.comic_list_error_view_corrupted))
                             }
                         }
                     }
-                }
-            }.observe(viewLifecycleOwner) {
-                currentListScreenState.value = it
-            }
-
-        router.resultFlow.observe(viewLifecycleOwner) {
-            when (it) {
-                is ComicListRouterResult.AddComicBooks -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
-                            requireContext(),
-                            android.Manifest.permission.POST_NOTIFICATIONS
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        notificationPermissionCallback.addComicBookData = it
-                        notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                    } else {
-                        notificationPermissionCallback.addComicBook(it)
-                    }
-                }
-
-                is ComicListRouterResult.NonExistentBook -> {
-                    newSnackbar(resources.getString(R.string.comic_list_error_view_non_existed))
-                }
-
-                is ComicListRouterResult.CorruptedComicBook -> {
-                    newSnackbar(resources.getString(R.string.comic_list_error_view_corrupted))
                 }
             }
         }

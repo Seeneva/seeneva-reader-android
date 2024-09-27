@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,14 @@
 package app.seeneva.reader.screen.list.dialog.filters
 
 import android.os.Bundle
+import androidx.lifecycle.flowWithLifecycle
 import app.seeneva.reader.common.coroutines.Dispatchers
-import app.seeneva.reader.extension.observe
+import app.seeneva.reader.extension.getSerializableCompat
 import app.seeneva.reader.logic.entity.query.filter.Filter
 import app.seeneva.reader.logic.entity.query.filter.FilterGroup
 import app.seeneva.reader.presenter.BaseStatefulPresenter
 import app.seeneva.reader.presenter.Presenter
+import kotlinx.coroutines.launch
 
 interface EditFiltersPresenter : Presenter {
     fun onFilterSelected(groupId: FilterGroup.ID, filter: Filter?)
@@ -39,8 +41,12 @@ class EditFiltersPresenterImpl(
     private val selectedFilters = hashMapOf<FilterGroup.ID, String>()
 
     init {
-        viewModel.filterGroups.observe(view) {
-            view.showFilters(it, selectedFilters)
+        viewScope.launch {
+            viewModel.filterGroups
+                .flowWithLifecycle(view.lifecycle)
+                .collect {
+                    view.showFilters(it, selectedFilters)
+                }
         }
     }
 
@@ -48,7 +54,7 @@ class EditFiltersPresenterImpl(
         if (state == null) {
             selectedFilters.putAll(initSelectedFilters)
         } else {
-            (state.getSerializable(STATE_SELECTED_FILTERS) as Map<FilterGroup.ID, String>).also {
+            (state.getSerializableCompat<HashMap<FilterGroup.ID, String>>(STATE_SELECTED_FILTERS))!!.also {
                 selectedFilters.putAll(it)
             }
         }

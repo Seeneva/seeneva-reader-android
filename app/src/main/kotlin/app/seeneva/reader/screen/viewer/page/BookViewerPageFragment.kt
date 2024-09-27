@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,24 +33,25 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.component1
 import androidx.core.graphics.component2
 import androidx.core.os.bundleOf
-import androidx.core.view.*
+import androidx.core.view.GestureDetectorCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.lifecycle.*
-import app.seeneva.reader.di.autoInit
-import app.seeneva.reader.di.koinLifecycleScope
-import app.seeneva.reader.di.requireActivityScope
 import app.seeneva.reader.R
 import app.seeneva.reader.binding.getValue
 import app.seeneva.reader.binding.viewBinding
-import app.seeneva.reader.extension.animateScaleAndCenterSuspended
-import app.seeneva.reader.extension.observe
-import app.seeneva.reader.extension.stateChangedFlow
 import app.seeneva.reader.databinding.FragmentViewerPageBinding
 import app.seeneva.reader.databinding.LayoutViewerStatesBinding
-import app.seeneva.reader.di.*
-import app.seeneva.reader.extension.*
+import app.seeneva.reader.di.autoInit
+import app.seeneva.reader.di.getValue
+import app.seeneva.reader.di.koinLifecycleScope
+import app.seeneva.reader.di.requireActivityScope
+import app.seeneva.reader.extension.animateScaleAndCenterSuspended
+import app.seeneva.reader.extension.stateChangedFlow
 import app.seeneva.reader.logic.entity.Direction
 import app.seeneva.reader.presenter.PresenterStatefulView
 import app.seeneva.reader.screen.viewer.page.entity.PageObjectDirection
@@ -61,7 +62,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import org.koin.core.scope.KoinScopeComponent
 import org.koin.core.scope.get
-import java.util.*
 import kotlin.math.roundToInt
 
 interface BookViewerPageView : PresenterStatefulView
@@ -212,90 +212,109 @@ class BookViewerPageFragment :
             resources.getDimension(R.dimen.viewer_balloon_elevation)
         )
 
-        viewLifecycleOwner.lifecycle.subscribeOnImageLoading(
-            savedInstanceState?.viewerState,
-            savedInstanceState?.isObjectWasVisible ?: false
-        )
-
-        presenter.showHelpFlow
-            .transformLatest { showHelp ->
-                emit(showHelp)
-
-                if (showHelp) {
-                    // This will help to show `helpFragment` again after it was removed by `reset` method
-                    emitAll(
-                        fragmentResumeSignalsFlow().dropWhile { helpFragment != null }
-                            .map { showHelp }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    subscribeOnImageLoading(
+                        savedInstanceState?.viewerState,
+                        savedInstanceState?.isObjectWasVisible ?: false
                     )
                 }
-            }
-            .observe(viewLifecycleOwner) { showHelp ->
-                if (!showHelp) {
-                    helpFragment?.remove()
-                    return@observe
-                }
 
-                viewer.imageEventsStateFlow.collectLatest {
-                    when (it) {
-                        is PageViewer.PageEvent.Loaded -> coroutineScope { launchHelpDialog() }
-                        else -> {
-                            // Detach help dialog to show it later when image will be loaded again
-                            helpFragment?.detach()
-                        }
-                    }
-                }
-            }
+                launch {
+                    presenter.showHelpFlow
+                        .transformLatest { showHelp ->
+                            emit(showHelp)
 
-        presenter.readDirectionState
-            .filterNotNull()
-            .drop(1) //drop first non null to prevent reset on first loaded value
-            .observe(viewLifecycleOwner) { objectImageHelper.reset() }
-
-        presenter.txtRecognition
-            .distinctUntilChanged()
-            .observe(viewLifecycleOwner) { state ->
-                val msg: CharSequence
-                val duration: Int
-                val action: Pair<CharSequence, (View) -> Unit>?
-
-                when (state) {
-                    is TxtRecognitionState.Idle -> return@observe
-                    is TxtRecognitionState.Recognized -> {
-                        val txt = state.txt
-
-                        //if text was recognized than show it with copy action
-                        if (txt.isNotEmpty()) {
-                            msg = txt
-                            duration = Snackbar.LENGTH_LONG
-                            action = getString(R.string.copy) to {
-                                val mng = requireContext().getSystemService<ClipboardManager>()!!
-                                mng.setPrimaryClip(ClipData.newPlainText("regognized_txt", txt))
+                            if (showHelp) {
+                                // This will help to show `helpFragment` again after it was removed by `reset` method
+                                emitAll(
+                                    fragmentResumeSignalsFlow().dropWhile { helpFragment != null }
+                                        .map { showHelp }
+                                )
                             }
-                        } else {
-                            msg = getString(R.string.viewer_txt_recognize_empty)
-                            duration = Snackbar.LENGTH_SHORT
-                            action = null
                         }
-                    }
-                    is TxtRecognitionState.Process -> {
-                        msg = getString(R.string.viewer_txt_recognize_process)
-                        duration = Snackbar.LENGTH_SHORT
-                        action = null
-                    }
+                        .collect { showHelp ->
+                            if (!showHelp) {
+                                helpFragment?.remove()
+                                return@collect
+                            }
+
+                            viewer.imageEventsStateFlow.collectLatest {
+                                when (it) {
+                                    is PageViewer.PageEvent.Loaded -> coroutineScope { launchHelpDialog() }
+                                    else -> {
+                                        // Detach help dialog to show it later when image will be loaded again
+                                        helpFragment?.detach()
+                                    }
+                                }
+                            }
+                        }
                 }
 
-                // sometimes snackbar doesn't showed up without it.
-                // Because parent view is not an CoordinatorLayout?
-                snackbar?.dismiss()
+                launch {
+                    presenter.readDirectionState
+                        .filterNotNull()
+                        .drop(1) //drop first non null to prevent reset on first loaded value
+                        .collect { objectImageHelper.reset() }
+                }
 
-                snackbar = Snackbar.make(view, msg, duration).also {
-                    if (action != null) {
-                        it.setAction(action.first, action.second)
-                    }
+                launch {
+                    presenter.txtRecognition
+                        .distinctUntilChanged()
+                        .collect { state ->
+                            val msg: CharSequence
+                            val duration: Int
+                            val action: Pair<CharSequence, (View) -> Unit>?
 
-                    it.show()
+                            when (state) {
+                                is TxtRecognitionState.Idle -> return@collect
+                                is TxtRecognitionState.Recognized -> {
+                                    val txt = state.txt
+
+                                    //if text was recognized than show it with copy action
+                                    if (txt.isNotEmpty()) {
+                                        msg = txt
+                                        duration = Snackbar.LENGTH_LONG
+                                        action = getString(R.string.copy) to {
+                                            val mng =
+                                                requireContext().getSystemService<ClipboardManager>()!!
+                                            mng.setPrimaryClip(
+                                                ClipData.newPlainText(
+                                                    "regognized_txt",
+                                                    txt
+                                                )
+                                            )
+                                        }
+                                    } else {
+                                        msg = getString(R.string.viewer_txt_recognize_empty)
+                                        duration = Snackbar.LENGTH_SHORT
+                                        action = null
+                                    }
+                                }
+
+                                is TxtRecognitionState.Process -> {
+                                    msg = getString(R.string.viewer_txt_recognize_process)
+                                    duration = Snackbar.LENGTH_SHORT
+                                    action = null
+                                }
+                            }
+
+                            // sometimes snackbar doesn't showed up without it.
+                            // Because parent view is not an CoordinatorLayout?
+                            snackbar?.dismiss()
+
+                            snackbar = Snackbar.make(view, msg, duration).also {
+                                if (action != null) {
+                                    it.setAction(action.first, action.second)
+                                }
+
+                                it.show()
+                            }
+                        }
                 }
             }
+        }
     }
 
     override fun onPause() {
@@ -326,7 +345,7 @@ class BookViewerPageFragment :
         helpFragment?.remove()
     }
 
-    private fun Lifecycle.subscribeOnImageLoading(
+    private suspend fun subscribeOnImageLoading(
         _imageViewState: ImageViewState?,
         _showCurrentObject: Boolean
     ) {
@@ -334,7 +353,7 @@ class BookViewerPageFragment :
         presenter.encodedPageState
             .flatMapLatest { pageState ->
                 if (pageState is EncodedPageState.Loaded) {
-                    whenStarted {
+                    viewLifecycleOwner.withStarted {
                         pageState.pageData.img.borrowedObject().apply {
                             viewer.showPage(
                                 PageViewer.PageSrc(path, position, width, height)
@@ -353,7 +372,7 @@ class BookViewerPageFragment :
                 var showCurrentObject = _showCurrentObject
                 var imageViewState = _imageViewState
 
-                observe(this@subscribeOnImageLoading) {
+                collect {
                     showState(it)
 
                     if (it == State.LOADED) {
@@ -402,6 +421,7 @@ class BookViewerPageFragment :
 
                 statesViewBinding.errorLayout.isGone = true
             }
+
             State.LOADED -> {
                 statesViewBinding.progressBar.isVisible = false
 
@@ -414,6 +434,7 @@ class BookViewerPageFragment :
 
                 statesViewBinding.errorLayout.isGone = true
             }
+
             State.ERROR -> {
                 statesViewBinding.progressBar.isVisible = false
 

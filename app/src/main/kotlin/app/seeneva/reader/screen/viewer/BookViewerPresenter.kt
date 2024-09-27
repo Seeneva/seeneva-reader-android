@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,14 @@
 package app.seeneva.reader.screen.viewer
 
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import app.seeneva.reader.common.coroutines.Dispatchers
-import app.seeneva.reader.extension.observe
 import app.seeneva.reader.presenter.BasePresenter
 import app.seeneva.reader.presenter.Presenter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.launch
 
 interface BookViewerPresenter : Presenter {
     /**
@@ -61,28 +63,36 @@ class BookViewerPresenterImpl(
             }
         })
 
-        viewModel.apply {
-            configState
-                .filterIsInstance<ViewerConfigState.Loaded>()
-                .observe(view) { view.onConfigChanged(it.config) }
-
-            eventsFlow
-                .observe(view) {
-                    when (it) {
-                        is BookDescriptionEvent.CoverChanged -> view.onCoverChanged()
-                    }
+        viewScope.launch {
+            view.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.configState
+                        .filterIsInstance<ViewerConfigState.Loaded>()
+                        .collect { view.onConfigChanged(it.config) }
                 }
 
-            bookState
-                .observe(view) {
-                    when (it) {
-                        is BookDescriptionState.Loaded -> view.onBookLoaded(it.description)
-                        is BookDescriptionState.Corrupted -> view.onBookCorruption()
-                        is BookDescriptionState.NotFound -> view.onBookNotFound()
-                        is BookDescriptionState.Loading, is BookDescriptionState.Idle -> view.onBookLoading()
-                        is BookDescriptionState.Error -> view.onBookLoadError()
-                    }
+                launch {
+                    viewModel.eventsFlow
+                        .collect {
+                            when (it) {
+                                is BookDescriptionEvent.CoverChanged -> view.onCoverChanged()
+                            }
+                        }
                 }
+
+                launch {
+                    viewModel.bookState
+                        .collect {
+                            when (it) {
+                                is BookDescriptionState.Loaded -> view.onBookLoaded(it.description)
+                                is BookDescriptionState.Corrupted -> view.onBookCorruption()
+                                is BookDescriptionState.NotFound -> view.onBookNotFound()
+                                is BookDescriptionState.Loading, is BookDescriptionState.Idle -> view.onBookLoading()
+                                is BookDescriptionState.Error -> view.onBookLoadError()
+                            }
+                        }
+                }
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,16 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.view.ActionMode
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.flowWithLifecycle
 import androidx.paging.LoadState
 import androidx.recyclerview.selection.SelectionTracker
 import app.seeneva.reader.R
-import app.seeneva.reader.extension.observe
 import app.seeneva.reader.screen.list.adapter.ComicsAdapter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 /**
  * Start action mode if any comic book were selected
@@ -57,6 +59,7 @@ class ComicSelectionActionModeObserver(
                     finishActionMode()
                     true
                 }
+
                 R.id.change_complete_state -> {
                     val allCompleted = mode.allSelectedCompleted
 
@@ -64,6 +67,7 @@ class ComicSelectionActionModeObserver(
                     finishActionMode()
                     true
                 }
+
                 else -> false
             }
         }
@@ -121,7 +125,7 @@ class ComicSelectionActionModeObserver(
             return
         }
 
-        actionModeJob =
+        actionModeJob = lifecycle.coroutineScope.launch {
             comicsCompletionFlow().combine(selectionChangeSignal()) { idToCompletion, _ ->
                 // Iterate over all selected ids and check is any of them has not_completed state
                 // Otherwise all books are completed
@@ -137,19 +141,21 @@ class ComicSelectionActionModeObserver(
                 actionMode = null
 
                 selectionTracker.clearSelection()
-            }.observe(lifecycle) { allSelectedCompleted ->
-                val actionMode = actionMode ?: actionModeCallback.start(actionModeCallbackInner)
-                    .also { actionMode = it }
+            }.flowWithLifecycle(lifecycle)
+                .collect { allSelectedCompleted ->
+                    val actionMode = actionMode ?: actionModeCallback.start(actionModeCallbackInner)
+                        .also { actionMode = it }
 
-                if (actionMode != null) {
-                    actionMode.tag = allSelectedCompleted
+                    if (actionMode != null) {
+                        actionMode.tag = allSelectedCompleted
 
-                    actionMode.invalidate()
-                } else {
-                    // nothing to do here
-                    finishActionMode()
+                        actionMode.invalidate()
+                    } else {
+                        // nothing to do here
+                        finishActionMode()
+                    }
                 }
-            }
+        }
     }
 
     private fun finishActionMode() {

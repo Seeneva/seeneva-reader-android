@@ -1,19 +1,19 @@
 /*
- *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package app.seeneva.reader.screen.list.dialog.info
@@ -29,8 +29,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.StringRes
 import androidx.core.text.util.LinkifyCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import app.seeneva.reader.R
 import app.seeneva.reader.binding.getValue
 import app.seeneva.reader.binding.viewBinding
@@ -40,11 +41,11 @@ import app.seeneva.reader.databinding.LayoutComicInfoItemBinding
 import app.seeneva.reader.di.autoInit
 import app.seeneva.reader.di.getValue
 import app.seeneva.reader.di.koinLifecycleScope
-import app.seeneva.reader.extension.observe
 import app.seeneva.reader.logic.entity.ComicInfo
 import app.seeneva.reader.presenter.PresenterView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.launch
 import org.koin.core.scope.KoinScopeComponent
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -85,30 +86,33 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        presenter.comicInfoState
-            .observe(this) {
-                when (it) {
-                    is ComicInfoState.Loading, ComicInfoState.Idle -> viewBinding.contentMessageView.showLoading()
-                    ComicInfoState.NotFound -> viewBinding.contentMessageView.showMessage(
-                        R.string.comic_info_err_cant_find,
-                        0
-                    )
+        viewLifecycleOwner.lifecycleScope.launch {
+            presenter.comicInfoState
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                .collect {
+                    when (it) {
+                        is ComicInfoState.Loading, ComicInfoState.Idle -> viewBinding.contentMessageView.showLoading()
+                        ComicInfoState.NotFound -> viewBinding.contentMessageView.showMessage(
+                            R.string.comic_info_err_cant_find,
+                            0
+                        )
 
-                    is ComicInfoState.Success -> {
-                        viewBinding.contentMessageView.showContent()
+                        is ComicInfoState.Success -> {
+                            viewBinding.contentMessageView.showContent()
 
-                        inflateInfo(it.comicInfo)
-                    }
+                            inflateInfo(it.comicInfo)
+                        }
 
-                    is ComicInfoState.Error -> {
-                        viewBinding.contentMessageView
-                            .showMessage(
-                                R.string.comic_info_err,
-                                0
-                            )
+                        is ComicInfoState.Error -> {
+                            viewBinding.contentMessageView
+                                .showMessage(
+                                    R.string.comic_info_err,
+                                    0
+                                )
+                        }
                     }
                 }
-            }
+        }
     }
 
     override fun onCreateView(
@@ -308,9 +312,9 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
             isLast: Boolean = false
         ): ViewGroup {
             val binding = LayoutComicInfoGroupBinding.inflate(inflater, parent).apply {
-                groupNameView.id = ViewCompat.generateViewId()
-                groupCardView.id = ViewCompat.generateViewId()
-                groupLayout.id = ViewCompat.generateViewId()
+                groupNameView.id = View.generateViewId()
+                groupCardView.id = View.generateViewId()
+                groupLayout.id = View.generateViewId()
             }
 
             binding.groupNameView.setText(infoTitleResId)
@@ -345,8 +349,8 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
             isLast: Boolean = false
         ) {
             val binder = LayoutComicInfoItemBinding.inflate(inflater, groupLayout).apply {
-                itemNameView.id = ViewCompat.generateViewId()
-                itemValueView.id = ViewCompat.generateViewId()
+                itemNameView.id = View.generateViewId()
+                itemValueView.id = View.generateViewId()
             }
 
             binder.itemNameView.setText(infoTitleResId)
