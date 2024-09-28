@@ -24,6 +24,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.work.WorkManager
 import app.seeneva.reader.AppDispatchers
 import app.seeneva.reader.common.coroutines.Dispatchers
+import app.seeneva.reader.logic.ComicsSettings
 import app.seeneva.reader.logic.image.ImageLoader
 import app.seeneva.reader.logic.text.ocr.OCR
 import app.seeneva.reader.logic.text.tts.TTS
@@ -114,11 +115,12 @@ private object Modules {
         scope<ComicsListFragment> {
             scoped<ComicsListPresenter> {
                 val fragment = getSource<ComicsListFragment>()
+                val settings = get<ComicsSettings>()
 
                 ComicsListPresenterImpl(
                     fragment,
                     get(),
-                    get(),
+                    settings,
                     fragment.getViewModel<ComicsListViewModelImpl>()
                 )
             }

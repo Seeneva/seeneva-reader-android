@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import androidx.annotation.MainThread
 import androidx.core.os.bundleOf
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryOwner
+import app.seeneva.reader.extension.getSerializableCompat
 import app.seeneva.reader.extension.registerAndRestore
 import app.seeneva.reader.logic.comic.AddComicBookMode
 import app.seeneva.reader.logic.results.ChooseComicBookContract
@@ -48,12 +49,12 @@ sealed interface ComicListRouterResult {
     /**
      * User tried to open corrupted comic book
      */
-    object CorruptedComicBook : ComicListRouterResult
+    data object CorruptedComicBook : ComicListRouterResult
 
     /**
      * User tried to open nin existed comic book
      */
-    object NonExistentBook : ComicListRouterResult
+    data object NonExistentBook : ComicListRouterResult
 }
 
 interface ComicListRouter : ResultRouter<ComicListRouterResult> {
@@ -111,7 +112,7 @@ class ComicListRouterImpl(
     init {
         registerAndRestore(savedStateRegistryOwner) {
             if (it != null) {
-                lastComicSelectorMode = it.getSerializable(STATE_SELECTOR_MODE) as? AddComicBookMode
+                lastComicSelectorMode = it.getSerializableCompat(STATE_SELECTOR_MODE)
             }
         }
     }

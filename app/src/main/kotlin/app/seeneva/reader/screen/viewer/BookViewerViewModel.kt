@@ -39,13 +39,13 @@ sealed interface BookDescriptionState {
     data class Loaded(val description: ComicBookDescription) : BookDescriptionState
     data class Error(val error: Throwable) : BookDescriptionState
     data class Loading(val id: Long) : BookDescriptionState
-    object NotFound : BookDescriptionState
-    object Corrupted : BookDescriptionState
-    object Idle : BookDescriptionState
+    data object NotFound : BookDescriptionState
+    data object Corrupted : BookDescriptionState
+    data object Idle : BookDescriptionState
 }
 
 sealed interface ViewerConfigState {
-    object Loading : ViewerConfigState
+    data object Loading : ViewerConfigState
     data class Loaded(val config: ViewerConfig) : ViewerConfigState
 }
 

@@ -33,7 +33,6 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.component1
 import androidx.core.graphics.component2
 import androidx.core.os.bundleOf
-import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -51,6 +50,7 @@ import app.seeneva.reader.di.getValue
 import app.seeneva.reader.di.koinLifecycleScope
 import app.seeneva.reader.di.requireActivityScope
 import app.seeneva.reader.extension.animateScaleAndCenterSuspended
+import app.seeneva.reader.extension.getSerializableCompat
 import app.seeneva.reader.extension.stateChangedFlow
 import app.seeneva.reader.logic.entity.Direction
 import app.seeneva.reader.presenter.PresenterStatefulView
@@ -106,7 +106,7 @@ class BookViewerPageFragment :
         get() = childFragmentManager.findFragmentByTag(TAG_HELPER) as? PageViewerHelperFragment
 
     private val gestureDetector by lazy {
-        GestureDetectorCompat(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+        GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
             private val viewXCenter = requireView().width * 0.5f
 
             /**
@@ -677,7 +677,7 @@ class BookViewerPageFragment :
             get() = getBoolean(STATE_OBJECT_WAS_VISIBLE)
 
         private val Bundle.viewerState
-            get() = getSerializable(STATE_PAGE_VIEWER) as ImageViewState?
+            get() = getSerializableCompat<ImageViewState>(STATE_PAGE_VIEWER)
 
         private fun PageViewer.PageEvent.asState() =
             when (this) {

@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ enum class ObjectClass(internal val id: Long) {
          * @param id object class id
          * @return [ObjectClass] if provided class id was valid or null
          */
-        internal fun fromId(id: Long) = values().firstOrNull { it.id == id }
+        internal fun fromId(id: Long) = entries.firstOrNull { it.id == id }
 
         /**
          * @param id object class id

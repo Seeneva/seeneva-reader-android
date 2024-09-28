@@ -31,7 +31,6 @@ import androidx.core.graphics.component1
 import androidx.core.graphics.component2
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.transform
-import androidx.core.view.ViewCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -216,7 +215,7 @@ class ObjectImageHelper(
         onHidingAnimEnd = null
 
         objectImageView.apply {
-            ViewCompat.animate(this).cancel()
+            animate().cancel()
 
             isGone = true
 

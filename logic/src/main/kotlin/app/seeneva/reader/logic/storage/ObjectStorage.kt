@@ -22,10 +22,9 @@ import app.seeneva.reader.logic.storage.SingleObjectStorageImpl.Key
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
 import org.tinylog.kotlin.Logger
 import java.lang.ref.WeakReference
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -226,6 +225,7 @@ internal class ObjectStorageImpl<K : Any, O>(
                             }
                         }
                     }
+
                     is Action.Return -> returnObjectInner(action.borrowerId, action.obj)
                 }
             }

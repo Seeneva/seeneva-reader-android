@@ -74,7 +74,7 @@ private class RetainScopeImpl<T>(
 
     private fun CoroutineScope.initScope(lifecycle: Lifecycle) {
         launch {
-            lifecycle.whenCreated {
+            lifecycle.withCreated {
                 if (!_scope.isInitialized()) {
                     Logger.info("Retain scope init finished. Scope: $scope")
                 }

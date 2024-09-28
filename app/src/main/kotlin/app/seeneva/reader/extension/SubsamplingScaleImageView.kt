@@ -92,12 +92,12 @@ data class ScaleChanged(val newScale: Float, val origin: Int) : SubsamplingState
 data class CenterChanged(val newCenter: PointF, val origin: Int) : SubsamplingStateEvent
 
 sealed interface SubsamplingImageEvent {
-    object Ready : SubsamplingImageEvent
-    object Loaded : SubsamplingImageEvent
+    data object Ready : SubsamplingImageEvent
+    data object Loaded : SubsamplingImageEvent
     data class PreviewLoadError(val e: Exception) : SubsamplingImageEvent
     data class ImageLoadError(val e: Exception) : SubsamplingImageEvent
     data class TileLoadError(val e: Exception) : SubsamplingImageEvent
-    object PreviewReleased : SubsamplingImageEvent
+    data object PreviewReleased : SubsamplingImageEvent
 }
 
 enum class SubsamplingAnimationEvent { COMPLETED, INTERRUPTED, INTERRUPTED_BY_USER }

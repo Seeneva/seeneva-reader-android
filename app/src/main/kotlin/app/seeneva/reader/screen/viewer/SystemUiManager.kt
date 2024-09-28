@@ -165,7 +165,7 @@ private class SystemUiManagerInsets(
             window.decorView.waitLayout()
 
             windowInsetsController.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_SWIPE
+                WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
 
             if (it.isVisible(typeMask)) {
                 SystemUiState.SHOWED

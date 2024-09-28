@@ -24,7 +24,6 @@ import app.seeneva.reader.logic.text.SentenceBreakerFactory
 import app.seeneva.reader.logic.text.ocr.OCR
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 
 interface RecognizeTextUseCase {

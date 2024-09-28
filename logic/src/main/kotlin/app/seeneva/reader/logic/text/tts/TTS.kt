@@ -62,26 +62,26 @@ interface TTS {
     fun close()
 
     sealed interface Result {
-        object Success : Result
-        object Disabled : Result
-        object Error : Result
+        data object Success : Result
+        data object Disabled : Result
+        data object Error : Result
     }
 
     sealed interface InitResult {
         /**
          * TTS was initialized
          */
-        object Success : InitResult
+        data object Success : InitResult
 
         /**
          * TTS engine is nit installed on device
          */
-        object EngineNotInstalled : InitResult
+        data object EngineNotInstalled : InitResult
 
         /**
          * Language is not supported by TTS engine
          */
-        object LanguageNotSupported : InitResult
+        data object LanguageNotSupported : InitResult
     }
 
     /**

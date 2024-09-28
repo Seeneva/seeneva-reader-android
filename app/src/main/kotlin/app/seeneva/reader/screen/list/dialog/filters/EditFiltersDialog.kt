@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ import app.seeneva.reader.di.autoInit
 import app.seeneva.reader.di.getValue
 import app.seeneva.reader.di.koinLifecycleScope
 import app.seeneva.reader.di.requireParentFragmentScope
+import app.seeneva.reader.extension.getSerializableCompat
 import app.seeneva.reader.extension.inflate
 import app.seeneva.reader.logic.entity.query.filter.Filter
 import app.seeneva.reader.logic.entity.query.filter.FilterGroup
@@ -42,7 +43,7 @@ import app.seeneva.reader.presenter.PresenterStatefulView
 import app.seeneva.reader.screen.list.dialog.BaseDraggableDialog
 import org.koin.core.scope.KoinScopeComponent
 import java.io.Serializable
-import java.util.*
+import java.util.EnumMap
 
 interface EditFiltersView : PresenterStatefulView {
     fun showFilters(filterGroups: List<FilterGroup>, selectedFilters: Map<FilterGroup.ID, String>)
@@ -131,9 +132,10 @@ class EditFiltersDialog : BaseDraggableDialog(), EditFiltersView, KoinScopeCompo
             }
 
         fun readSelectedFilters(dialog: EditFiltersDialog): Map<FilterGroup.ID, String> {
-            val args = requireNotNull(dialog.arguments) { "Use newInstance" }
-
-            return args.getSerializable(KEY_SELECTED_FILTERS) as EnumMap<FilterGroup.ID, String>
+            return requireNotNull(
+                dialog.requireArguments()
+                    .getSerializableCompat<EnumMap<FilterGroup.ID, String>>(KEY_SELECTED_FILTERS)
+            ) { "Use newInstance" }
         }
     }
 }

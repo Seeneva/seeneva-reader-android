@@ -22,14 +22,13 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.view.View
-import androidx.core.view.ViewCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.palette.graphics.Palette
-import coil.target.PoolableViewTarget
 import app.seeneva.reader.common.coroutines.Dispatchers
 import app.seeneva.reader.logic.image.entity.DrawablePalette
 import app.seeneva.reader.logic.image.target.ImageLoaderTarget
+import coil.target.PoolableViewTarget
 import kotlinx.coroutines.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -47,7 +46,7 @@ internal class ViewPaletteTarget<T>(
     init {
         fun newCoroutineScope() = CoroutineScope(dispatchers.main)
 
-        if (ViewCompat.isAttachedToWindow(view)) {
+        if (view.isAttachedToWindow) {
             coroutineScope = newCoroutineScope()
         }
 

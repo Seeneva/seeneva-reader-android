@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,10 @@ package app.seeneva.reader.extension
 
 import android.os.Bundle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withCreated
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryOwner
+import kotlinx.coroutines.launch
 
 /**
  * Register this [SavedStateRegistry.SavedStateProvider] and try to restore state if any
@@ -34,11 +36,13 @@ inline fun <reified T : SavedStateRegistry.SavedStateProvider> T.registerAndRest
     key: String = T::class.java.name,
     crossinline restore: (Bundle?) -> Unit
 ) {
-    savedStateRegistryOwner.lifecycleScope.launchWhenCreated {
-        savedStateRegistryOwner.savedStateRegistry.also {
-            it.registerSavedStateProvider(key, this@registerAndRestore)
+    savedStateRegistryOwner.lifecycleScope.launch {
+        savedStateRegistryOwner.withCreated {
+            savedStateRegistryOwner.savedStateRegistry.also {
+                it.registerSavedStateProvider(key, this@registerAndRestore)
 
-            it.consumeRestoredStateForKey(key).also(restore)
+                it.consumeRestoredStateForKey(key).also(restore)
+            }
         }
     }
 }

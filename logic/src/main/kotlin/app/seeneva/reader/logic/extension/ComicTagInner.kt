@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ internal fun ComicTagInner.humanName(context: Context): String =
 
 internal val ComicTagInner.tagType: TagType
     get() = try {
-        TagType.values()[type]
+        TagType.entries[type]
     } catch (t: Throwable) {
         throw IllegalStateException("Can't get comic tag type: type is not correct. Tag: '$this'")
     }

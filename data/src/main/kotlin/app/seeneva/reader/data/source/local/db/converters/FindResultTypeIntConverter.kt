@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,6 @@ internal object FindResultTypeIntConverter {
     @TypeConverter
     @JvmStatic
     fun intToType(value: Int): FindResult.Type =
-        FindResult.Type.values().firstOrNull { it.id == value }
+        FindResult.Type.entries.firstOrNull { it.id == value }
             ?: throw IllegalArgumentException("Unknown find result type: '$value'")
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,11 @@ import android.content.Context
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.StringRes
 import androidx.core.text.set
 import androidx.core.text.toSpannable
-import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import app.seeneva.reader.R
@@ -118,8 +118,8 @@ class ThirdPartyAdapter(context: Context) : RecyclerView.Adapter<ThirdPartyAdapt
             LayoutComicInfoItemBinding.inflate(layoutInflater, binding.groupLayout)
                 .apply {
                     // Hacky. To allow use multiple bindings with <merge> root item
-                    itemNameView.id = ViewCompat.generateViewId()
-                    itemValueView.id = ViewCompat.generateViewId()
+                    itemNameView.id = View.generateViewId()
+                    itemValueView.id = View.generateViewId()
 
                     itemNameView.setText(nameResId)
                 }

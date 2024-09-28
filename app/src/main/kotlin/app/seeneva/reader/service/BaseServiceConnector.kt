@@ -149,7 +149,7 @@ abstract class BaseServiceConnector<S : Service, B : Any>(
         /**
          * Binder was disconnected or it is not ready yet
          */
-        object Disconnected : BinderState<Nothing>
+        data object Disconnected : BinderState<Nothing>
     }
 }
 

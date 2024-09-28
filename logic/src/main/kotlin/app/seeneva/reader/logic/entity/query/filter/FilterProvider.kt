@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ internal class FilterProviderImpl(context: Context) : FilterProvider {
     override fun groups(): List<FilterGroup> =
         FilterGroupBuilderImpl(context.resources).apply {
             group(FilterGroup.ID.COMPLETION_STATUS, R.string.filter_comic_completed_title) {
-                CompletionFilterType.values()
+                CompletionFilterType.entries
                     .forEach {
                         when (it) {
                             CompletionFilterType.NONE ->
@@ -60,7 +60,7 @@ internal class FilterProviderImpl(context: Context) : FilterProvider {
             }
 
             group(FilterGroup.ID.FILE_STATUS, R.string.filter_comic_file_status_title) {
-                FileStatusFilterType.values()
+                FileStatusFilterType.entries
                     .forEach {
                         when (it) {
                             FileStatusFilterType.NONE ->

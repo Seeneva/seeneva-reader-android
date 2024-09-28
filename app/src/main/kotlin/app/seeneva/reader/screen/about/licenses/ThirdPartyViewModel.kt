@@ -32,8 +32,8 @@ import kotlinx.coroutines.launch
 import org.tinylog.kotlin.Logger
 
 sealed interface ThirdPartyState {
-    object Idle : ThirdPartyState
-    object Loading : ThirdPartyState
+    data object Idle : ThirdPartyState
+    data object Loading : ThirdPartyState
     data class Error(val t: Throwable) : ThirdPartyState
     data class Success(val thirdParties: List<ThirdParty>) : ThirdPartyState
 }

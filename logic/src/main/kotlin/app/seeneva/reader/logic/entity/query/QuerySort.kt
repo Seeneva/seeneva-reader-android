@@ -63,8 +63,8 @@ class QuerySort private constructor(
         /**
          * Return all available sort types
          */
-        fun all(): Array<QuerySort> = QuerySortInner.values().let { array ->
-            Array(array.size) { array[it].intoQuerySort() }
+        fun all(): Array<QuerySort> = QuerySortInner.entries.let { list ->
+            Array(list.size) { list[it].intoQuerySort() }
         }
 
         /**

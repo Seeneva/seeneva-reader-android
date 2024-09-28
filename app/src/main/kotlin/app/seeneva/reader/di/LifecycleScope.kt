@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ private class LifecycleScopeImpl<T>(
 
     private fun CoroutineScope.initScope(lifecycle: Lifecycle, initState: Lifecycle.State) {
         launch {
-            lifecycle.whenStateAtLeast(initState) {
+            lifecycle.withStateAtLeast(initState) {
                 if (!_scope.isInitialized()) {
                     Logger.info("Scope was initialized. Scope: $scope")
                 }
@@ -141,7 +141,7 @@ class LifecycleLazyInit<P>(
 
     private fun CoroutineScope.init(lifecycle: Lifecycle, initState: Lifecycle.State) {
         launch {
-            lifecycle.whenStateAtLeast(initState) {
+            lifecycle.withStateAtLeast(initState) {
                 //ugly hack
                 //Needed to initialize after onCreate. So it can use ViewModels
                 Logger.info("$value has been init.")

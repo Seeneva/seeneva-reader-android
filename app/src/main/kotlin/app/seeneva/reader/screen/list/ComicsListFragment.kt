@@ -18,6 +18,8 @@
 
 package app.seeneva.reader.screen.list
 
+import android.animation.ValueAnimator
+import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.os.Build
@@ -183,7 +185,7 @@ class ComicsListFragment(
 
     private val gridSpanCount by lazy { resources.getInteger(R.integer.comic_thumb_grid_size) }
 
-    private val allListTypes = ArrayDeque(ComicListViewType.values().asList())
+    private val allListTypes = ArrayDeque(ComicListViewType.entries)
 
     private var currentListType: ComicListViewType by Delegates.observable(ComicListViewType.default) { _, oldType, newType ->
         if (oldType == newType) {
@@ -622,22 +624,24 @@ class ComicsListFragment(
             }
 
             if (viewBinding.filtersRecyclerView.translationY != targetFilterTranslation.toFloat()) {
-                ViewCompat.animate(viewBinding.filtersRecyclerView)
+                viewBinding.filtersRecyclerView.animate()
                     .translationY(targetFilterTranslation.toFloat())
                     .setDuration(170L)
                     .setInterpolator(AccelerateDecelerateInterpolator())
-                    .setUpdateListener(object : ViewPropertyAnimatorUpdateListener {
+                    .setUpdateListener(object : AnimatorUpdateListener {
                         private var previousTranslationY =
                             viewBinding.filtersRecyclerView.translationY
 
-                        override fun onAnimationUpdate(view: View) {
+                        override fun onAnimationUpdate(animation: ValueAnimator) {
+                            val newTranslation = animation.animatedValue as Float
+
                             val translationDiff =
-                                (previousTranslationY - view.translationY).roundToInt()
+                                (previousTranslationY - newTranslation).roundToInt()
 
                             viewBinding.recyclerView.updatePadding(top = viewBinding.recyclerView.paddingTop - translationDiff)
                             viewBinding.recyclerView.scrollBy(0, translationDiff)
 
-                            previousTranslationY = view.translationY
+                            previousTranslationY = newTranslation
                         }
                     })
                     .also {

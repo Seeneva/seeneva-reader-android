@@ -52,9 +52,9 @@ data class ComicsMarkedAsRemoved(val ids: Set<Long>) : ListEvents
 data class ComicsOpened(val result: ComicAddResult) : ListEvents
 
 sealed interface ComicsPagingState {
-    object Idle : ComicsPagingState
+    data object Idle : ComicsPagingState
 
-    object Loading : ComicsPagingState
+    data object Loading : ComicsPagingState
 
     /**
      * Loaded comic book page

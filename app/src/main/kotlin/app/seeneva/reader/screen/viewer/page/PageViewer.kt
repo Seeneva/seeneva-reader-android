@@ -316,7 +316,7 @@ class PageViewer(
     data class PageSrc(val path: Uri, val pagePosition: Long, val width: Int, val height: Int)
 
     sealed interface PageEvent {
-        object Loaded : PageEvent
+        data object Loaded : PageEvent
         data class Loading(val path: Uri, val position: Long) : PageEvent
         data class Error(val e: Exception) : PageEvent
     }

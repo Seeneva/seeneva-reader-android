@@ -35,8 +35,8 @@ import kotlinx.coroutines.launch
 
 sealed interface ConfigState {
     data class Loaded(val config: ViewerConfig) : ConfigState
-    object Loading : ConfigState
-    object Idle : ConfigState
+    data object Loading : ConfigState
+    data object Idle : ConfigState
 }
 
 interface ViewerConfigViewModel {

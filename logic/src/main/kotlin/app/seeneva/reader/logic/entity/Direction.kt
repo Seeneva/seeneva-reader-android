@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ enum class Direction(internal val id: Int, @StringRes val titleResId: Int) {
          * @param id direction id
          */
         internal fun fromId(id: Int) =
-            values().firstOrNull { it.id == id }
+            entries.firstOrNull { it.id == id }
                 ?: throw IllegalArgumentException("Unknown direction id: $id")
     }
 }
