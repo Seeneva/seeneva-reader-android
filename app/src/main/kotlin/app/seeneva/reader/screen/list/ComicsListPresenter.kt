@@ -19,12 +19,13 @@
 package app.seeneva.reader.screen.list
 
 import android.net.Uri
-import android.os.Bundle
 import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.withStarted
+import androidx.savedstate.SavedStateRegistry
 import app.seeneva.reader.common.coroutines.Dispatchers
+import app.seeneva.reader.extension.registerAndRestore
 import app.seeneva.reader.logic.ComicListViewType
 import app.seeneva.reader.logic.ComicsSettings
 import app.seeneva.reader.logic.comic.AddComicBookMode
@@ -33,7 +34,7 @@ import app.seeneva.reader.logic.entity.query.QueryParams
 import app.seeneva.reader.logic.entity.query.QuerySort
 import app.seeneva.reader.logic.entity.query.filter.Filter
 import app.seeneva.reader.logic.entity.query.filter.FilterGroup
-import app.seeneva.reader.presenter.BaseStatefulPresenter
+import app.seeneva.reader.presenter.BasePresenter
 import app.seeneva.reader.presenter.Presenter
 import app.seeneva.reader.screen.list.entity.FilterLabel
 import kotlinx.coroutines.flow.StateFlow
@@ -129,7 +130,9 @@ class ComicsListPresenterImpl(
     dispatchers: Dispatchers,
     private val settings: ComicsSettings,
     private val viewModel: ComicsListViewModel
-) : BaseStatefulPresenter<ComicsListView>(view, dispatchers), ComicsListPresenter {
+) : BasePresenter<ComicsListView>(view, dispatchers),
+    SavedStateRegistry.SavedStateProvider,
+    ComicsListPresenter {
     override val pagingState: StateFlow<ComicsPagingState>
         get() = viewModel.pagingState
 
@@ -147,6 +150,15 @@ class ComicsListPresenterImpl(
         get() = queryParams.titleQuery
 
     init {
+        registerAndRestore(view) { state ->
+            view.setComicListType(settings.getComicListType())
+
+            if (state != null) {
+                //restore titleQuery if needed
+                onSearchQuery(state.getString(STATE_SEARCH_QUERY))
+            }
+        }
+
         viewScope.launch {
             view.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -180,15 +192,6 @@ class ComicsListPresenterImpl(
             view.withStarted {
                 showFilters(queryParams)
             }
-        }
-    }
-
-    override fun onCreate(state: Bundle?) {
-        view.setComicListType(settings.getComicListType())
-
-        if (state != null) {
-            //restore titleQuery if needed
-            onSearchQuery(state.getString(STATE_SEARCH_QUERY))
         }
     }
 

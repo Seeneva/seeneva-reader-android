@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,8 @@
 
 package app.seeneva.reader.presenter
 
-import android.os.Bundle
-import androidx.savedstate.SavedStateRegistry
 import app.seeneva.reader.common.coroutines.Dispatched
 import app.seeneva.reader.common.coroutines.Dispatchers
-import app.seeneva.reader.extension.registerAndRestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
@@ -42,16 +39,4 @@ abstract class BasePresenter<V : PresenterView>(
 
     protected val viewLifeCycle
         get() = view.lifecycle
-}
-
-abstract class BaseStatefulPresenter<V : PresenterStatefulView>(
-    view: V,
-    dispatchers: Dispatchers
-) : BasePresenter<V>(view, dispatchers), SavedStateRegistry.SavedStateProvider {
-
-    init {
-        registerAndRestore(view, restore = ::onCreate)
-    }
-
-    protected abstract fun onCreate(state: Bundle?)
 }

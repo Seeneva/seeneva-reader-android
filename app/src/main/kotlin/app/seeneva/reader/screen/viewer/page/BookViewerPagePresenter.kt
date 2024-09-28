@@ -20,13 +20,14 @@ package app.seeneva.reader.screen.viewer.page
 
 import android.graphics.Rect
 import android.net.Uri
-import android.os.Bundle
 import androidx.core.graphics.toRect
 import androidx.core.os.bundleOf
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
+import androidx.savedstate.SavedStateRegistry
 import app.seeneva.reader.common.coroutines.Dispatchers
+import app.seeneva.reader.extension.registerAndRestore
 import app.seeneva.reader.logic.ComicsSettings
 import app.seeneva.reader.logic.entity.ComicPageData
 import app.seeneva.reader.logic.entity.ComicPageObject
@@ -35,7 +36,7 @@ import app.seeneva.reader.logic.entity.Direction
 import app.seeneva.reader.logic.image.ImageLoader
 import app.seeneva.reader.logic.text.ocr.OCR
 import app.seeneva.reader.logic.text.tts.TTS
-import app.seeneva.reader.presenter.BaseStatefulPresenter
+import app.seeneva.reader.presenter.BasePresenter
 import app.seeneva.reader.presenter.Presenter
 import app.seeneva.reader.screen.viewer.page.entity.PageObjectDirection
 import app.seeneva.reader.screen.viewer.page.entity.SelectedPageObject
@@ -109,7 +110,8 @@ class BookViewerPagePresenterImpl(
     private val tts: TTS,
     private val viewModel: BookViewerPageViewModel,
     pageId: Long
-) : BaseStatefulPresenter<BookViewerPageView>(view, dispatchers), BookViewerPagePresenter {
+) : BasePresenter<BookViewerPageView>(view, dispatchers), SavedStateRegistry.SavedStateProvider,
+    BookViewerPagePresenter {
     private val ocr by _ocr
 
     override val encodedPageState
@@ -153,6 +155,28 @@ class BookViewerPagePresenterImpl(
     private var txtRecognitionJob: Job? = null
 
     init {
+        registerAndRestore(view) { state ->
+            if (state != null) {
+                readObjectPosition = state.getInt(STATE_READ_POSITION, -1)
+            }
+
+            presenterScope.launch {
+                //prefetch all objects on the page
+                encodedPageState.filterIsInstance<EncodedPageState.Loaded>()
+                    .map { it.pageData }
+                    .filterNot { it.objects.isEmpty() }
+                    .collectLatest { prefetchPageObjects(it) }
+            }
+
+            readDirectionState.filterNotNull()
+                .drop(1)
+                .onEach {
+                    //Direction was changed, reset read position
+                    resetReadPageObject()
+                }
+                .launchIn(presenterScope)
+        }
+
         viewModel.loadPageData(pageId)
 
         // combine txt recognition states and events into single flow
@@ -180,28 +204,6 @@ class BookViewerPagePresenterImpl(
                 tts.stop()
             }
         })
-    }
-
-    override fun onCreate(state: Bundle?) {
-        if (state != null) {
-            readObjectPosition = state.getInt(STATE_READ_POSITION, -1)
-        }
-
-        presenterScope.launch {
-            //prefetch all objects on the page
-            encodedPageState.filterIsInstance<EncodedPageState.Loaded>()
-                .map { it.pageData }
-                .filterNot { it.objects.isEmpty() }
-                .collectLatest { prefetchPageObjects(it) }
-        }
-
-        readDirectionState.filterNotNull()
-            .drop(1)
-            .onEach {
-                //Direction was changed, reset read position
-                resetReadPageObject()
-            }
-            .launchIn(presenterScope)
     }
 
     override fun saveState() =

@@ -20,11 +20,13 @@ package app.seeneva.reader.screen.list.dialog.filters
 
 import android.os.Bundle
 import androidx.lifecycle.flowWithLifecycle
+import androidx.savedstate.SavedStateRegistry
 import app.seeneva.reader.common.coroutines.Dispatchers
 import app.seeneva.reader.extension.getSerializableCompat
+import app.seeneva.reader.extension.registerAndRestore
 import app.seeneva.reader.logic.entity.query.filter.Filter
 import app.seeneva.reader.logic.entity.query.filter.FilterGroup
-import app.seeneva.reader.presenter.BaseStatefulPresenter
+import app.seeneva.reader.presenter.BasePresenter
 import app.seeneva.reader.presenter.Presenter
 import kotlinx.coroutines.launch
 
@@ -37,26 +39,27 @@ class EditFiltersPresenterImpl(
     dispatchers: Dispatchers,
     private val initSelectedFilters: Map<FilterGroup.ID, String>,
     private val viewModel: EditFiltersViewModel
-) : BaseStatefulPresenter<EditFiltersView>(view, dispatchers), EditFiltersPresenter {
+) : BasePresenter<EditFiltersView>(view, dispatchers), SavedStateRegistry.SavedStateProvider,
+    EditFiltersPresenter {
     private val selectedFilters = hashMapOf<FilterGroup.ID, String>()
 
     init {
+        registerAndRestore(view) { state ->
+            if (state == null) {
+                selectedFilters.putAll(initSelectedFilters)
+            } else {
+                (state.getSerializableCompat<HashMap<FilterGroup.ID, String>>(STATE_SELECTED_FILTERS))!!.also {
+                    selectedFilters.putAll(it)
+                }
+            }
+        }
+
         viewScope.launch {
             viewModel.filterGroups
                 .flowWithLifecycle(view.lifecycle)
                 .collect {
                     view.showFilters(it, selectedFilters)
                 }
-        }
-    }
-
-    override fun onCreate(state: Bundle?) {
-        if (state == null) {
-            selectedFilters.putAll(initSelectedFilters)
-        } else {
-            (state.getSerializableCompat<HashMap<FilterGroup.ID, String>>(STATE_SELECTED_FILTERS))!!.also {
-                selectedFilters.putAll(it)
-            }
         }
     }
 
