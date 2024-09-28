@@ -24,5 +24,5 @@ object Plugin {
 
 object PluginVersion {
     const val ANDROID = "8.6.1"
-    const val KSP = "${Version.KOTLIN}-1.0.20"
+    const val KSP = "${Version.KOTLIN}-1.0.25"
 }

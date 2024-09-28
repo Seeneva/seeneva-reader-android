@@ -1,5 +1,9 @@
 vendor/bundle
 
+# Kotlin
+# https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
+.kotlin/
+
 # https://docs.fastlane.tools/best-practices/keys/
 .env.*
 
