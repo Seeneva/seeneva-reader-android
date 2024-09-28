@@ -18,6 +18,7 @@
   -->
 
 <resources>
+    <!-- TODO: use Theme.Material3.Light.NoActionBar -->
     <!-- Base application theme -->
     <style name="BaseAppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/cerulean</item>
@@ -45,7 +46,7 @@
 
     <style name="AppTheme.Viewer" parent="BaseAppTheme.Viewer" />
 
-    <style name="AppTheme.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.Light.BottomSheetDialog" />
+    <style name="AppTheme.BottomSheetDialog" parent="Theme.MaterialComponents.Light.BottomSheetDialog" />
 
     <style name="AppTheme.BottomSheetDialog.NonCollapsed">
         <item name="bottomSheetStyle">@style/AppWidget.BottomSheet.NonCollapsed</item>

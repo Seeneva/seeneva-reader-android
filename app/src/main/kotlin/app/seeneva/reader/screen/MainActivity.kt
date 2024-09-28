@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,11 +56,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         super.onCreate(savedInstanceState)
         setSupportActionBar(viewBinding.toolbar)
 
-        viewBinding.bottomNavigationView.setOnNavigationItemReselectedListener {
+        viewBinding.bottomNavigationView.setOnItemReselectedListener {
             //DO NOTHING for now...
         }
 
-        viewBinding.bottomNavigationView.setOnNavigationItemSelectedListener {
+        viewBinding.bottomNavigationView.setOnItemSelectedListener {
             // without it the AppBar may remain hidden without possibility to show
             expandAppBar()
 
@@ -107,6 +107,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 replaceContentFragment<ComicsListFragment>()
                 true
             }
+
             R.id.about -> {
                 requireActionBar().also {
                     it.setDisplayShowTitleEnabled(true)
@@ -115,6 +116,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 replaceContentFragment<AboutAppFragment>()
                 true
             }
+
             else -> false
         }
 
@@ -158,6 +160,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                             }
                     }, ::expandAppBar)
                 }
+
                 else -> defaultFactory.instantiate(classLoader, className)
             }
     }

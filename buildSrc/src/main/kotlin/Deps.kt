@@ -30,7 +30,7 @@ object Version {
     const val ANDROIDX_RECYCLER_VIEW = "1.2.0"
     const val ANDROIDX_RECYCLER_VIEW_SELECTION = "1.1.0"
     const val ANDROIDX_FRAGMENT_KTX = "1.8.3"
-    const val ANDROIDX_CONSTRAINT_LAYOUT = "2.0.4"
+    const val ANDROIDX_CONSTRAINT_LAYOUT = "2.1.4"
     const val ANDROIDX_CORE_KTX = "1.13.1"
     const val ANDROIDX_LIFECYCLE = "2.8.6"
     const val ANDROIDX_PAGING = "3.0.0"
@@ -43,7 +43,7 @@ object Version {
     const val ANDROIDX_TEST_CORE_KTX = "1.3.0"
     const val ANDROIDX_TEST_JUNIT_KTX = "1.1.2"
 
-    const val MATERIAL = "1.3.0"
+    const val MATERIAL = "1.12.0"
 
     const val COIL = "1.2.1"
 
