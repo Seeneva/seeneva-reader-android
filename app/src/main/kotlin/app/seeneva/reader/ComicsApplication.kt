@@ -19,8 +19,6 @@
 package app.seeneva.reader
 
 import android.app.Application
-import android.content.Context
-import androidx.multidex.MultiDex
 import app.seeneva.reader.AppNotification.createComicNotificationChannels
 import app.seeneva.reader.di.setup
 import app.seeneva.reader.work.SyncManager
@@ -37,11 +35,6 @@ class ComicsApplication : Application() {
         startKoin { setup(this@ComicsApplication) }
 
         prepare()
-    }
-
-    override fun attachBaseContext(base: Context?) {
-        super.attachBaseContext(base)
-        MultiDex.install(this)
     }
 
     /**

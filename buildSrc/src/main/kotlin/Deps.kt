@@ -38,7 +38,6 @@ object Version {
     const val ANDROIDX_WORK_RUNTIME = "2.9.1"
     const val ANDROIDX_ROOM = "2.6.1"
     const val ANDROIDX_SWIPE_REFRESH_LAYOUT = "1.1.0"
-    const val ANDROIDX_MULTIDEX = "2.0.1"
     const val ANDROIDX_TEST_RUNNER = "1.3.0"
     const val ANDROIDX_TEST_CORE_KTX = "1.3.0"
     const val ANDROIDX_TEST_JUNIT_KTX = "1.1.2"
@@ -113,9 +112,6 @@ object Deps {
 
     const val ANDROIDX_WORK_RUNTIME =
         "androidx.work:work-runtime-ktx:${Version.ANDROIDX_WORK_RUNTIME}"
-
-    const val ANDROIDX_MULTIDEX =
-        "androidx.multidex:multidex:${Version.ANDROIDX_MULTIDEX}"
 
     const val MATERIAL =
         "com.google.android.material:material:${Version.MATERIAL}"

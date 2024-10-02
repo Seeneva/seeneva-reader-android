@@ -165,7 +165,6 @@ dependencies {
     implementation(Deps.ANDROIDX_CONSTRAINT_LAYOUT)
     implementation(Deps.ANDROIDX_WORK_RUNTIME)
     implementation(Deps.ANDROIDX_SWIPE_REFRESH_LAYOUT)
-    implementation(Deps.ANDROIDX_MULTIDEX)
 
     implementation(Deps.MATERIAL)
 

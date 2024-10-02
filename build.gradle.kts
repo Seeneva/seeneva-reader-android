@@ -77,7 +77,6 @@ subprojects {
 
             vectorDrawables.useSupportLibrary = true
 
-            multiDexEnabled = true
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
 
