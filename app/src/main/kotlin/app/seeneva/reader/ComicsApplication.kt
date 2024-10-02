@@ -20,7 +20,6 @@ package app.seeneva.reader
 
 import android.app.Application
 import android.content.Context
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDex
 import app.seeneva.reader.AppNotification.createComicNotificationChannels
 import app.seeneva.reader.di.setup
@@ -32,8 +31,6 @@ import java.util.concurrent.TimeUnit
 class ComicsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
         createComicNotificationChannels()
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package app.seeneva.reader.screen.viewer.dialog.config
 import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.FloatRange
@@ -45,10 +44,14 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.LabelFormatter
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
-import org.koin.core.scope.KoinScopeComponent
-import org.koin.core.scope.inject
+import org.koin.android.ext.android.inject
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.core.component.KoinScopeComponent
 import org.tinylog.kotlin.Logger
 import java.text.Format
 import java.text.NumberFormat
@@ -71,7 +74,11 @@ interface ViewerConfigView : PresenterView {
     fun showBrightness(@FloatRange(from = .0, to = 1.0) brightness: Float)
 }
 
-class ViewerConfigDialog : BaseDraggableDialog(), ViewerConfigView, KoinScopeComponent {
+class ViewerConfigDialog :
+    BaseDraggableDialog(R.layout.dialog_viewer_settings),
+    ViewerConfigView,
+    KoinScopeComponent,
+    AndroidScopeComponent {
     private val viewBinding by viewBinding(DialogViewerSettingsBinding::bind)
 
     private val lifecycleScope = koinLifecycleScope { it.linkTo(requireActivityScope()) }
@@ -83,12 +90,6 @@ class ViewerConfigDialog : BaseDraggableDialog(), ViewerConfigView, KoinScopeCom
     private val ttsResolver by inject<TTSErrorResolver>()
 
     private val callback by lazy { scope.getOrNull<Callback>() }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.dialog_viewer_settings, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -190,6 +191,7 @@ class ViewerConfigDialog : BaseDraggableDialog(), ViewerConfigView, KoinScopeCom
                     Language.English.locale.displayName
                 )
             }
+
             TTS.InitResult.LanguageNotSupported -> {
                 getString(R.string.viewer_tts_error_language, Language.English.locale.displayName)
             }

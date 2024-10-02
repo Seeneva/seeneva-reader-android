@@ -47,7 +47,7 @@ object Version {
 
     const val COIL = "1.2.1"
 
-    const val KOIN = "2.2.3"
+    const val KOIN = "4.0.0"
 
     const val MOCKK = "1.11.0"
 
@@ -128,13 +128,12 @@ object Deps {
     const val KOTLINX_SERIALIZATION_JSON =
         "org.jetbrains.kotlinx:kotlinx-serialization-json:${Version.KOTLINX_SERIALIZATION_JSON}"
 
-    //const val KOIN_ANDROID = "io.insert-koin:koin-android:${Version.KOIN}"
-    const val KOIN_ANDROIDX_SCOPE =
-        "io.insert-koin:koin-androidx-scope:${Version.KOIN}"
-    const val KOIN_ANDROIDX_VIEWMODEL =
-        "io.insert-koin:koin-androidx-viewmodel:${Version.KOIN}"
+    const val KOIN_BOM =
+        "io.insert-koin:koin-bom:${Version.KOIN}"
+    const val KOIN_ANDROID =
+        "io.insert-koin:koin-android"
     const val KOIN_ANDROIDX_WORKMANAGER =
-        "io.insert-koin:koin-androidx-workmanager:${Version.KOIN}"
+        "io.insert-koin:koin-androidx-workmanager"
 
     const val COIL =
         "io.coil-kt:coil-base:${Version.COIL}"

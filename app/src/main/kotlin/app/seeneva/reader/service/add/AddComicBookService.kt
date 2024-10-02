@@ -42,9 +42,14 @@ import app.seeneva.reader.logic.entity.ComicAddResult
 import app.seeneva.reader.logic.entity.FileData
 import app.seeneva.reader.service.BaseForegroundService
 import kotlinx.coroutines.flow.*
-import org.koin.core.scope.KoinScopeComponent
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.core.component.KoinScopeComponent
 
-class AddComicBookService : BaseForegroundService(), AddComicBookView, KoinScopeComponent {
+class AddComicBookService :
+    BaseForegroundService(),
+    AddComicBookView,
+    KoinScopeComponent,
+    AndroidScopeComponent {
     private val lifecycleScope = koinLifecycleScope()
 
     override val scope by lifecycleScope
@@ -72,11 +77,13 @@ class AddComicBookService : BaseForegroundService(), AddComicBookView, KoinScope
                     }
                 )
             }
+
             ACTION_CANCEL -> {
                 presenter.cancelAdding(intent.data)
 
                 CommandResult.NonForeground()
             }
+
             else -> super.onStartCommandInner(intent, flags, startId)
         }
     }

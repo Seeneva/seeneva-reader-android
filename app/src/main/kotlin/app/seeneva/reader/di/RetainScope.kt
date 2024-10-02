@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,75 +18,45 @@
 
 package app.seeneva.reader.di
 
-import androidx.lifecycle.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.get
+import org.koin.android.ext.android.getKoin
+import org.koin.android.scope.AndroidScopeComponent
 import org.koin.androidx.scope.ScopeHandlerViewModel
-import org.koin.androidx.viewmodel.ext.android.getViewModel
+import org.koin.androidx.scope.retainedScopeId
 import org.koin.core.Koin
-import org.koin.core.component.KoinComponent
+import org.koin.core.component.getScopeName
 import org.koin.core.qualifier.Qualifier
-import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
-import org.tinylog.kotlin.Logger
-import kotlin.reflect.KProperty
+import org.koin.core.scope.ScopeID
 
 /**
- * Scope which will outlive Android lifecycle onDestroy event
+ * Create a retain scope using [ScopeHandlerViewModel]
+ *
+ * @param koin Koin instance
+ * @param scopeId ID for the new scope
+ * @param scopeName name for the new scope
  */
-interface RetainScope {
-    val scope: Scope
+fun ViewModelStoreOwner.createRetainScope(
+    koin: Koin,
+    scopeId: ScopeID,
+    scopeName: Qualifier = getScopeName()
+): Scope {
+    if (this !is AndroidScopeComponent) {
+        error("Parent should implement AndroidScopeComponent")
+    }
+
+    val vm = ViewModelProvider(this).get<ScopeHandlerViewModel>()
+
+    return vm.scope ?: koin.createScope(scopeId, scopeName).also { vm.scope = it }
 }
 
-operator fun RetainScope.getValue(thisRef: Any, property: KProperty<*>): Scope = scope
-
-private class RetainScopeImpl<T>(
-    source: T,
-    qualifier: Qualifier,
-    koin: Koin
-) : RetainScope where T : ViewModelStoreOwner, T : LifecycleOwner {
-    private val _scope = lazy {
-        val vm = source.getViewModel<ScopeHandlerViewModel>()
-
-        vm.scope.let { scope ->
-            scope ?: koin
-                .createScope(
-                    // ViewModel's `onCleared` method called after some small amount of time after Activity was destroyed.
-                    //  So I need to add source hash code to prevent `scope already created` exceptions
-                    //  in case if user was too fast to open the same Activity again
-                    "${source::class.simpleName}_${this::class.simpleName}_${
-                        System.identityHashCode(source)
-                    }", qualifier
-                )
-                .also {
-                    Logger.info("Retain scope was created. Scope: $it")
-
-                    vm.scope = it
-                }
-        }
-    }
-
-    override val scope by _scope
-
-    init {
-        source.lifecycleScope.initScope(source.lifecycle)
-    }
-
-    private fun CoroutineScope.initScope(lifecycle: Lifecycle) {
-        launch {
-            lifecycle.withCreated {
-                if (!_scope.isInitialized()) {
-                    Logger.info("Retain scope init finished. Scope: $scope")
-                }
-            }
-        }
-    }
-}
-
-inline fun <reified T> T.koinRetainScope(): RetainScope
-        where T : ViewModelStoreOwner, T : LifecycleOwner, T : KoinComponent =
-    koinRetainScope(named<T>())
-
-fun <T> T.koinRetainScope(qualifier: Qualifier): RetainScope
-        where T : ViewModelStoreOwner, T : LifecycleOwner, T : KoinComponent =
-    RetainScopeImpl(this, qualifier, getKoin())
+/**
+ * Implementation of [ComponentActivity.createActivityRetainScope] that allows to set custom [scopeName]
+ *
+ * @param scopeName name for the new scope
+ */
+fun ComponentActivity.createActivityRetainScope(scopeName: Qualifier = getScopeName()): Scope =
+    createRetainScope(koin = getKoin(), scopeId = retainedScopeId(), scopeName = scopeName)

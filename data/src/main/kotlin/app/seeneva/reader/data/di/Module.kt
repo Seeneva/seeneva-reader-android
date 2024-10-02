@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,28 +27,37 @@ import app.seeneva.reader.data.source.local.db.LocalTransactionRunner
 import app.seeneva.reader.data.source.local.db.LocalTransactionRunnerImpl
 import kotlinx.coroutines.asExecutor
 import org.koin.android.ext.koin.androidApplication
-import org.koin.core.module.Module
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 
-object Modules {
-    val all: Array<Module>
-        get() = arrayOf(roomModule, sourceModule, nativeModule)
-
-    private val roomModule = module {
-        single { ComicDatabase.instance(androidApplication(), get<Dispatchers>().io.asExecutor()) }
-
-        single<LocalTransactionRunner> { LocalTransactionRunnerImpl(get()) }
+object Module {
+    @VisibleForTesting
+    val native = module {
+        single<NativeSource> { NativeSourceImpl(androidApplication(), get<Dispatchers>().io) }
     }
 
-    private val sourceModule = module {
+    private val room = module {
+        single { ComicDatabase.instance(androidApplication(), get<Dispatchers>().io.asExecutor()) }
+
+        singleOf(::LocalTransactionRunnerImpl) withOptions {
+            bind<LocalTransactionRunner>()
+        }
+    }
+
+    private val source = module {
         single { get<ComicDatabase>().comicBookSource() }
         single { get<ComicDatabase>().comicTagSource() }
         single { get<ComicDatabase>().comicBookPageSource() }
         single { get<ComicDatabase>().comicBookPageObjectSource() }
     }
 
-    @VisibleForTesting
-    val nativeModule = module {
-        single<NativeSource> { NativeSourceImpl(androidApplication(), get<Dispatchers>().io) }
+    val main = module {
+        includes(
+            room,
+            source,
+            native,
+        )
     }
 }

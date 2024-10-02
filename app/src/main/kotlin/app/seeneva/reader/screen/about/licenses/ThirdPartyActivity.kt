@@ -37,7 +37,8 @@ import app.seeneva.reader.di.koinLifecycleScope
 import app.seeneva.reader.presenter.PresenterView
 import app.seeneva.reader.screen.about.licenses.dialog.LicenseDialogFragment
 import kotlinx.coroutines.launch
-import org.koin.core.scope.KoinScopeComponent
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.core.component.KoinScopeComponent
 import org.tinylog.kotlin.Logger
 
 interface ThirdPartyView : PresenterView
@@ -45,7 +46,8 @@ interface ThirdPartyView : PresenterView
 class ThirdPartyActivity :
     AppCompatActivity(R.layout.activity_third_parties),
     ThirdPartyView,
-    KoinScopeComponent {
+    KoinScopeComponent,
+    AndroidScopeComponent {
     private val viewBinding by viewBinding(config(ActivityThirdPartiesBinding::bind) doOnDestroy {
         recyclerView.adapter = null
     })

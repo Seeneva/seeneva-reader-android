@@ -22,11 +22,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinScopeComponent
+import org.koin.core.component.createScope
 import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.qualifier.Qualifier
-import org.koin.core.scope.KoinScopeComponent
 import org.koin.core.scope.Scope
-import org.koin.core.scope.newScope
 import org.tinylog.kotlin.Logger
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -66,7 +66,7 @@ private class LifecycleScopeImpl<T>(
 ) : LifecycleScope where T : LifecycleOwner, T : KoinScopeComponent {
     private val autoInit = mutableListOf<Lazy<*>>()
 
-    private val _scope = lazy { source.newScope(source) }
+    private val _scope = lazy { source.createScope(source) }
 
     private var onInit: ((Scope) -> Unit)? = onInit
 
@@ -89,7 +89,7 @@ private class LifecycleScopeImpl<T>(
         source.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
                 if (_scope.isInitialized()) {
-                    closeScope()
+                    scope.close()
                     Logger.info("Scope closed. Scope: $scope")
                 }
             }
@@ -104,7 +104,7 @@ private class LifecycleScopeImpl<T>(
         if (_scope.isInitialized()) {
             lazyOf(scope.get(clazz, qualifier))
         } else {
-            lazy { scope.get(clazz, qualifier) }.also { autoInit += it }
+            lazy { scope.get<T>(clazz, qualifier) }.also { autoInit += it }
         }
 
     private fun CoroutineScope.initScope(lifecycle: Lifecycle, initState: Lifecycle.State) {

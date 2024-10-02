@@ -64,32 +64,24 @@ import kotlinx.serialization.modules.plus
 import okhttp3.internal.cache.DiskLruCache
 import okhttp3.internal.io.FileSystem
 import org.koin.android.ext.koin.androidApplication
-import org.koin.core.module.Module
-import org.koin.core.qualifier.Qualifier
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.withOptions
 import org.koin.core.qualifier.named
+import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
-import app.seeneva.reader.data.di.Modules as DataModules
+import app.seeneva.reader.data.di.Module as DataModule
 
-object Modules {
-    val all: Array<Module>
-        get() = DataModules.all + arrayOf(
-            logicModule,
-            useCaseModule,
-            mapperModule
-        )
+private enum class Name {
+    MAPPER_COMICS_TO_LIST_ITEM,
+    MAPPER_COMICS_TO_INFO,
+    MAPPER_COMICS_TO_DESCRIPTION,
+    INTERPRETER_STORAGE
+}
 
-    private object Names {
-        val mapperComicToListItem by lazy<Qualifier> { named("MAPPER_COMICS_TO_LIST_ITEM") }
-
-        val mapperComicToInfo by lazy<Qualifier> { named("MAPPER_COMICS_TO_INFO") }
-
-        val mapperComicToDescription by lazy<Qualifier> { named("MAPPER_COMICS_TO_DESCRIPTION") }
-
-        val interpreterStorage by lazy<Qualifier> { named("INTERPRETER_STORAGE") }
-    }
-
-    private val logicModule = module {
-        single<InterpreterObjectStorage>(Names.interpreterStorage) {
+object Module {
+    private val logic = module {
+        single<InterpreterObjectStorage>(Name.INTERPRETER_STORAGE.qualifier) {
             SingleObjectStorageImpl(
                 InterpreterSource(get()),
                 // ML Interpreter is really heavy. So make it alive a little bit longer
@@ -109,7 +101,9 @@ object Modules {
 
         single<Library> { LibraryImpl(inject(), inject(), inject()) }
 
-        single<LibraryFileManager> { LibraryFileManagerImpl(androidApplication(), get()) }
+        singleOf(::LibraryFileManagerImpl) withOptions {
+            bind<LibraryFileManager>()
+        }
 
         single<ComicsSettings> {
             // Add custom JSON serializer for QueryParams
@@ -122,9 +116,13 @@ object Modules {
             PrefsComicsSettings(androidApplication(), settingsJson, get())
         }
 
-        single<FilterProvider> { FilterProviderImpl(androidApplication()) }
+        singleOf(::FilterProviderImpl) withOptions {
+            bind<FilterProvider>()
+        }
 
-        single<QueryParamsResolver> { QueryParamsResolverImpl(get()) }
+        singleOf(::QueryParamsResolverImpl) withOptions {
+            bind<QueryParamsResolver>()
+        }
 
         single<BitmapDiskCache> {
             BitmapOkHttpDiskCache(
@@ -161,40 +159,30 @@ object Modules {
         single { SentenceBreakerFactory(get<Dispatchers>().io) }
     }
 
-    private val useCaseModule = module {
-        single<FileDataUseCase> {
-            FileDataUseCaseImpl(
-                androidApplication(),
-                get(),
-                get()
-            )
+    private val useCase = module {
+        singleOf(::FileDataUseCaseImpl) withOptions {
+            bind<FileDataUseCase>()
         }
 
-        single<ComicRemovedTagUseCase> {
-            ComicRemovedStateUseCaseImpl(
-                get(),
-                get(),
-                get()
-            )
+        singleOf(::ComicRemovedStateUseCaseImpl) withOptions {
+            bind<ComicRemovedTagUseCase>()
         }
 
-        single<RenameComicBookUseCase> { RenameComicBookUseCaseImpl(get(), get()) }
+        singleOf(::RenameComicBookUseCaseImpl) withOptions {
+            bind<RenameComicBookUseCase>()
+        }
 
         single<GetComicInfoUseCase> {
             GetComicInfoUseCaseImpl(
                 androidApplication(),
                 get(),
-                get(Names.mapperComicToInfo),
+                get(Name.MAPPER_COMICS_TO_INFO.qualifier),
                 get()
             )
         }
 
-        single<ComicCompletedTagUseCase> {
-            ComicCompletedTagUseCaseImpl(
-                get(),
-                get(),
-                get()
-            )
+        singleOf(::ComicCompletedTagUseCaseImpl) withOptions {
+            bind<ComicCompletedTagUseCase>()
         }
 
         single<ComicListUseCase> {
@@ -213,14 +201,14 @@ object Modules {
                 get(),
                 get(),
                 get(),
-                get(Names.mapperComicToListItem),
+                get(Name.MAPPER_COMICS_TO_LIST_ITEM.qualifier),
                 get(),
             )
         }
 
         single<AddingUseCase> {
             AddingUseCaseImpl(
-                get(Names.interpreterStorage),
+                get(Name.INTERPRETER_STORAGE.qualifier),
                 get(),
                 get(),
                 get(),
@@ -230,23 +218,21 @@ object Modules {
             )
         }
 
-        single<DeleteBookByIdUseCase> { DeleteBookByIdUseCaseImpl(get(), get()) }
-
-        single<SyncUseCase> {
-            SyncUseCaseImpl(
-                androidApplication(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get()
-            )
+        singleOf(::DeleteBookByIdUseCaseImpl) withOptions {
+            bind<DeleteBookByIdUseCase>()
         }
 
-        single<GetEncodedPageUseCase> { GetEncodedPageUseCaseImpl(get()) }
+        singleOf(::SyncUseCaseImpl) withOptions {
+            bind<SyncUseCase>()
+        }
 
-        single<DecodePageUseCase> { DecodePageUseCaseImpl(get()) }
+        singleOf(::GetEncodedPageUseCaseImpl) withOptions {
+            bind<GetEncodedPageUseCase>()
+        }
+
+        singleOf(::DecodePageUseCaseImpl) withOptions {
+            bind<DecodePageUseCase>()
+        }
 
         single<BookViewerUseCase> {
             BookViewerUseCaseImpl(
@@ -254,28 +240,50 @@ object Modules {
                 get(),
                 get(),
                 get(),
-                get(Names.mapperComicToDescription),
+                get(Name.MAPPER_COMICS_TO_DESCRIPTION.qualifier),
                 get()
             )
         }
 
-        single<ViewerConfigUseCase> { ViewerConfigUseCaseImpl(get()) }
+        singleOf(::ViewerConfigUseCaseImpl) withOptions {
+            bind<ViewerConfigUseCase>()
+        }
 
-        single<InterpreterUseCase> { InterpreterUseCaseImpl(get()) }
+        singleOf(::InterpreterUseCaseImpl) withOptions {
+            bind<InterpreterUseCase>()
+        }
 
-        single<GetPageDataUseCase> { GetPageDataUseCaseImpl(get(), get(), get(), get()) }
+        singleOf(::GetPageDataUseCaseImpl) withOptions {
+            bind<GetPageDataUseCase>()
+        }
 
-        single<RecognizeTextUseCase> { RecognizeTextUseCaseImpl(get(), get()) }
+        singleOf(::RecognizeTextUseCaseImpl) withOptions {
+            bind<RecognizeTextUseCase>()
+        }
 
         single<ThirdPartyUseCase> { ThirdPartyUseCaseImpl(androidApplication(), get()) }
 
-        single<OCR.Factory> { TesseractOCR.Factory(get(), get()) }
+        singleOf(TesseractOCR::Factory) withOptions {
+            bind<OCR.Factory>()
+        }
         single<TTS.Factory> { TTSFactory(androidApplication(), get(), inject()) }
     }
 
-    private val mapperModule = module {
-        factory<ComicMetadataIntoComicListItem>(Names.mapperComicToListItem) { SimpleComicBookWithTags::intoListItem }
-        factory<ComicMetadataIntoComicInfo>(Names.mapperComicToInfo) { FullComicBookWithTags?::intoComicInfo }
-        factory<ComicBookIntoDescription>(Names.mapperComicToDescription) { ComicBook?::intoDescription }
+    private val mapper = module {
+        factory<ComicMetadataIntoComicListItem>(Name.MAPPER_COMICS_TO_LIST_ITEM.qualifier) { SimpleComicBookWithTags::intoListItem }
+        factory<ComicMetadataIntoComicInfo>(Name.MAPPER_COMICS_TO_INFO.qualifier) { FullComicBookWithTags?::intoComicInfo }
+        factory<ComicBookIntoDescription>(Name.MAPPER_COMICS_TO_DESCRIPTION.qualifier) { ComicBook?::intoDescription }
+    }
+
+    /**
+     * Main module of the library
+     */
+    val main = module {
+        includes(
+            DataModule.main,
+            logic,
+            useCase,
+            mapper
+        )
     }
 }

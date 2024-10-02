@@ -57,8 +57,10 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.transform
-import org.koin.core.scope.KoinScopeComponent
-import org.koin.core.scope.get
+import org.koin.android.ext.android.get
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.core.component.KoinScopeComponent
+import org.koin.core.qualifier.qualifier
 import kotlin.coroutines.resume
 import kotlin.properties.Delegates
 
@@ -109,7 +111,8 @@ class BookViewerActivity :
     AppCompatActivity(R.layout.activity_book_viewer),
     BookViewerView,
     BookViewerPageFragment.Callback,
-    KoinScopeComponent {
+    KoinScopeComponent,
+    AndroidScopeComponent {
     private val viewBinding by viewBinding(ActivityBookViewerBinding::bind)
 
     private val viewerStatesBinding by viewBinding(configCustom {
@@ -120,7 +123,7 @@ class BookViewerActivity :
 
     private val lifecycleScope = koinLifecycleScope {
         // Create retainScope and link it to Activity scope
-        it.linkTo(koinRetainScope(Names.viewerRetainScope).scope)
+        it.linkTo(createActivityRetainScope(Name.VIEWER_RETAIN_SCOPE.qualifier))
     }
 
     /**

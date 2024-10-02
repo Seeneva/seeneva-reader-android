@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,7 @@
 package app.seeneva.reader.screen.list.dialog.radiobuttons
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.RadioButton
 import androidx.core.view.plusAssign
 import app.seeneva.reader.R
@@ -31,7 +29,8 @@ import app.seeneva.reader.databinding.DialogComicListRadioButtonsBinding
 import app.seeneva.reader.extension.inflate
 import app.seeneva.reader.screen.list.dialog.BaseDraggableDialog
 
-abstract class RadioButtonDialog<K : Any, V : Any> : BaseDraggableDialog() {
+abstract class RadioButtonDialog<K : Any, V : Any> :
+    BaseDraggableDialog(R.layout.dialog_comic_list_radio_buttons) {
     private val viewBinding by viewBinding(DialogComicListRadioButtonsBinding::bind)
 
     protected abstract val values: Array<V>
@@ -47,12 +46,6 @@ abstract class RadioButtonDialog<K : Any, V : Any> : BaseDraggableDialog() {
             getKey(requireArguments())
         }
     }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.dialog_comic_list_radio_buttons, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

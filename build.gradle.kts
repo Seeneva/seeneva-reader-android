@@ -82,8 +82,6 @@ subprojects {
         }
 
         compileOptions {
-            isCoreLibraryDesugaringEnabled = true
-
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
@@ -124,8 +122,8 @@ subprojects {
         implementation(Deps.ANDROIDX_ANNOTATIONS)
         implementation(Deps.ANDROIDX_CORE_KTX)
 
-        //implementation(Deps.KOIN_ANDROID)
-        implementation(Deps.KOIN_ANDROIDX_SCOPE)
+        implementation(platform(Deps.KOIN_BOM))
+        implementation(Deps.KOIN_ANDROID)
 
         implementation(Deps.TINYLOG_API)
         implementation(Deps.TINYLOG_IMPL)

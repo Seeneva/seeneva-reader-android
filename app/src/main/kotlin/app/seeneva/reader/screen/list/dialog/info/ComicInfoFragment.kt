@@ -18,6 +18,7 @@
 
 package app.seeneva.reader.screen.list.dialog.info
 
+import android.app.Dialog
 import android.net.Uri
 import android.os.Bundle
 import android.text.util.Linkify
@@ -43,7 +44,8 @@ import app.seeneva.reader.presenter.PresenterView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
-import org.koin.core.scope.KoinScopeComponent
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.core.component.KoinScopeComponent
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoField
@@ -52,7 +54,11 @@ import com.google.android.material.R as MaterialR
 
 interface ComicInfoView : PresenterView
 
-class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeComponent {
+class ComicInfoFragment :
+    BottomSheetDialogFragment(R.layout.fragment_comic_info),
+    ComicInfoView,
+    KoinScopeComponent,
+    AndroidScopeComponent {
     init {
         setStyle(STYLE_NORMAL, R.style.AppTheme_BottomSheetDialog_FullScreen)
     }
@@ -73,11 +79,6 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
                 }
             }
             .let { BottomSheetBehavior.from(it) }
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,12 +113,11 @@ class ComicInfoFragment : BottomSheetDialogFragment(), ComicInfoView, KoinScopeC
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return inflater.inflate(R.layout.fragment_comic_info, container, false)
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        if (savedInstanceState == null) {
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
+        return super.onCreateDialog(savedInstanceState)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

@@ -80,9 +80,10 @@ import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.koin.core.scope.KoinScopeComponent
+import org.koin.android.ext.android.get
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.core.component.KoinScopeComponent
 import org.koin.core.scope.Scope
-import org.koin.core.scope.get
 import java.util.ArrayDeque
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
@@ -170,7 +171,8 @@ class ComicsListFragment(
     ComicRenameDialog.Callback,
     EditFiltersDialog.Callback,
     AddModeSelectorDialog.Callback,
-    KoinScopeComponent {
+    KoinScopeComponent,
+    AndroidScopeComponent {
     private val viewBinding by viewBinding(FragmentComicListBinding::bind)
 
     private val searchView by _searchView
@@ -354,6 +356,77 @@ class ComicsListFragment(
         }
     }
 
+    private val menuProvider = object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menuInflater.inflate(R.menu.comics_list, menu)
+        }
+
+        override fun onPrepareMenu(menu: Menu) {
+            super.onPrepareMenu(menu)
+
+            if (currentListScreenState.value.menuEnabled) {
+                with(menu.findItem(R.id.list_view)) {
+                    val iconResId: Int
+                    val titleResId: Int
+
+                    when (currentListType) {
+                        ComicListViewType.GRID -> {
+                            iconResId = R.drawable.ic_round_view_list_24dp
+                            titleResId = R.string.comic_list_as_list
+                        }
+
+                        ComicListViewType.LIST -> {
+                            iconResId = R.drawable.ic_round_view_module_24dp
+                            titleResId = R.string.comic_list_as_grid
+                        }
+                    }
+
+                    icon = AppCompatResources.getDrawable(requireContext(), iconResId)
+                    setTitle(titleResId)
+                }
+
+                with(menu.findItem(R.id.sync)) {
+                    isEnabled = currentSyncState == ComicsListView.SyncState.IDLE
+                }
+            } else {
+                menu.forEach {
+                    it.isVisible = it.itemId == R.id.add
+                }
+            }
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
+            when (menuItem.itemId) {
+                R.id.add -> {
+                    onAddComicBookClick()
+                    true
+                }
+
+                R.id.sort -> {
+                    presenter.onSortListClick()
+                    true
+                }
+
+                R.id.list_view -> {
+                    nextComicListType()
+                    true
+                }
+
+                R.id.filter -> {
+                    presenter.onEditFilterClick()
+                    true
+                }
+
+                R.id.sync -> {
+                    presenter.onSyncClick()
+                    true
+                }
+
+                else ->
+                    false
+            }
+    }
+
     /**
      * Launch notification permission request dialog
      */
@@ -365,7 +438,7 @@ class ComicsListFragment(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setHasOptionsMenu(true)
+        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         searchView.setOnCloseListener { true }
 
@@ -532,75 +605,6 @@ class ComicsListFragment(
         listSelectionTracker.onSaveInstanceState(outState)
         outState.putInt(STATE_LIST_FIRST_ITEM, listLayoutManager.findFirstVisibleItemPosition())
     }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.comics_list, menu)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-
-        if (currentListScreenState.value.menuEnabled) {
-            with(menu.findItem(R.id.list_view)) {
-                val iconResId: Int
-                val titleResId: Int
-
-                when (currentListType) {
-                    ComicListViewType.GRID -> {
-                        iconResId = R.drawable.ic_round_view_list_24dp
-                        titleResId = R.string.comic_list_as_list
-                    }
-
-                    ComicListViewType.LIST -> {
-                        iconResId = R.drawable.ic_round_view_module_24dp
-                        titleResId = R.string.comic_list_as_grid
-                    }
-                }
-
-                icon = AppCompatResources.getDrawable(requireContext(), iconResId)
-                setTitle(titleResId)
-            }
-
-            with(menu.findItem(R.id.sync)) {
-                isEnabled = currentSyncState == ComicsListView.SyncState.IDLE
-            }
-        } else {
-            menu.forEach {
-                it.isVisible = it.itemId == R.id.add
-            }
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem) =
-        when (item.itemId) {
-            R.id.add -> {
-                onAddComicBookClick()
-                true
-            }
-
-            R.id.sort -> {
-                presenter.onSortListClick()
-                true
-            }
-
-            R.id.list_view -> {
-                nextComicListType()
-                true
-            }
-
-            R.id.filter -> {
-                presenter.onEditFilterClick()
-                true
-            }
-
-            R.id.sync -> {
-                presenter.onSyncClick()
-                true
-            }
-
-            else -> super.onOptionsItemSelected(item)
-        }
 
     override fun showFilters(filters: List<FilterLabel>) {
         if (filters.isNotEmpty()) {

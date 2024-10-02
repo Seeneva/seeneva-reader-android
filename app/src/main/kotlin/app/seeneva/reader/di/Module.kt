@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,40 +24,21 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.work.WorkManager
 import app.seeneva.reader.AppDispatchers
 import app.seeneva.reader.common.coroutines.Dispatchers
-import app.seeneva.reader.logic.ComicsSettings
 import app.seeneva.reader.logic.image.ImageLoader
 import app.seeneva.reader.logic.text.ocr.OCR
 import app.seeneva.reader.logic.text.tts.TTS
 import app.seeneva.reader.logic.text.tts.newViewerTTS
 import app.seeneva.reader.router.asRouterContext
-import app.seeneva.reader.screen.about.licenses.ThirdPartyActivity
-import app.seeneva.reader.screen.about.licenses.ThirdPartyPresenter
-import app.seeneva.reader.screen.about.licenses.ThirdPartyPresenterImpl
-import app.seeneva.reader.screen.about.licenses.ThirdPartyViewModelImpl
+import app.seeneva.reader.screen.about.licenses.*
 import app.seeneva.reader.screen.list.*
-import app.seeneva.reader.screen.list.dialog.filters.EditFiltersDialog
-import app.seeneva.reader.screen.list.dialog.filters.EditFiltersPresenter
-import app.seeneva.reader.screen.list.dialog.filters.EditFiltersPresenterImpl
-import app.seeneva.reader.screen.list.dialog.filters.EditFiltersViewModelImpl
-import app.seeneva.reader.screen.list.dialog.info.ComicInfoFragment
+import app.seeneva.reader.screen.list.dialog.filters.*
+import app.seeneva.reader.screen.list.dialog.info.*
 import app.seeneva.reader.screen.list.dialog.info.ComicInfoFragment.Companion.bookId
-import app.seeneva.reader.screen.list.dialog.info.ComicInfoPresenter
-import app.seeneva.reader.screen.list.dialog.info.ComicInfoPresenterImpl
-import app.seeneva.reader.screen.list.dialog.info.ComicInfoViewModelImpl
-import app.seeneva.reader.screen.viewer.BookViewerActivity
+import app.seeneva.reader.screen.viewer.*
 import app.seeneva.reader.screen.viewer.BookViewerActivity.Companion.bookId
-import app.seeneva.reader.screen.viewer.BookViewerPresenter
-import app.seeneva.reader.screen.viewer.BookViewerPresenterImpl
-import app.seeneva.reader.screen.viewer.BookViewerViewModelImpl
-import app.seeneva.reader.screen.viewer.dialog.config.ViewerConfigDialog
-import app.seeneva.reader.screen.viewer.dialog.config.ViewerConfigPresenter
-import app.seeneva.reader.screen.viewer.dialog.config.ViewerConfigPresenterImpl
-import app.seeneva.reader.screen.viewer.dialog.config.ViewerConfigViewModelImpl
-import app.seeneva.reader.screen.viewer.page.BookViewerPageFragment
+import app.seeneva.reader.screen.viewer.dialog.config.*
+import app.seeneva.reader.screen.viewer.page.*
 import app.seeneva.reader.screen.viewer.page.BookViewerPageFragment.Companion.pageId
-import app.seeneva.reader.screen.viewer.page.BookViewerPagePresenter
-import app.seeneva.reader.screen.viewer.page.BookViewerPagePresenterImpl
-import app.seeneva.reader.screen.viewer.page.BookViewerPageViewModelImpl
 import app.seeneva.reader.service.add.*
 import app.seeneva.reader.work.SyncManager
 import app.seeneva.reader.work.SyncWorkManager
@@ -65,35 +46,24 @@ import app.seeneva.reader.work.worker.SyncWorker
 import kotlinx.coroutines.Job
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.scope.ScopeHandlerViewModel
-import org.koin.androidx.viewmodel.dsl.viewModel
-import org.koin.androidx.viewmodel.ext.android.getViewModel
 import org.koin.androidx.workmanager.dsl.worker
 import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.KoinApplication
-import org.koin.core.module.Module
+import org.koin.core.module.dsl.*
 import org.koin.core.parameter.parametersOf
-import org.koin.core.qualifier.Qualifier
 import org.koin.core.qualifier.named
+import org.koin.core.qualifier.qualifier
 import org.koin.dsl.ScopeDSL
 import org.koin.dsl.module
 import org.koin.dsl.onClose
-import app.seeneva.reader.logic.di.Modules as LogicModules
+import app.seeneva.reader.logic.di.Module as LogicModule
 
-object Names {
-    val viewerRetainScope: Qualifier
-        get() = named("VIEWER_RETAIN_SCOPE")
+enum class Name {
+    VIEWER_RETAIN_SCOPE
 }
 
-private object Modules {
-    val all: Array<Module>
-        get() = LogicModules.all +
-                arrayOf(
-                    appModule,
-                    componentsModule,
-                )
-
-    private val appModule = module {
+object Module {
+    private val app = module {
         single<Dispatchers> { AppDispatchers }
 
         single<SyncManager> { SyncWorkManager(WorkManager.getInstance(androidApplication())) }
@@ -107,26 +77,16 @@ private object Modules {
                 get()
             )
         }
-
-        viewModel { ScopeHandlerViewModel() }
     }
 
-    private val componentsModule = module {
+    private val components = module {
         scope<ComicsListFragment> {
-            scoped<ComicsListPresenter> {
-                val fragment = getSource<ComicsListFragment>()
-                val settings = get<ComicsSettings>()
-
-                ComicsListPresenterImpl(
-                    fragment,
-                    get(),
-                    settings,
-                    fragment.getViewModel<ComicsListViewModelImpl>()
-                )
+            scopedOf(::ComicsListPresenterImpl) withOptions {
+                bind<ComicsListPresenter>()
             }
 
             scoped<ComicListRouter> {
-                val src = getSource<Fragment>()
+                val src = get<Fragment>()
 
                 ComicListRouterImpl(src.asRouterContext(), src)
             }
@@ -136,18 +96,18 @@ private object Modules {
 
         scope<ComicInfoFragment> {
             scoped<ComicInfoPresenter> {
-                val fragment = getSource<ComicInfoFragment>()
+                val fragment = get<ComicInfoFragment>()
 
                 ComicInfoPresenterImpl(
                     fragment,
                     get(),
-                    fragment.getViewModel<ComicInfoViewModelImpl>(),
+                    get(),
                     fragment.bookId
                 )
             }
         }
 
-        scope(Names.viewerRetainScope) {
+        scope(Name.VIEWER_RETAIN_SCOPE.qualifier) {
             scoped { get<OCR.Factory>().new() }.onClose { it?.close() }
 
             scoped { get<TTS.Factory>().newViewerTTS() }.onClose { it?.close() }
@@ -157,12 +117,12 @@ private object Modules {
             scopedImageLoader()
 
             scoped<BookViewerPresenter> {
-                val activity = getSource<BookViewerActivity>()
+                val activity = get<BookViewerActivity>()
 
                 BookViewerPresenterImpl(
                     activity,
                     get(),
-                    activity.getViewModel<BookViewerViewModelImpl>(),
+                    get(),
                     activity.bookId
                 )
             }
@@ -172,7 +132,7 @@ private object Modules {
             scopedImageLoader()
 
             scoped<BookViewerPagePresenter> {
-                val fragment = getSource<BookViewerPageFragment>()
+                val fragment = get<BookViewerPageFragment>()
 
                 BookViewerPagePresenterImpl(
                     fragment,
@@ -181,7 +141,7 @@ private object Modules {
                     get(),
                     inject(),
                     get(),
-                    fragment.getViewModel<BookViewerPageViewModelImpl>(),
+                    get(),
                     fragment.pageId
                 )
             }
@@ -189,13 +149,11 @@ private object Modules {
 
         scope<ViewerConfigDialog> {
             scoped<ViewerConfigPresenter> {
-                val fragment = getSource<ViewerConfigDialog>()
-
                 ViewerConfigPresenterImpl(
-                    fragment,
+                    get(),
                     get(),
                     inject(),
-                    fragment.getViewModel<ViewerConfigViewModelImpl>()
+                    get()
                 )
             }
 
@@ -203,26 +161,20 @@ private object Modules {
         }
 
         scope<ThirdPartyActivity> {
-            scoped<ThirdPartyPresenter> {
-                val fragment = getSource<ThirdPartyActivity>()
-
-                ThirdPartyPresenterImpl(
-                    fragment,
-                    get(),
-                    fragment.getViewModel<ThirdPartyViewModelImpl>()
-                )
+            scopedOf(::ThirdPartyPresenterImpl) withOptions {
+                bind<ThirdPartyPresenter>()
             }
         }
 
         scope<EditFiltersDialog> {
             scoped<EditFiltersPresenter> {
-                val fragment = getSource<EditFiltersDialog>()
+                val fragment = get<EditFiltersDialog>()
 
                 EditFiltersPresenterImpl(
                     fragment,
                     get(),
                     EditFiltersDialog.readSelectedFilters(fragment),
-                    fragment.getViewModel<EditFiltersViewModelImpl>()
+                    get()
                 )
             }
         }
@@ -230,7 +182,7 @@ private object Modules {
         scope<AddComicBookService> {
             scoped<AddComicBookPresenter> {
                 AddComicBookPresenterImpl(
-                    getSource<AddComicBookService>(),
+                    get<AddComicBookService>(),
                     get(),
                     get(),
                     get(),
@@ -253,33 +205,59 @@ private object Modules {
                 get(),
                 job
             )
+        } withOptions {
+            bind<ComicsListViewModel>()
         }
 
-        viewModel { ComicInfoViewModelImpl(get(), get()) }
+        viewModelOf(::ComicInfoViewModelImpl) withOptions {
+            bind<ComicInfoViewModel>()
+        }
 
-        viewModel { EditFiltersViewModelImpl(get(), get()) }
+        viewModelOf(::EditFiltersViewModelImpl) withOptions {
+            bind<EditFiltersViewModel>()
+        }
 
-        viewModel { BookViewerViewModelImpl(get(), get(), get()) }
+        viewModelOf(::BookViewerViewModelImpl) withOptions {
+            bind<BookViewerViewModel>()
+        }
 
-        viewModel { BookViewerPageViewModelImpl(get(), inject(), get(), get()) }
+        viewModel { BookViewerPageViewModelImpl(get(), inject(), get(), get()) } withOptions {
+            bind<BookViewerPageViewModel>()
+        }
 
-        viewModel { ViewerConfigViewModelImpl(androidApplication(), get(), get()) }
+        viewModelOf(::ViewerConfigViewModelImpl) withOptions {
+            bind<ViewerConfigViewModel>()
+        }
 
-        viewModel { ThirdPartyViewModelImpl(get(), get()) }
+        viewModelOf(::ThirdPartyViewModelImpl) withOptions {
+            bind<ThirdPartyViewModel>()
+        }
+    }
+
+    // https://github.com/InsertKoinIO/koin/issues/1702
+    /**
+     * Main DI module for the app
+     */
+    val main = module {
+        includes(
+            LogicModule.main,
+            app,
+            components
+        )
+    }
+
+    /**
+     * Get image loader using current scope source which sould implement [LifecycleOwner]
+     */
+    private fun ScopeDSL.scopedImageLoader() {
+        scoped<ImageLoader> {
+            get(named<ImageLoader>()) { parametersOf(get<LifecycleOwner>().lifecycle) }
+        }
     }
 }
 
 fun KoinApplication.setup(app: Application) {
     androidContext(app)
     workManagerFactory()
-    modules(Modules.all.asList())
-}
-
-/**
- * Get image loader using current scope source which sould implement [LifecycleOwner]
- */
-private fun ScopeDSL.scopedImageLoader() {
-    scoped<ImageLoader> {
-        get(named<ImageLoader>()) { parametersOf(getSource<LifecycleOwner>().lifecycle) }
-    }
+    modules(Module.main)
 }

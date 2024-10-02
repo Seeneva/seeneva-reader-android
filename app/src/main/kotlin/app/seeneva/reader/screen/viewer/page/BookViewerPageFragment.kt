@@ -60,8 +60,9 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import org.koin.core.scope.KoinScopeComponent
-import org.koin.core.scope.get
+import org.koin.android.ext.android.get
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.core.component.KoinScopeComponent
 import kotlin.math.roundToInt
 
 interface BookViewerPageView : PresenterStatefulView
@@ -70,7 +71,8 @@ class BookViewerPageFragment :
     Fragment(R.layout.fragment_viewer_page),
     BookViewerPageView,
     PageViewerHelperFragment.Callback,
-    KoinScopeComponent {
+    KoinScopeComponent,
+    AndroidScopeComponent {
     private val viewBinding by viewBinding(FragmentViewerPageBinding::bind)
     private val statesViewBinding by viewBinding { LayoutViewerStatesBinding.bind(viewBinding.root) }
 

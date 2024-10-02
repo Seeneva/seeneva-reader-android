@@ -19,9 +19,7 @@
 package app.seeneva.reader.screen.list.dialog.filters
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -41,7 +39,8 @@ import app.seeneva.reader.logic.entity.query.filter.Filter
 import app.seeneva.reader.logic.entity.query.filter.FilterGroup
 import app.seeneva.reader.presenter.PresenterStatefulView
 import app.seeneva.reader.screen.list.dialog.BaseDraggableDialog
-import org.koin.core.scope.KoinScopeComponent
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.core.component.KoinScopeComponent
 import java.io.Serializable
 import java.util.EnumMap
 
@@ -50,7 +49,11 @@ interface EditFiltersView : PresenterStatefulView {
     fun filtersAccepted(acceptedFilters: Map<FilterGroup.ID, Filter>)
 }
 
-class EditFiltersDialog : BaseDraggableDialog(), EditFiltersView, KoinScopeComponent {
+class EditFiltersDialog :
+    BaseDraggableDialog(R.layout.dialog_comic_filters),
+    EditFiltersView,
+    KoinScopeComponent,
+    AndroidScopeComponent {
     private val viewBinding by viewBinding(DialogComicFiltersBinding::bind)
 
     private val lifecycleScope = koinLifecycleScope { it.linkTo(requireParentFragmentScope()) }
@@ -60,14 +63,6 @@ class EditFiltersDialog : BaseDraggableDialog(), EditFiltersView, KoinScopeCompo
     private val presenter by lifecycleScope.autoInit<EditFiltersPresenter>()
 
     private val callback by lazy { scope.getOrNull<Callback>() }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return inflater.inflate(R.layout.dialog_comic_filters, container, false)
-    }
 
     override fun showFilters(
         filterGroups: List<FilterGroup>,

@@ -19,7 +19,6 @@
 package app.seeneva.reader.screen.list.dialog
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -30,18 +29,10 @@ import app.seeneva.reader.extension.inflate
 import app.seeneva.reader.logic.comic.AddComicBookMode
 import app.seeneva.reader.logic.R as LogicR
 
-class AddModeSelectorDialog : BaseDraggableDialog() {
+class AddModeSelectorDialog : BaseDraggableDialog(R.layout.dialog_add_mode_selector) {
     private val addModes = AddComicBookMode.entries
 
     private val callback by lazy { parentFragmentScope?.getOrNull<Callback>() }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return inflater.inflate(R.layout.dialog_add_mode_selector, container, false)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
