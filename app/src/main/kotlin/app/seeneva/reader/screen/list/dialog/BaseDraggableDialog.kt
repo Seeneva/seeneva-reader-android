@@ -18,7 +18,6 @@
 
 package app.seeneva.reader.screen.list.dialog
 
-import android.app.Dialog
 import android.os.Bundle
 import android.view.View
 import app.seeneva.reader.R
@@ -40,15 +39,12 @@ abstract class BaseDraggableDialog : BottomSheetDialogFragment {
         setStyle(STYLE_NORMAL, R.style.AppTheme_BottomSheetDialog_NonCollapsed)
     }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         if (savedInstanceState == null) {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
-        return super.onCreateDialog(savedInstanceState)
-    }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         view.setDraggableBackground()
     }
 }
