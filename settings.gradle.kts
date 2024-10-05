@@ -20,9 +20,15 @@
 // https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_management
 pluginManagement {
     repositories {
-        gradlePluginPortal()
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
-        google()
+        gradlePluginPortal()
     }
 }
 
