@@ -37,7 +37,6 @@ import app.seeneva.reader.logic.di.TestModules
 import app.seeneva.reader.logic.entity.ml.ObjectClass
 import app.seeneva.reader.logic.text.Language
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import okio.use
 import org.amshove.kluent.*
@@ -56,7 +55,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import app.seeneva.reader.data.di.Modules as DataModules
+import app.seeneva.reader.data.di.Module as DataModule
 
 /**
  * Test native comic book opening and parsing
@@ -93,7 +92,7 @@ class NativeComicOpeningTest : KoinTest {
     val koinTestRule = KoinTestRule.create {
         androidContext(context)
         androidLogger()
-        modules(DataModules.nativeModule, TestModules.appModule)
+        modules(DataModule.native, TestModules.appModule)
     }
 
 

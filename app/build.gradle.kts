@@ -25,6 +25,7 @@ import extension.envOrProperty
 import extension.signProperties
 
 plugins {
+    id("seeneva.android-application-conventions")
 }
 
 // True if this build is running in CI
@@ -148,29 +149,44 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
+    implementation(project(":common"))
     implementation(project(":logic"))
 
-    implementation(Deps.ANDROIDX_APPCOMPAT)
-    implementation(Deps.ANDROIDX_ACTIVITY_KTX)
-    implementation(Deps.ANDROIDX_VIEW_PAGER)
-    implementation(Deps.ANDROIDX_RECYCLER_VIEW)
-    implementation(Deps.ANDROIDX_RECYCLER_VIEW_SELECTION)
-    implementation(Deps.ANDROIDX_FRAGMENT_KTX)
-    implementation(Deps.ANDROIDX_LIFECYCLE_RUNTIME)
-    implementation(Deps.ANDROIDX_LIFECYCLE_SERVICE)
-    implementation(Deps.ANDROIDX_LIFECYCLE_VIEWMODEL)
-    implementation(Deps.ANDROIDX_LIFECYCLE_LIVEDATA)
-    implementation(Deps.ANDROIDX_LIFECYCLE_JAVA8)
-    implementation(Deps.ANDROIDX_PAGING_RUNTIME)
-    implementation(Deps.ANDROIDX_CONSTRAINT_LAYOUT)
-    implementation(Deps.ANDROIDX_WORK_RUNTIME)
-    implementation(Deps.ANDROIDX_SWIPE_REFRESH_LAYOUT)
+    implementation(libs.kotlinx.coroutines.android)
 
-    implementation(Deps.MATERIAL)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.annotations)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.viewpager)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.recyclerview.selection)
+    implementation(libs.androidx.fragment)
+    implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.service)
+    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.livedata)
+    implementation(libs.androidx.lifecycle.java8)
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.swipeRefreshLayout)
 
-    implementation(Deps.KOIN_ANDROIDX_WORKMANAGER)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.android)
+    implementation(libs.koin.android.workmanager)
 
-    implementation(Deps.SCALE_IMAGE_VIEW)
+    implementation(libs.tinylog.api)
+    implementation(libs.tinylog.impl)
+
+    implementation(libs.material)
+
+    implementation(libs.scaleImageView)
+
+    testImplementation(kotlin("test-junit"))
+    testImplementation(libs.kluent) {
+        exclude("com.nhaarman.mockitokotlin2")
+    }
 }
 
 /**

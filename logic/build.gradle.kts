@@ -17,7 +17,8 @@
  */
 
 plugins {
-
+    id("seeneva.android-library-conventions")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -36,13 +37,37 @@ android {
 dependencies {
     api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
+    implementation(project(":common"))
     implementation(project(":data"))
 
-    implementation(Deps.COIL)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.json)
 
-    api(Deps.ANDROIDX_PAGING_COMMON)
-    api(Deps.ANDROIDX_PALETTE)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.annotations)
+    api(libs.androidx.paging.common)
+    api(libs.androidx.palette)
 
-    implementation(Deps.R_TREE)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.android)
+
+    implementation(libs.tinylog.api)
+    implementation(libs.tinylog.impl)
+
+    implementation(libs.coil)
+
+    implementation(libs.rTree)
+
+    testImplementation(kotlin("test-junit"))
+    testImplementation(libs.mockk)
+
+    androidTestImplementation(kotlin("test-junit"))
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.koin.test.junit4)
+    androidTestImplementation(libs.kluent) {
+        exclude("com.nhaarman.mockitokotlin2")
+    }
 }
 

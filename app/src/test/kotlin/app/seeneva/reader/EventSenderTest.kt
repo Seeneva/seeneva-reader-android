@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@ import org.amshove.kluent.coInvoking
 import org.amshove.kluent.shouldContainAll
 import org.amshove.kluent.shouldNotThrow
 import org.amshove.kluent.withMessage
-import org.junit.Test
 import java.util.concurrent.Executors
+import kotlin.test.Test
 
 class EventSenderTest {
     @Test

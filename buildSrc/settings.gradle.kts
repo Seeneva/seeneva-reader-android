@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,16 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-plugins {
-    `kotlin-dsl`
-    `kotlin-dsl-precompiled-script-plugins`
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+    }
 }
 
-dependencies {
-    implementation(libs.android.gradle.plugin)
-    implementation(libs.kotlin.gradle.plugin)
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 
-    // https://stackoverflow.com/a/70878181
-    // Use "as Any" to remove IDE's warning "Unresolved reference to version catalog"
-    implementation(files((libs as Any).javaClass.superclass.protectionDomain.codeSource.location))
+    repositories {
+        mavenCentral()
+        google()
+    }
+
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
 }

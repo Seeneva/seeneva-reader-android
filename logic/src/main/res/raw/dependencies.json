@@ -240,16 +240,6 @@
         }
     },
     {
-        "name": "Androidx multidex",
-        "version": "2.0.1",
-        "authors": "Copyright © The Android Open Source Project (AOSP)",
-        "summary": "Deploy applications with multiple dex files on pre-Android 5 devices.",
-        "homepage": "https://github.com/androidx/androidx",
-        "license": {
-            "type": "Apache-2.0"
-        }
-    },
-    {
         "name": "Material Components for Android",
         "version": "1.3.0",
         "authors": "Copyright © The Android Open Source Project (AOSP)",

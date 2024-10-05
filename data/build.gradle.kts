@@ -1,26 +1,29 @@
 /*
- *  This file is part of Seeneva Android Reader
- *  Copyright (C) 2021-2023 Sergei Solodovnikov
+ * This file is part of Seeneva Android Reader
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 plugins {
-    id(Plugin.KSP)
+    id("seeneva.android-library-conventions")
+    alias(libs.plugins.ksp)
 }
 
 android {
+    ndkVersion = "21.4.7075529"
+
     //https://developer.android.com/studio/projects/gradle-external-native-builds
     externalNativeBuild {
         cmake {
@@ -86,7 +89,25 @@ android {
 dependencies {
     api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation(Deps.ANDROIDX_ROOM_KTX)
+    implementation(project(":common"))
 
-    ksp(Deps.ANDROIDX_ROOM_COMPILER)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.annotations)
+    implementation(libs.androidx.room)
+
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.android)
+
+    implementation(libs.tinylog.api)
+    implementation(libs.tinylog.impl)
+
+    ksp(libs.androidx.room.compiler)
+
+    androidTestImplementation(kotlin("test-junit"))
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.kotlin.faker)
+    androidTestImplementation(libs.kluent) {
+        exclude("com.nhaarman.mockitokotlin2")
+    }
 }
