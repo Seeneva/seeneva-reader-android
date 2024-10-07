@@ -29,13 +29,13 @@ plugins {
 }
 
 android {
-    buildToolsVersion = "34.0.0"
+    buildToolsVersion = libs.versions.android.buildtools.get()
 
-    compileSdk = 34
+    compileSdk = libs.versions.android.version.compile.get().toInt()
 
     defaultConfig {
-        minSdk = 21
-        targetSdk = 34
+        minSdk = libs.versions.android.version.min.get().toInt()
+        targetSdk = libs.versions.android.version.target.get().toInt()
 
         loadProperties(rootDir.resolve("seeneva.properties")).also { seenevaProperties ->
             versionCode = requireEnvOrProperty(
@@ -55,6 +55,8 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }

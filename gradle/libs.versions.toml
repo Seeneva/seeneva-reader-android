@@ -2,10 +2,15 @@
 kotlin = "2.0.20"
 kotlinx-coroutines = "1.9.0"
 android-gradle-plugin = "8.7.0"
+android-buildtools = "34.0.0"
+android-version-compile = "34"
+android-version-min = "21"
+android-version-target = "34"
 androidx-lifecycle = "2.8.6"
 androidx-paging = "3.0.0"
 androidx-room = "2.6.1"
 tinylog = "2.3.1"
+mockk = "1.13.12"
 
 [libraries]
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
@@ -32,9 +37,9 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-swipeRefreshLayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version = "1.1.0" }
 androidx-palette = { module = "androidx.palette:palette-ktx", version = "1.0.0" }
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version = "2.9.1" }
-androidx-test-runner = { module = "androidx.test:runner", version = "1.3.0" }
-androidx-test-core = { module = "androidx.test:core-ktx", version = "1.3.0" }
-androidx-test-junit = { module = "androidx.test.ext:junit-ktx", version = "1.1.2" }
+androidx-test-runner = { module = "androidx.test:runner", version = "1.6.2" }
+androidx-test-core = { module = "androidx.test:core-ktx", version = "1.6.1" }
+androidx-test-junit = { module = "androidx.test.ext:junit-ktx", version = "1.2.1" }
 material = { module = "com.google.android.material:material", version = "1.12.0" }
 android-javaDesugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.2" }
 koin-bom = { module = "io.insert-koin:koin-bom", version = "4.0.0" }
@@ -46,7 +51,8 @@ tinylog-api = { module = "org.tinylog:tinylog-api-kotlin", version.ref = "tinylo
 tinylog-impl = { module = "org.tinylog:tinylog-impl", version.ref = "tinylog" }
 scaleImageView = { module = "com.davemorrissey.labs:subsampling-scale-image-view-androidx", version = "3.10.0" }
 rTree = { module = "com.github.davidmoten:rtree2", version = "0.9-RC1" }
-mockk = { module = "io.mockk:mockk", version = "1.11.0" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
 kotlin-faker = { module = "io.github.serpro69:kotlin-faker", version = "1.7.1" }
 kluent = { module = "org.amshove.kluent:kluent-android", version = "1.65" }
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "android-gradle-plugin" }

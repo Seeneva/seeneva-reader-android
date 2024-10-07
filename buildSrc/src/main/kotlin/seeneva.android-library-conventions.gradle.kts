@@ -27,17 +27,19 @@ plugins {
 }
 
 android {
-    buildToolsVersion = "34.0.0"
+    buildToolsVersion = libs.versions.android.buildtools.get()
 
-    compileSdk = 34
+    compileSdk = libs.versions.android.version.compile.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.android.version.min.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }

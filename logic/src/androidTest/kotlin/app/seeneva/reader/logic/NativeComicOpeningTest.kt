@@ -1,6 +1,6 @@
 /*
  * This file is part of Seeneva Android Reader
- * Copyright (C) 2021 Sergei Solodovnikov
+ * Copyright (C) 2021-2024 Sergei Solodovnikov
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,16 +27,18 @@ import androidx.core.graphics.toRect
 import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.seeneva.reader.common.coroutines.Dispatchers
 import app.seeneva.reader.data.NativeException
 import app.seeneva.reader.data.entity.ComicBook
 import app.seeneva.reader.data.entity.ComicBookPage
 import app.seeneva.reader.data.entity.ml.Interpreter
 import app.seeneva.reader.data.entity.ml.Tesseract
 import app.seeneva.reader.data.source.jni.NativeSource
-import app.seeneva.reader.logic.di.TestModules
 import app.seeneva.reader.logic.entity.ml.ObjectClass
 import app.seeneva.reader.logic.text.Language
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.*
 import okio.use
 import org.amshove.kluent.*
@@ -47,12 +49,12 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.test.KoinTest
 import org.koin.test.KoinTestRule
-import org.koin.test.inject
+import org.koin.test.get
+import org.koin.test.mock.declare
 import org.tinylog.kotlin.Logger
 import java.io.BufferedReader
 import java.io.File
 import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import app.seeneva.reader.data.di.Module as DataModule
@@ -67,7 +69,7 @@ class NativeComicOpeningTest : KoinTest {
     private val assets: AssetManager
         get() = context.assets
 
-    private val nativeSource by inject<NativeSource>()
+    private lateinit var nativeSource: NativeSource
 
     /**
      * Machine learning interpreter
@@ -78,7 +80,8 @@ class NativeComicOpeningTest : KoinTest {
     /**
      * Where to copy comic book archives from Android assets
      */
-    private val comicsCacheDir = requireNotNull(context.cacheDir).resolve(COMICS_ROOT_DIR)
+    private val comicsCacheDir =
+        requireNotNull(context.cacheDir).resolve(COMICS_ROOT_DIR)
 
     private val sourceOfTruth by lazy {
         val jsonStr = assets.open("$COMICS_ROOT_DIR/truth_source.json")
@@ -92,21 +95,7 @@ class NativeComicOpeningTest : KoinTest {
     val koinTestRule = KoinTestRule.create {
         androidContext(context)
         androidLogger()
-        modules(DataModule.native, TestModules.appModule)
-    }
-
-
-    @BeforeTest
-    fun setup() {
-        runBlocking {
-            mlInterpreter = nativeSource.initInterpreterFromAsset("yolo_seeneva.tflite")
-            tesseract = nativeSource.initTesseractFromAsset(
-                "${Language.English.code}_seeneva.traineddata",
-                Language.English.code
-            )
-        }
-
-        comicsCacheDir.mkdir()
+        modules(DataModule.native)
     }
 
     @AfterTest
@@ -137,27 +126,57 @@ class NativeComicOpeningTest : KoinTest {
         process(ComicType.PDF)
     }
 
-    private fun process(type: ComicType) {
-        val path = "$COMICS_ROOT_DIR/${type.folderName}"
+    private fun process(type: ComicType) = runTest {
+        nativeSource = get()
 
-        runBlocking {
-            assets.list(path)!!.forEach { fileName ->
-                val testComicBookPath = "$path/$fileName"
+        // Declare dispatchers for the test
+        declare<Dispatchers> {
+            object : Dispatchers {
+                val dispatcher = StandardTestDispatcher(testScheduler)
 
-                val targetPath = comicsCacheDir.resolveSibling(testComicBookPath)
-                    .also { requireNotNull(it.parentFile).mkdirs() }
-
-                Logger.info("Import test comic book '$testComicBookPath' into '$targetPath'")
-
-                assets.open(testComicBookPath).use { ins ->
-                    targetPath.outputStream().use { fos ->
-                        ins.copyTo(fos)
-                    }
-                }
-
-                openAndAssertComicBookNative(targetPath)
+                override val default: CoroutineDispatcher
+                    get() = dispatcher
+                override val io: CoroutineDispatcher
+                    get() = dispatcher
+                override val unconfined: CoroutineDispatcher
+                    get() = dispatcher
+                override val main: CoroutineDispatcher
+                    get() = dispatcher
+                override val mainImmediate: CoroutineDispatcher
+                    get() = dispatcher
             }
         }
+
+        prepare()
+
+        val path = "$COMICS_ROOT_DIR/${type.folderName}"
+
+        assets.list(path)!!.forEach { fileName ->
+            val testComicBookPath = "$path/$fileName"
+
+            val targetPath = comicsCacheDir.resolveSibling(testComicBookPath)
+                .also { requireNotNull(it.parentFile).mkdirs() }
+
+            Logger.info("Import test comic book '$testComicBookPath' into '$targetPath'")
+
+            assets.open(testComicBookPath).use { ins ->
+                targetPath.outputStream().use { fos ->
+                    ins.copyTo(fos)
+                }
+            }
+
+            openAndAssertComicBookNative(targetPath)
+        }
+    }
+
+    private suspend fun prepare() {
+        mlInterpreter = nativeSource.initInterpreterFromAsset("yolo_seeneva.tflite")
+        tesseract = nativeSource.initTesseractFromAsset(
+            "${Language.English.code}_seeneva.traineddata",
+            Language.English.code
+        )
+
+        comicsCacheDir.mkdir()
     }
 
     private suspend fun openAndAssertComicBookNative(comicFile: File) {
@@ -408,7 +427,6 @@ class NativeComicOpeningTest : KoinTest {
     }
 
     private inline fun <reified T> JsonObject.assertEquals(realValue: T?, name: String) {
-        @Suppress("IMPLICIT_CAST_TO_ANY")
         val expected = (this[name]?.jsonPrimitive?.let {
             when (T::class) {
                 String::class -> it.contentOrNull

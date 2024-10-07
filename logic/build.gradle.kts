@@ -59,7 +59,8 @@ dependencies {
     implementation(libs.rTree)
 
     testImplementation(kotlin("test-junit"))
-    testImplementation(libs.mockk)
+    testImplementation(libs.mockk.android)
+    testImplementation(libs.mockk.agent)
 
     androidTestImplementation(kotlin("test-junit"))
     androidTestImplementation(libs.kotlinx.coroutines.test)
