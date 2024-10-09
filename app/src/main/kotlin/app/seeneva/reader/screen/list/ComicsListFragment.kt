@@ -39,6 +39,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.withStarted
 import androidx.paging.LoadState
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
@@ -559,30 +560,32 @@ class ComicsListFragment(
                             }
                         }.collect { currentListScreenState.value = it }
                 }
+            }
+        }
 
-                launch {
-                    router.resultFlow.collect {
-                        when (it) {
-                            is ComicListRouterResult.AddComicBooks -> {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
-                                        requireContext(),
-                                        android.Manifest.permission.POST_NOTIFICATIONS
-                                    ) != PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    notificationPermissionCallback.addComicBookData = it
-                                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                                } else {
-                                    notificationPermissionCallback.addComicBook(it)
-                                }
+        viewLifecycleOwner.lifecycleScope.launch {
+            router.resultFlow.collect {
+                viewLifecycleOwner.withStarted {
+                    when (it) {
+                        is ComicListRouterResult.AddComicBooks -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
+                                    requireContext(),
+                                    android.Manifest.permission.POST_NOTIFICATIONS
+                                ) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                notificationPermissionCallback.addComicBookData = it
+                                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                notificationPermissionCallback.addComicBook(it)
                             }
+                        }
 
-                            is ComicListRouterResult.NonExistentBook -> {
-                                newSnackbar(resources.getString(R.string.comic_list_error_view_non_existed))
-                            }
+                        is ComicListRouterResult.NonExistentBook -> {
+                            newSnackbar(resources.getString(R.string.comic_list_error_view_non_existed))
+                        }
 
-                            is ComicListRouterResult.CorruptedComicBook -> {
-                                newSnackbar(resources.getString(R.string.comic_list_error_view_corrupted))
-                            }
+                        is ComicListRouterResult.CorruptedComicBook -> {
+                            newSnackbar(resources.getString(R.string.comic_list_error_view_corrupted))
                         }
                     }
                 }
