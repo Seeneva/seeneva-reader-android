@@ -34,6 +34,8 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.version.min.get().toInt()
 
+        vectorDrawables.useSupportLibrary = true
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
