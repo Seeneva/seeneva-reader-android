@@ -18,6 +18,8 @@
 
 package app.seeneva.reader.screen.viewer
 
+import android.os.Build
+import android.view.View
 import android.view.Window
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,6 +28,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
 import app.seeneva.reader.extension.insetsFlow
 import app.seeneva.reader.extension.waitLayout
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -146,20 +149,37 @@ private class SystemUiManagerInsets(
         }
     }
 
-    override val stateFlow = window.decorView
-        .insetsFlow()
-        .mapLatest {
-            //we need to wait till root view laid out
-            //without it windowInsets could be null
-            window.decorView.waitLayout()
 
-            if (it.isVisible(typeMask)) {
-                SystemUiState.SHOWED
-            } else {
-                SystemUiState.HIDDEN
-            }
-        }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, initState)
+    override val stateFlow =
+        @OptIn(ExperimentalCoroutinesApi::class)
+        window.decorView.let { v ->
+            v.insetsFlow()
+                .mapLatest { inset ->
+                    //we need to wait till root view laid out
+                    //without it windowInsets could be null
+                    v.waitLayout()
+
+                    // isVisible works correctly starting from Android 11
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        if (inset.isVisible(typeMask)) {
+                            SystemUiState.SHOWED
+                        } else {
+                            SystemUiState.HIDDEN
+                        }
+                    } else @Suppress("DEPRECATION") {
+                        val hideFlags =
+                            View.SYSTEM_UI_FLAG_IMMERSIVE or
+                                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                                    View.SYSTEM_UI_FLAG_FULLSCREEN
+
+                        if (v.systemUiVisibility and hideFlags == hideFlags) {
+                            SystemUiState.HIDDEN
+                        } else {
+                            SystemUiState.SHOWED
+                        }
+                    }
+                }
+        }.stateIn(coroutineScope, SharingStarted.Eagerly, initState)
 
     init {
         // This is the primary step for ensuring that your app goes edge-to-edge
