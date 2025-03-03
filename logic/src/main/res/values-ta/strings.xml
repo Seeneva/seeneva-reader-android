@@ -1,2 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="add_mode_link_descr">நகலெடுக்காமல் ஒரு காமிக் நூல் சேர்க்கப்படும். ஆனால் அது திறக்கப்பட்ட பயன்பாட்டை நீக்கியால், காமிக் நூல் வாசிப்புக்கு அணுக முடியாததாகிவிடும்.</string>
+    <string name="comic_tag_removed">அகற்றப்பட்டது</string>
+    <string name="comic_tag_corrupted">சிதைந்த</string>
+    <string name="comic_script_direction_ltr">இடமிருந்து வலமாக</string>
+    <string name="comic_script_direction_rtl">வலமிருந்து இடமாக</string>
+    <string name="sort_comic_list_time_asc">மிக அண்மைக் கால</string>
+    <string name="sort_comic_list_time_desc">மிக அண்மைக் கால முதல்</string>
+    <string name="sort_comic_list_name_asc">தலைப்பு (a..z)</string>
+    <string name="sort_comic_list_name_desc">தலைப்பு (z..a)</string>
+    <string name="filter_comic_completed_title">நிறைவு நிலை</string>
+    <string name="filter_comic_completed_any">ஏதேனும்</string>
+    <string name="filter_comic_completed_only">முடிந்தது</string>
+    <string name="filter_comic_completed_not">முடிக்கப்படவில்லை</string>
+    <string name="filter_comic_file_status_title">கோப்பு நிலை</string>
+    <string name="filter_comic_file_status_any">ஏதேனும்</string>
+    <string name="filter_comic_file_status_corrupted">சிதைந்த</string>
+    <string name="add_mode_import">இறக்குமதி</string>
+    <string name="add_mode_import_descr">ஒரு காமிக் புத்தகக் கோப்பு பயன்பாட்டின் உள் கோப்புறையில் நகலெடுக்கப்படும்</string>
+    <string name="add_mode_link">இணைப்பு</string>
+    <string name="comic_tag_completed">முடிந்தது</string>
+</resources>
