@@ -44,7 +44,7 @@
     <string name="comic_info_general_info_genre">வகை</string>
     <string name="comic_info_credits">வரவு</string>
     <string name="comic_info_writets">எழுத்தாளர்கள்</string>
-    <string name="comic_info_editors">ஆசிரியர்கள்</string>
+    <string name="comic_info_editors">திருத்திகள்</string>
     <string name="comic_info_pencillers">பென்சில்லர்கள்</string>
     <string name="comic_info_colorists">வண்ணமயமானவர்கள்</string>
     <string name="comic_info_inkers">இன்க்ச்</string>
@@ -89,7 +89,7 @@
     <string name="third_parties_authors">ஆசிரியர்கள்</string>
     <string name="third_parties_homepage">முகப்புப்பக்கம்</string>
     <string name="third_parties_summary">சுருக்கம்</string>
-    <string name="about_app_description">%1$s இலவச மென்பொருள்: நீங்கள் அதை மறுபகிர்வு செய்யலாம் மற்றும்/அல்லது இலவச மென்பொருள் அறக்கட்டளையால் வெளியிடப்பட்ட குனு பொது பொது உரிமத்தின் விதிமுறைகளின் கீழ் அதை மாற்றலாம், உரிமத்தின் பதிப்பு 3 அல்லது (உங்கள் விருப்பத்தில்) எந்தவொரு பதிப்பும்.</string>
+    <string name="about_app_description">%1$s இலவச மென்பொருள்: நீங்கள் அதை மறுபகிர்வு செய்யலாம் மற்றும்/அல்லது இலவச மென்பொருள் அறக்கட்டளையால் வெளியிடப்பட்ட குனு பொது பொதுமக்கள் உரிமத்தின் விதிமுறைகளின் கீழ் அதை மாற்றலாம், உரிமத்தின் பதிப்பு 3 அல்லது (உங்கள் விருப்பத்தில்) எந்தவொரு பதிப்பும்.</string>
     <string name="about_app_source_code">மூலக் குறியீடு</string>
     <string name="about_app_source_code_txt">பயன்பாட்டு களஞ்சியத்தைக் காண்க</string>
     <string name="about_app_donate">நன்கொடை</string>
