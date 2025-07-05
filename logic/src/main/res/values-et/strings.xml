@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sort_comic_list_time_asc">Viimatiloetu viimasena</string>
+    <string name="sort_comic_list_time_desc">Viimatiloetu esimesena</string>
+    <string name="sort_comic_list_name_asc">Pealkiri (A..Z)</string>
+    <string name="sort_comic_list_name_desc">Pealkiri (Z..A)</string>
+    <string name="filter_comic_completed_title">Lugemise olek</string>
+    <string name="filter_comic_completed_any">Kõik</string>
+    <string name="filter_comic_completed_only">Loetud</string>
+    <string name="filter_comic_completed_not">Pole loetud</string>
+    <string name="filter_comic_file_status_title">Faili olek</string>
+    <string name="filter_comic_file_status_any">Kõik</string>
+    <string name="filter_comic_file_status_corrupted">Vigane</string>
+    <string name="add_mode_import">Impordi</string>
+    <string name="add_mode_import_descr">Koomiksikogumik kopeeritakse rakenduse sisemisse andmeruumi</string>
+    <string name="add_mode_link">Lingi</string>
+    <string name="add_mode_link_descr">Koomiksikogumik lisatakse ilma kopeerimata. Kui peaksid kustutama rakenduse, kus tema algselt avasid, siis läheb koomiksikogumik ka kaotsi.</string>
+    <string name="comic_tag_completed">Loetud</string>
+    <string name="comic_tag_removed">Eemaldatud</string>
+    <string name="comic_tag_corrupted">Vigane</string>
+    <string name="comic_script_direction_ltr">Vasakult paremale</string>
+    <string name="comic_script_direction_rtl">Paremalt vasakule</string>
+</resources>
