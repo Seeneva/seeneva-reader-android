@@ -148,6 +148,9 @@ class BookViewerActivity :
     }
 
     private val viewerPager by lazy {
+        // Give page swipes a paper page-turn feel instead of a flat slide
+        viewBinding.pagesPager.setPageTransformer(PageTurnTransformer())
+
         ViewerPager(
             viewBinding.pagesPager,
             BookViewerAdapter(this),
